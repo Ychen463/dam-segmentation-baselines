@@ -41,10 +41,11 @@ def set_seed(seed: int) -> None:
 
 
 def pick_device(pref: str) -> str:
+    # CUDA always wins if available (RunPod / any GPU box), regardless of pref.
+    if torch.cuda.is_available():
+        return "cuda"
     if pref == "mps" and torch.backends.mps.is_available():
         return "mps"
-    if pref == "cuda" and torch.cuda.is_available():
-        return "cuda"
     return "cpu"
 
 
