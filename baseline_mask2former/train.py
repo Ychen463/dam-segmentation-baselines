@@ -188,11 +188,16 @@ def pred_maps_to_fake_logits(pred_maps: List[torch.Tensor], num_classes: int,
 
 def oom_probe(model: nn.Module, processor, cfg: C.RunCfg, device: str) -> bool:
     try:
-        # cuDNN warmup
+        # cuDNN warmup — force init before first real conv
         if device == "cuda":
-            _w = torch.randn(1, 3, 8, 8, device=device)
-            _ = nn.functional.conv2d(_w, torch.randn(3, 3, 3, 3, device=device), padding=1)
-            del _w, _
+            torch.backends.cudnn.enabled = True
+            torch.backends.cudnn.benchmark = True
+            _dummy = torch.zeros(1, device=device)
+            torch.cuda.synchronize()
+            _a = torch.randn(2, 2, device=device)
+            _ = _a @ _a
+            torch.cuda.synchronize()
+            del _dummy, _a, _
 
         # Dummy batch through processor
         dummy_imgs = [np.zeros((cfg.img_size, cfg.img_size, 3), dtype=np.uint8)
@@ -468,6 +473,18 @@ def main() -> None:
     test_files = read_split_file(C.SPLIT_FILES["test"])
     print(f"[train] sizes: train={len(train_files)} val={len(val_files)} test={len(test_files)}")
 
+    # ----- CUDA / cuDNN init -----
+    if device == "cuda":
+        torch.backends.cudnn.enabled = True
+        torch.backends.cudnn.benchmark = True
+        _dummy = torch.zeros(1, device=device)
+        torch.cuda.synchronize()
+        _a = torch.randn(2, 2, device=device)
+        _ = _a @ _a
+        torch.cuda.synchronize()
+        del _dummy, _a, _
+        print("[train] CUDA/cuDNN warmup OK")
+
     # ----- model + processor -----
     model, processor = build_model_and_processor(cfg)
     model = model.to(device)
@@ -526,11 +543,18 @@ def main() -> None:
     # ----- dry run -----
     if args.dry_run:
         print("[train] DRY RUN: 1 train step + 1 val batch (with BF1)")
-        # cuDNN warmup to avoid CUDNN_STATUS_NOT_INITIALIZED on first conv
+        # cuDNN warmup — force init before first real conv
         if device == "cuda":
-            _w = torch.randn(1, 3, 8, 8, device=device)
-            _ = torch.nn.functional.conv2d(_w, torch.randn(3, 3, 3, 3, device=device), padding=1)
-            del _w, _
+            torch.backends.cudnn.enabled = True
+            torch.backends.cudnn.benchmark = True
+            _dummy = torch.zeros(1, device=device)
+            torch.cuda.synchronize()
+            del _dummy
+            # Small matmul to fully wake up CUDA context
+            _a = torch.randn(2, 2, device=device)
+            _ = _a @ _a
+            torch.cuda.synchronize()
+            del _a, _
         model.train()
         batch = next(iter(train_loader))
         pv = batch["pixel_values"].to(device)
