@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/workspace/dam-segmentation-baselines/baseline_segformer/train.py", line 29, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
