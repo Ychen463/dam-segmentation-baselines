@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "<frozen runpy>", line 198, in _run_module_as_main
-  File "<frozen runpy>", line 88, in _run_code
-  File "/workspace/dam-segmentation-baselines/baseline_deeplab/train.py", line 24, in <module>
-    import numpy as np
-ModuleNotFoundError: No module named 'numpy'
