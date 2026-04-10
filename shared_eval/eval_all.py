@@ -11,17 +11,22 @@ Usage examples::
     # All registered models
     python -m shared_eval.eval_all --all-models --split test --per-tier
 
+    # Per-image CSV for statistical testing
+    python -m shared_eval.eval_all --all-models --split test --per-image
+
     # Custom output directory
     python -m shared_eval.eval_all --model unet_r34_320 --split test --output-dir results/
 """
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import sys
 from pathlib import Path
 from typing import Dict, List
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 
@@ -33,7 +38,8 @@ from baseline_unet.dataset import (
 )
 from baseline_unet.splits import SPLIT_FILES
 
-from .metrics_full import SegMetricsFull
+from .metrics_full import SegMetricsFull, _connectivity_ratio
+from .cldice import cldice_single
 from .model_registry import get as get_entry, list_models, load_model
 
 BF1_TOLERANCE_PX = 2
@@ -69,6 +75,76 @@ def _evaluate(model, loader: DataLoader, device: str) -> Dict[str, float]:
         metrics.update(logits, masks)
     return metrics.compute()
 
+
+# ---------------------------------------------------------------------------
+# Per-image evaluation (for statistical testing)
+# ---------------------------------------------------------------------------
+
+# Lazy import to avoid hard dep on boundary_f1 at module level
+_bf1_fn = None
+
+def _get_bf1_fn():
+    global _bf1_fn
+    if _bf1_fn is None:
+        from baseline_deeplab.boundary_f1 import boundary_f1_single
+        _bf1_fn = boundary_f1_single
+    return _bf1_fn
+
+
+def _per_image_metrics(pred: np.ndarray, gt: np.ndarray) -> Dict[str, float]:
+    """Compute per-image metrics for a single (H, W) prediction/ground-truth pair."""
+    bf1_fn = _get_bf1_fn()
+    row: Dict[str, float] = {}
+
+    for name, cid in (("crack", 1), ("spalling", 2)):
+        pred_mask = (pred == cid)
+        gt_mask = (gt == cid)
+        # IoU
+        inter = float((pred_mask & gt_mask).sum())
+        union = float((pred_mask | gt_mask).sum())
+        row[f"IoU_{name}"] = inter / max(union, 1e-9) if union > 0 else float("nan")
+        # Dice
+        denom = float(pred_mask.sum() + gt_mask.sum())
+        row[f"Dice_{name}"] = 2.0 * inter / max(denom, 1e-9) if denom > 0 else float("nan")
+        # BF1
+        val = bf1_fn(pred, gt, cid, BF1_TOLERANCE_PX)
+        row[f"BF1_{name}"] = val if val is not None else float("nan")
+        # clDice
+        val = cldice_single(pred, gt, cid)
+        row[f"clDice_{name}"] = val if val is not None else float("nan")
+        # Connectivity ratio
+        val = _connectivity_ratio(pred, gt, cid)
+        row[f"ConnR_{name}"] = val if val is not None else float("nan")
+
+    return row
+
+
+@torch.no_grad()
+def _evaluate_per_image(
+    model, loader: DataLoader, device: str, file_list: List[str],
+) -> List[Dict[str, object]]:
+    """Return a list of dicts, one per image, with per-image metrics + metadata."""
+    rows: List[Dict[str, object]] = []
+    idx = 0
+    for images, masks, rels in loader:
+        images = images.to(device, non_blocking=True)
+        logits = model(images)
+        pred_batch = logits.argmax(dim=1).detach().cpu().numpy()
+        gt_batch = masks.numpy()
+        for b in range(pred_batch.shape[0]):
+            fname = rels[b] if isinstance(rels, list) else rels[b]
+            tier = fname.split("/")[0] if "/" in fname else "unknown"
+            row = _per_image_metrics(pred_batch[b], gt_batch[b])
+            row["file"] = fname
+            row["tier"] = tier
+            rows.append(row)
+            idx += 1
+    return rows
+
+
+# ---------------------------------------------------------------------------
+# Main eval runner
+# ---------------------------------------------------------------------------
 
 def _run_eval(
     model_name: str, split: str, per_tier: bool, device: str,
@@ -111,6 +187,27 @@ def _run_eval(
             results[tier] = _evaluate(model, loader_t, device)
 
     return results
+
+
+def _run_eval_per_image(
+    model_name: str, split: str, device: str,
+) -> List[Dict[str, object]]:
+    """Run per-image evaluation, return list of per-image metric dicts."""
+    entry = get_entry(model_name)
+    img_size = entry.img_size
+
+    print(f"[eval] Loading model: {model_name}")
+    model = load_model(model_name, device=device)
+
+    transform = build_transforms(img_size, train=False)
+    split_path = SPLIT_FILES[split]
+    all_files = read_split_file(split_path)
+    print(f"[eval] Split '{split}': {len(all_files)} images (per-image mode)")
+
+    ds = DamSegmentDataset(C.DATA_ROOT, all_files, transform=transform)
+    loader = DataLoader(ds, batch_size=BATCH_SIZE, shuffle=False,
+                        num_workers=NUM_WORKERS, pin_memory=(device == "cuda"))
+    return _evaluate_per_image(model, loader, device, all_files)
 
 
 def _format_results(results: Dict[str, Dict[str, float]]) -> str:
@@ -157,8 +254,10 @@ def main():
                         choices=["val", "test"])
     parser.add_argument("--per-tier", action="store_true",
                         help="Also report per-difficulty-tier metrics")
+    parser.add_argument("--per-image", action="store_true",
+                        help="Save per-image metrics CSV (for statistical tests)")
     parser.add_argument("--output-dir", type=str, default="results",
-                        help="Directory for JSON output (default: results/)")
+                        help="Directory for JSON/CSV output (default: results/)")
     parser.add_argument("--device", type=str, default=None,
                         help="Device override (cuda/mps/cpu)")
     args = parser.parse_args()
@@ -176,16 +275,27 @@ def main():
         print(f"  Model: {model_name}")
         print(f"{'='*60}")
 
+        # Aggregated metrics (always)
         results = _run_eval(model_name, args.split, args.per_tier, device)
-
-        # Print
         print(_format_results(results))
-
-        # Save JSON
         out_path = output_dir / f"{model_name}_{args.split}.json"
         with open(out_path, "w") as f:
             json.dump(results, f, indent=2)
         print(f"\n[eval] Saved: {out_path}")
+
+        # Per-image CSV (optional)
+        if args.per_image:
+            rows = _run_eval_per_image(model_name, args.split, device)
+            csv_path = output_dir / f"{model_name}_{args.split}_per_image.csv"
+            if rows:
+                fieldnames = ["file", "tier"] + [
+                    k for k in rows[0] if k not in ("file", "tier")
+                ]
+                with open(csv_path, "w", newline="") as f:
+                    writer = csv.DictWriter(f, fieldnames=fieldnames)
+                    writer.writeheader()
+                    writer.writerows(rows)
+            print(f"[eval] Per-image CSV: {csv_path} ({len(rows)} rows)")
 
 
 if __name__ == "__main__":
