@@ -117,11 +117,26 @@ class CompositeLoss(nn.Module):
 
         loss_ce = F.cross_entropy(seg_logits, targets, weight=self.ce_weight)
         loss_dice = fg_dice_loss(seg_logits, targets)
-        loss_tversky = self.tversky(seg_logits, targets)
-        loss_bd = boundary_bce_loss(bd_logits, targets)
 
-        lam_crack = scheduler.crack_weight(epoch)
-        lam_bd = scheduler.boundary_weight(epoch)
+        # Tversky loss: only when enabled
+        if self.cfg.use_tversky_loss:
+            loss_tversky = self.tversky(seg_logits, targets)
+        else:
+            loss_tversky = seg_logits.new_zeros(())
+
+        # Boundary BCE loss: only when enabled
+        if self.cfg.use_boundary_loss:
+            loss_bd = boundary_bce_loss(bd_logits, targets)
+        else:
+            loss_bd = seg_logits.new_zeros(())
+
+        # Loss weights: scheduled vs constant
+        if self.cfg.use_class_loss_schedule:
+            lam_crack = scheduler.crack_weight(epoch)
+            lam_bd = scheduler.boundary_weight(epoch)
+        else:
+            lam_crack = 1.0
+            lam_bd = 1.0
 
         total = (self.cfg.loss_ce_w * loss_ce
                  + self.cfg.loss_dice_w * loss_dice

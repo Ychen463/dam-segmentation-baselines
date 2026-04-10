@@ -63,6 +63,88 @@ class RunCfg:
     loss_tversky_alpha: float = 0.3   # FP weight (crack Tversky)
     loss_tversky_beta: float = 0.7    # FN weight (penalize missed crack)
 
+    # Ablation switches
+    use_dynamic_difficulty: bool = True       # dynamic scoring + softmax sampling
+    use_class_sampling_bonus: bool = True     # spalling_bonus + late_hard_crack_bonus
+    use_class_loss_schedule: bool = True      # scheduled crack_weight / boundary_weight
+    use_boundary_loss: bool = True            # boundary BCE loss
+    use_tversky_loss: bool = True             # crack Tversky loss
+
+
+# ---------------------------------------------------------------------------
+# Ablation presets
+# ---------------------------------------------------------------------------
+
+ABLATION_PRESETS = {
+    # Set A: module-level cumulative ablation (all build on A1 static curriculum)
+    "A2": {"name": "ablation_A2_dynamic_refinement",
+           "use_dynamic_difficulty": True, "use_class_sampling_bonus": False,
+           "use_class_loss_schedule": False, "use_boundary_loss": False,
+           "use_tversky_loss": False},
+    "A3": {"name": "ablation_A3_dynamic_classaware",
+           "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
+           "use_class_loss_schedule": True, "use_boundary_loss": False,
+           "use_tversky_loss": False},
+    "A3a": {"name": "ablation_A3a_sampling_bonus_only",
+            "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
+            "use_class_loss_schedule": False, "use_boundary_loss": False,
+            "use_tversky_loss": False},
+    "A3b": {"name": "ablation_A3b_loss_schedule_only",
+            "use_dynamic_difficulty": True, "use_class_sampling_bonus": False,
+            "use_class_loss_schedule": True, "use_boundary_loss": False,
+            "use_tversky_loss": False},
+    "A4": {"name": "ablation_A4_classaware_boundary",
+           "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
+           "use_class_loss_schedule": True, "use_boundary_loss": True,
+           "use_tversky_loss": False},
+    "A5": {"name": "ablation_A5_full",
+           "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
+           "use_class_loss_schedule": True, "use_boundary_loss": True,
+           "use_tversky_loss": True},
+    # Set B: difficulty score mechanism ablation (all modules ON, vary diff_* weights)
+    "B0": {"name": "ablation_B0_diff_loss",
+           "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
+           "use_class_loss_schedule": True, "use_boundary_loss": True,
+           "use_tversky_loss": True,
+           "diff_alpha": 1.0, "diff_beta": 0.0, "diff_gamma": 0.0, "diff_delta": 0.0},
+    "B1": {"name": "ablation_B1_diff_loss_uncert",
+           "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
+           "use_class_loss_schedule": True, "use_boundary_loss": True,
+           "use_tversky_loss": True,
+           "diff_alpha": 1.0, "diff_beta": 0.5, "diff_gamma": 0.0, "diff_delta": 0.0},
+    "B2": {"name": "ablation_B2_diff_loss_boundary",
+           "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
+           "use_class_loss_schedule": True, "use_boundary_loss": True,
+           "use_tversky_loss": True,
+           "diff_alpha": 1.0, "diff_beta": 0.0, "diff_gamma": 0.3, "diff_delta": 0.0},
+    "B3": {"name": "ablation_B3_diff_loss_sparsity",
+           "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
+           "use_class_loss_schedule": True, "use_boundary_loss": True,
+           "use_tversky_loss": True,
+           "diff_alpha": 1.0, "diff_beta": 0.0, "diff_gamma": 0.0, "diff_delta": 0.3},
+    "B4": {"name": "ablation_B4_diff_loss_uncert_sparsity",
+           "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
+           "use_class_loss_schedule": True, "use_boundary_loss": True,
+           "use_tversky_loss": True,
+           "diff_alpha": 1.0, "diff_beta": 0.5, "diff_gamma": 0.0, "diff_delta": 0.3},
+    "B5": {"name": "ablation_B5_diff_all",
+           "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
+           "use_class_loss_schedule": True, "use_boundary_loss": True,
+           "use_tversky_loss": True,
+           "diff_alpha": 1.0, "diff_beta": 0.5, "diff_gamma": 0.3, "diff_delta": 0.3},
+}
+
+
+def apply_preset(cfg: RunCfg, preset_name: str) -> None:
+    """Apply a named ablation preset to *cfg* in-place."""
+    if preset_name not in ABLATION_PRESETS:
+        raise ValueError(
+            f"Unknown ablation preset '{preset_name}'. "
+            f"Available: {sorted(ABLATION_PRESETS.keys())}"
+        )
+    for key, val in ABLATION_PRESETS[preset_name].items():
+        setattr(cfg, key, val)
+
 
 def run_dir(cfg: RunCfg) -> Path:
     d = RUNS_DIR / cfg.name

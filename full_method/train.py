@@ -39,6 +39,7 @@ from baseline_unet.visualize import pick_viz_samples, save_preview
 from baseline_deeplab.metrics import SegMetricsBF1, format_metrics
 
 from full_method import config as C
+from full_method.config import ABLATION_PRESETS, apply_preset
 from full_method.dataset import FullMethodDataset, build_records, dict_collate
 from full_method.model import SegFormerWithBoundary, _PreviewWrapper
 from full_method.losses import CompositeLoss
@@ -142,7 +143,8 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     sample_bank: Dict[str, SampleState],
                     estimator: DifficultyEstimator,
                     curriculum_scheduler: CurriculumScheduler,
-                    epoch: int, total_epochs: int) -> Dict[str, float]:
+                    epoch: int, total_epochs: int,
+                    cfg: C.RunCfg = None) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
@@ -177,20 +179,22 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                                    mode="bilinear", align_corners=False)
         metrics.update(seg_logits, masks)
 
-        # Update sample bank (always, even during warmup)
-        ps_ce = info["per_sample_ce"]    # (B,) cpu tensor
-        ps_ent = info["per_sample_ent"]  # (B,) cpu tensor
-        masks_np = masks.detach().cpu().numpy()
-        for b_idx in range(len(sample_ids)):
-            sid = sample_ids[b_idx]
-            if sid not in sample_bank:
-                sample_bank[sid] = SampleState()
-            estimator.update(
-                sample_bank[sid],
-                float(ps_ce[b_idx]),
-                float(ps_ent[b_idx]),
-                masks_np[b_idx],
-            )
+        # Update sample bank (only when dynamic difficulty is enabled)
+        _use_dynamic = cfg is None or cfg.use_dynamic_difficulty
+        if _use_dynamic:
+            ps_ce = info["per_sample_ce"]    # (B,) cpu tensor
+            ps_ent = info["per_sample_ent"]  # (B,) cpu tensor
+            masks_np = masks.detach().cpu().numpy()
+            for b_idx in range(len(sample_ids)):
+                sid = sample_ids[b_idx]
+                if sid not in sample_bank:
+                    sample_bank[sid] = SampleState()
+                estimator.update(
+                    sample_bank[sid],
+                    float(ps_ce[b_idx]),
+                    float(ps_ent[b_idx]),
+                    masks_np[b_idx],
+                )
 
         done = step + 1
         if done % log_every == 0 or done == total_steps:
@@ -312,9 +316,47 @@ def main() -> None:
     parser.add_argument("--grad-accum", type=int, default=None)
     parser.add_argument("--resume", type=str, default=None,
                         help="checkpoint path to resume from")
+    # Ablation controls
+    parser.add_argument("--ablation", type=str, default=None,
+                        choices=sorted(ABLATION_PRESETS.keys()),
+                        help="named ablation preset (e.g. A2, A3, B0)")
+    parser.add_argument("--no-dynamic-difficulty", action="store_true")
+    parser.add_argument("--no-class-sampling-bonus", action="store_true")
+    parser.add_argument("--no-class-loss-schedule", action="store_true")
+    parser.add_argument("--no-boundary-loss", action="store_true")
+    parser.add_argument("--no-tversky-loss", action="store_true")
+    parser.add_argument("--diff-alpha", type=float, default=None)
+    parser.add_argument("--diff-beta", type=float, default=None)
+    parser.add_argument("--diff-gamma", type=float, default=None)
+    parser.add_argument("--diff-delta", type=float, default=None)
+    parser.add_argument("--name", type=str, default=None,
+                        help="override run directory name")
     args = parser.parse_args()
 
+    # Config resolution: defaults -> preset -> CLI flags -> CLI name
     cfg = C.RunCfg()
+    if args.ablation is not None:
+        apply_preset(cfg, args.ablation)
+    if args.no_dynamic_difficulty:
+        cfg.use_dynamic_difficulty = False
+    if args.no_class_sampling_bonus:
+        cfg.use_class_sampling_bonus = False
+    if args.no_class_loss_schedule:
+        cfg.use_class_loss_schedule = False
+    if args.no_boundary_loss:
+        cfg.use_boundary_loss = False
+    if args.no_tversky_loss:
+        cfg.use_tversky_loss = False
+    if args.diff_alpha is not None:
+        cfg.diff_alpha = args.diff_alpha
+    if args.diff_beta is not None:
+        cfg.diff_beta = args.diff_beta
+    if args.diff_gamma is not None:
+        cfg.diff_gamma = args.diff_gamma
+    if args.diff_delta is not None:
+        cfg.diff_delta = args.diff_delta
+    if args.name is not None:
+        cfg.name = args.name
     if args.grad_accum is not None:
         cfg.grad_accum = args.grad_accum
     total_epochs = args.epochs if args.epochs is not None else cfg.epochs
@@ -349,6 +391,11 @@ def main() -> None:
           f" ema={cfg.diff_ema} tau={cfg.diff_tau}")
     print(f"[train] bonuses: spalling={cfg.spalling_bonus}"
           f" late_hard_crack={cfg.late_hard_crack_bonus}")
+    print(f"[train] ablation switches: dynamic_difficulty={cfg.use_dynamic_difficulty}"
+          f" class_sampling_bonus={cfg.use_class_sampling_bonus}"
+          f" class_loss_schedule={cfg.use_class_loss_schedule}"
+          f" boundary_loss={cfg.use_boundary_loss}"
+          f" tversky_loss={cfg.use_tversky_loss}")
 
     rdir = C.run_dir(cfg)
     samples_dir = rdir / "samples"
@@ -390,8 +437,9 @@ def main() -> None:
     sampler = TierAwareDynamicSampler(
         records, sample_bank,
         tau=cfg.diff_tau,
-        spalling_bonus=cfg.spalling_bonus,
-        late_hard_crack_bonus=cfg.late_hard_crack_bonus,
+        spalling_bonus=cfg.spalling_bonus if cfg.use_class_sampling_bonus else 0.0,
+        late_hard_crack_bonus=cfg.late_hard_crack_bonus if cfg.use_class_sampling_bonus else 0.0,
+        enable_dynamic=cfg.use_dynamic_difficulty,
     )
 
     # ----- build loaders -----
@@ -568,7 +616,8 @@ def main() -> None:
         tr = train_one_epoch(model, train_loader, optimizer, criterion, device,
                              train_metrics, cfg.grad_accum,
                              sample_bank, estimator,
-                             curriculum_scheduler, epoch, total_epochs)
+                             curriculum_scheduler, epoch, total_epochs,
+                             cfg=cfg)
 
         # 3. Print sampler stats
         ss = sampler.get_sampling_stats()
@@ -576,11 +625,12 @@ def main() -> None:
             print(f"  sampled: {ss['tier_hist']}  has_spalling={ss['has_spalling_ratio']:.2%}")
 
         # 4. Epoch-level z-score normalize + rescore (before val)
-        estimator.normalize_and_score(sample_bank)
+        if cfg.use_dynamic_difficulty:
+            estimator.normalize_and_score(sample_bank)
 
-        # 5. Difficulty distribution stats
-        diffs = [s.difficulty for s in sample_bank.values()]
-        print(f"  difficulty: mean={np.mean(diffs):.3f} std={np.std(diffs):.3f}")
+            # 5. Difficulty distribution stats
+            diffs = [s.difficulty for s in sample_bank.values()]
+            print(f"  difficulty: mean={np.mean(diffs):.3f} std={np.std(diffs):.3f}")
 
         # 6. Val
         va = evaluate(model, val_loader, criterion, device, eval_metrics,
@@ -681,6 +731,11 @@ def main() -> None:
                 f" ema={cfg.diff_ema} tau={cfg.diff_tau}\n")
         f.write(f"bonuses: spalling={cfg.spalling_bonus}"
                 f" late_hard_crack={cfg.late_hard_crack_bonus}\n")
+        f.write(f"ablation: dynamic_difficulty={cfg.use_dynamic_difficulty}"
+                f" class_sampling_bonus={cfg.use_class_sampling_bonus}"
+                f" class_loss_schedule={cfg.use_class_loss_schedule}"
+                f" boundary_loss={cfg.use_boundary_loss}"
+                f" tversky_loss={cfg.use_tversky_loss}\n")
         f.write(f"loss: ce_w={cfg.loss_ce_w} dice_w={cfg.loss_dice_w}"
                 f" tversky_alpha={cfg.loss_tversky_alpha}"
                 f" tversky_beta={cfg.loss_tversky_beta}\n")

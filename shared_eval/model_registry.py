@@ -273,3 +273,15 @@ register(ModelEntry(
     build_fn=_build_full_method,
     inference_wrapper=FullMethodLogitsWrapper,
 ))
+
+# Ablation variants (all share build_fn and wrapper with full_method)
+from full_method.config import ABLATION_PRESETS as _ABLATION_PRESETS  # noqa: E402
+for _preset_id, _preset_cfg in _ABLATION_PRESETS.items():
+    _abl_name = _preset_cfg["name"]
+    register(ModelEntry(
+        name=_abl_name,
+        checkpoint=_CODES / "full_method" / "runs" / _abl_name / "best.pt",
+        img_size=512,
+        build_fn=_build_full_method,
+        inference_wrapper=FullMethodLogitsWrapper,
+    ))

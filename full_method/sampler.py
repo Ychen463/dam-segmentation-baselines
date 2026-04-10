@@ -20,12 +20,14 @@ class TierAwareDynamicSampler(Sampler[int]):
 
     def __init__(self, records: List[Dict], sample_bank: Dict[str, SampleState],
                  tau: float = 0.5, spalling_bonus: float = 0.3,
-                 late_hard_crack_bonus: float = 0.4):
+                 late_hard_crack_bonus: float = 0.4,
+                 enable_dynamic: bool = True):
         self.records = records
         self.sample_bank = sample_bank
         self.tau = tau
         self.spalling_bonus = spalling_bonus
         self.late_hard_crack_bonus = late_hard_crack_bonus
+        self._enable_dynamic = enable_dynamic
         self._stage = 0
         self._epoch_ratio = 0.0
         self._use_dynamic = False
@@ -36,7 +38,7 @@ class TierAwareDynamicSampler(Sampler[int]):
         """Update state for the new epoch. Stage is computed externally."""
         self._stage = stage
         self._epoch_ratio = epoch / total_epochs
-        self._use_dynamic = (epoch > warmup_epochs)
+        self._use_dynamic = self._enable_dynamic and (epoch > warmup_epochs)
 
     def _allowed_tiers(self) -> Set[int]:
         if self._stage == 0:
