@@ -150,6 +150,8 @@ def main() -> None:
     parser.add_argument("--use-manual-weights", action="store_true",
                         help="use config.CE_WEIGHTS instead of auto-computed class weights")
     parser.add_argument("--epochs", type=int, default=C.EPOCHS)
+    parser.add_argument("--train-split", type=str, default=None,
+                        help="custom train split file (e.g. splits/train_20.txt)")
     args = parser.parse_args()
 
     set_seed(C.SEED)
@@ -157,7 +159,8 @@ def main() -> None:
     print(f"[train] device = {device}")
 
     splits = ensure_splits()
-    train_files = splits["train"]
+    train_files = (read_split_file(Path(args.train_split))
+                   if args.train_split else splits["train"])
     val_files = splits["val"]
     test_files = splits["test"]
     print(f"[train] sizes: train={len(train_files)} val={len(val_files)} test={len(test_files)}")

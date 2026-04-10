@@ -432,6 +432,8 @@ def main() -> None:
     parser.add_argument("--grad-accum", type=int, default=None)
     parser.add_argument("--resume", type=str, default=None,
                         help="checkpoint path to resume from")
+    parser.add_argument("--train-split", type=str, default=None,
+                        help="custom train split file (e.g. splits/train_20.txt)")
     args = parser.parse_args()
 
     cfg = C.CFG
@@ -457,7 +459,8 @@ def main() -> None:
     samples_dir = rdir / "samples"
 
     # ----- read split files -----
-    train_files = read_split_file(C.SPLIT_FILES["train"])
+    train_files = (read_split_file(Path(args.train_split))
+                    if args.train_split else read_split_file(C.SPLIT_FILES["train"]))
     val_files = read_split_file(C.SPLIT_FILES["val"])
     test_files = read_split_file(C.SPLIT_FILES["test"])
     print(f"[train] sizes: train={len(train_files)} val={len(val_files)} test={len(test_files)}")

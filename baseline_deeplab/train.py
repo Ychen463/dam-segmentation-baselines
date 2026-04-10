@@ -75,8 +75,9 @@ def build_model(cfg: C.RunCfg) -> nn.Module:
     )
 
 
-def build_loaders(cfg: C.RunCfg, device: str):
-    train_files = read_split_file(C.SPLIT_FILES["train"])
+def build_loaders(cfg: C.RunCfg, device: str, train_split_path: str = None):
+    train_files = (read_split_file(Path(train_split_path))
+                   if train_split_path else read_split_file(C.SPLIT_FILES["train"]))
     val_files = read_split_file(C.SPLIT_FILES["val"])
     test_files = read_split_file(C.SPLIT_FILES["test"])
 
@@ -280,6 +281,8 @@ def main() -> None:
     parser.add_argument("--grad-accum", type=int, default=None)
     parser.add_argument("--resume", type=str, default=None,
                         help="checkpoint path to resume from (uses saved epoch + optimizer)")
+    parser.add_argument("--train-split", type=str, default=None,
+                        help="custom train split file (e.g. splits/train_20.txt)")
     args = parser.parse_args()
 
     cfg = C.PRESETS[args.preset]
@@ -304,7 +307,7 @@ def main() -> None:
     samples_dir = rdir / "samples"
 
     train_files, val_files, test_files, train_loader, val_loader, test_loader = \
-        build_loaders(cfg, device)
+        build_loaders(cfg, device, train_split_path=args.train_split)
     print(f"[train] sizes: train={len(train_files)} val={len(val_files)} test={len(test_files)}")
 
     # class weights from TRAIN files (same policy as Step 0)
@@ -339,7 +342,7 @@ def main() -> None:
             cfg.batch_size = new_bs
             cfg.grad_accum = new_ga
             # Rebuild loaders with the new batch size.
-            _, _, _, train_loader, val_loader, test_loader = build_loaders(cfg, device)
+            _, _, _, train_loader, val_loader, test_loader = build_loaders(cfg, device, train_split_path=args.train_split)
             # Recreate model fresh to reset any allocator state.
             del model, optimizer, scheduler
             if device == "mps" and hasattr(torch.mps, "empty_cache"):

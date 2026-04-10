@@ -1,17 +1,15 @@
-"""Step-4 SegFormer-B2 training.
+"""Step-5 Full Method: Dynamic Difficulty-Aware Curriculum + Boundary Refinement.
 
-Two presets selectable with --preset {A,B}:
-    A = segformer_b2_plain_512      (plain baseline, 100 ep, lr=6e-5)
-    B = segformer_b2_staticcurr_512 (static curriculum, 100 ep, lr=6e-5)
-
-Reuses baseline_unet's dataset, losses, splits and visualize modules verbatim.
+SegFormer-B2 backbone with:
+  Module 1: Online difficulty estimation (EMA loss + uncertainty + boundary + sparsity)
+  Module 2: Class-aware dynamic sampling (tier gating + spalling/crack bonuses)
+  Module 3: Crack boundary refinement head + Tversky loss
 
 Usage:
-    python -m baseline_segformer.train --preset A --dry-run
-    python -m baseline_segformer.train --preset A --epochs 10       # probe
-    python -m baseline_segformer.train --preset A
-    python -m baseline_segformer.train --preset B
-    python -m baseline_segformer.train --preset A --resume runs/segformer_b2_plain_512/last.pt
+    python -m full_method.train --dry-run
+    python -m full_method.train --epochs 5          # probe
+    python -m full_method.train                     # full 100 epochs
+    python -m full_method.train --resume full_method/runs/segformer_b2_full_512/last.pt
 """
 from __future__ import annotations
 
@@ -33,17 +31,20 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from baseline_unet.dataset import (
-    DamSegmentDataset,
     build_transforms,
     compute_class_weights,
     read_split_file,
 )
-from baseline_unet.losses import CEDiceLoss
 from baseline_unet.visualize import pick_viz_samples, save_preview
-
 from baseline_deeplab.metrics import SegMetricsBF1, format_metrics
 
-from baseline_segformer import config as C
+from full_method import config as C
+from full_method.dataset import FullMethodDataset, build_records, dict_collate
+from full_method.model import SegFormerWithBoundary, _PreviewWrapper
+from full_method.losses import CompositeLoss
+from full_method.difficulty import DifficultyEstimator, SampleState
+from full_method.sampler import TierAwareDynamicSampler
+from full_method.scheduler import CurriculumScheduler
 
 
 # ---------------------------------------------------------------------------
@@ -67,75 +68,36 @@ def pick_device(pref: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Model
+# Data loaders
 # ---------------------------------------------------------------------------
 
-def build_model(cfg: C.RunCfg) -> nn.Module:
-    from transformers import SegformerForSemanticSegmentation
-    return SegformerForSemanticSegmentation.from_pretrained(
-        cfg.pretrained,
-        num_labels=C.NUM_CLASSES,
-        ignore_mismatched_sizes=True,
-        id2label={0: "background", 1: "crack", 2: "spalling"},
-        label2id={"background": 0, "crack": 1, "spalling": 2},
-    )
-
-
-class _PreviewWrapper(nn.Module):
-    """Wraps HF SegFormer so save_preview() gets a raw logits tensor."""
-    def __init__(self, hf_model: nn.Module):
-        super().__init__()
-        self.m = hf_model
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        logits = self.m(x).logits
-        return F.interpolate(logits, size=x.shape[-2:],
-                             mode="bilinear", align_corners=False)
-
-
-# ---------------------------------------------------------------------------
-# Data loaders + curriculum helpers
-# ---------------------------------------------------------------------------
-
-def get_curriculum_tiers(epoch: int, total_epochs: int) -> List[str]:
-    s1 = round(0.3 * total_epochs)   # 30 % Easy-only
-    s2 = round(0.6 * total_epochs)   # 30 % Easy+Medium
-    if epoch <= s1:
-        return ["Easy"]
-    elif epoch <= s2:
-        return ["Easy", "Medium"]
-    else:
-        return ["Easy", "Medium", "Hard"]
-
-
-def filter_by_tier(files: List[str], tiers: List[str]) -> List[str]:
-    return [f for f in files if any(f.startswith(t + "/") for t in tiers)]
-
-
-def build_loader(files: List[str], cfg: C.RunCfg, device: str,
-                 train: bool) -> DataLoader:
-    ds = DamSegmentDataset(C.DATA_ROOT, files,
-                           build_transforms(cfg.img_size, train=train))
+def build_train_loader(records: List[Dict], sampler: TierAwareDynamicSampler,
+                       cfg: C.RunCfg, device: str) -> DataLoader:
+    ds = FullMethodDataset(C.DATA_ROOT, records,
+                           build_transforms(cfg.img_size, train=True))
     pin = (device == "cuda")
-    return DataLoader(ds, batch_size=cfg.batch_size, shuffle=train,
-                      num_workers=2, pin_memory=pin, drop_last=False)
+    return DataLoader(ds, batch_size=cfg.batch_size, sampler=sampler,
+                      num_workers=2, pin_memory=pin, drop_last=False,
+                      collate_fn=dict_collate)
 
 
-def build_loaders(cfg: C.RunCfg, device: str, train_files: List[str],
-                  val_files: List[str], test_files: List[str]):
-    train_loader = build_loader(train_files, cfg, device, train=True)
-    val_loader = build_loader(val_files, cfg, device, train=False)
-    test_loader = build_loader(test_files, cfg, device, train=False)
-    return train_loader, val_loader, test_loader
+def build_val_loader(val_files: List[str], cfg: C.RunCfg, device: str) -> DataLoader:
+    """Val/test loader uses plain records (tier/has_spalling not needed)."""
+    records = [{"id": f, "rel": f, "tier": 0, "has_spalling": False} for f in val_files]
+    ds = FullMethodDataset(C.DATA_ROOT, records,
+                           build_transforms(cfg.img_size, train=False))
+    pin = (device == "cuda")
+    return DataLoader(ds, batch_size=cfg.batch_size, shuffle=False,
+                      num_workers=2, pin_memory=pin, drop_last=False,
+                      collate_fn=dict_collate)
 
 
 # ---------------------------------------------------------------------------
-# OOM probe
+# OOM probe (adapted for dict-output model)
 # ---------------------------------------------------------------------------
 
 def oom_probe(model: nn.Module, cfg: C.RunCfg, device: str) -> bool:
     try:
-        # Warm up cuDNN with a tiny conv so lazy init doesn't fail on the real probe.
         if device == "cuda":
             _w = torch.randn(1, 3, 8, 8, device=device)
             _ = torch.nn.functional.conv2d(_w, torch.randn(3, 3, 3, 3, device=device), padding=1)
@@ -143,13 +105,13 @@ def oom_probe(model: nn.Module, cfg: C.RunCfg, device: str) -> bool:
         x = torch.zeros(cfg.batch_size, 3, cfg.img_size, cfg.img_size, device=device)
         y = torch.zeros(cfg.batch_size, cfg.img_size, cfg.img_size,
                         device=device, dtype=torch.long)
-        logits = model(x).logits
-        logits = F.interpolate(logits, size=y.shape[-2:],
-                               mode="bilinear", align_corners=False)
-        loss = nn.functional.cross_entropy(logits, y)
+        outputs = model(x)
+        seg_logits = F.interpolate(outputs["seg_logits"], size=y.shape[-2:],
+                                   mode="bilinear", align_corners=False)
+        loss = F.cross_entropy(seg_logits, y)
         loss.backward()
         model.zero_grad(set_to_none=True)
-        del x, y, logits, loss
+        del x, y, outputs, seg_logits, loss
         if device == "mps" and hasattr(torch.mps, "empty_cache"):
             torch.mps.empty_cache()
         return True
@@ -165,38 +127,71 @@ def oom_probe(model: nn.Module, cfg: C.RunCfg, device: str) -> bool:
 # Train / eval
 # ---------------------------------------------------------------------------
 
-def train_one_epoch(model, loader, optimizer, criterion, device,
+METRIC_KEYS: List[str] = [
+    "epoch", "split", "train_loss", "val_loss",
+    "loss_ce", "loss_dice", "loss_tversky", "loss_bd",
+    "IoU_background", "IoU_crack", "IoU_spalling",
+    "Dice_background", "Dice_crack", "Dice_spalling",
+    "mIoU_fg", "mIoU_all", "pixel_acc",
+    "BF1_crack", "BF1_spalling", "BF1_fg_mean",
+]
+
+
+def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     metrics: SegMetricsBF1, grad_accum: int,
-                    epoch: int = 0, total_epochs: int = 0) -> Dict[str, float]:
+                    sample_bank: Dict[str, SampleState],
+                    estimator: DifficultyEstimator,
+                    curriculum_scheduler: CurriculumScheduler,
+                    epoch: int, total_epochs: int) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
+    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0}
     n_batches = 0
-    class_pixel_sum = np.zeros(C.NUM_CLASSES, dtype=np.int64)
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)
     t_start = time.time()
 
     optimizer.zero_grad(set_to_none=True)
-    for step, (imgs, masks, _) in enumerate(loader):
-        imgs = imgs.to(device, non_blocking=True).float()
-        masks = masks.to(device, non_blocking=True).long()
-        logits = model(imgs).logits
-        logits = F.interpolate(logits, size=masks.shape[-2:],
-                               mode="bilinear", align_corners=False)
-        loss = criterion(logits, masks)
-        (loss / grad_accum).backward()
+    for step, batch in enumerate(loader):
+        imgs = batch["image"].to(device, non_blocking=True).float()
+        masks = batch["mask"].to(device, non_blocking=True).long()
+        sample_ids = batch["sample_id"]
+
+        outputs = model(imgs)
+
+        total_loss, info = criterion(outputs, masks, curriculum_scheduler, epoch)
+        (total_loss / grad_accum).backward()
 
         if (step + 1) % grad_accum == 0:
             optimizer.step()
             optimizer.zero_grad(set_to_none=True)
 
-        loss_sum += float(loss.detach().cpu())
+        loss_sum += float(total_loss.detach().cpu())
+        for k in loss_parts:
+            loss_parts[k] += info[k]
         n_batches += 1
-        metrics.update(logits, masks)
-        m_np = masks.detach().cpu().numpy()
-        for c in range(C.NUM_CLASSES):
-            class_pixel_sum[c] += int((m_np == c).sum())
+
+        # Update metrics with seg_logits
+        seg_logits = F.interpolate(outputs["seg_logits"], masks.shape[-2:],
+                                   mode="bilinear", align_corners=False)
+        metrics.update(seg_logits, masks)
+
+        # Update sample bank (always, even during warmup)
+        ps_ce = info["per_sample_ce"]    # (B,) cpu tensor
+        ps_ent = info["per_sample_ent"]  # (B,) cpu tensor
+        masks_np = masks.detach().cpu().numpy()
+        for b_idx in range(len(sample_ids)):
+            sid = sample_ids[b_idx]
+            if sid not in sample_bank:
+                sample_bank[sid] = SampleState()
+            estimator.update(
+                sample_bank[sid],
+                float(ps_ce[b_idx]),
+                float(ps_ent[b_idx]),
+                masks_np[b_idx],
+            )
+
         done = step + 1
         if done % log_every == 0 or done == total_steps:
             elapsed = time.time() - t_start
@@ -205,7 +200,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device,
                   f" ({done*100//total_steps}%) loss={loss_sum/n_batches:.4f}"
                   f" elapsed={elapsed:.0f}s eta={eta:.0f}s", flush=True)
 
-    # Flush any tail micro-batches.
+    # Flush any tail micro-batches
     if n_batches % grad_accum != 0:
         optimizer.step()
         optimizer.zero_grad(set_to_none=True)
@@ -213,41 +208,36 @@ def train_one_epoch(model, loader, optimizer, criterion, device,
     avg_loss = loss_sum / max(n_batches, 1)
     m = metrics.compute()
     m["loss"] = avg_loss
-    total = class_pixel_sum.sum()
-    frac = class_pixel_sum / max(total, 1)
-    print(f"  [train] label px frac: bg={frac[0]:.4f} crack={frac[1]:.4f} spalling={frac[2]:.4f}")
+    for k in loss_parts:
+        m[k] = loss_parts[k] / max(n_batches, 1)
     return m
 
 
 @torch.no_grad()
-def evaluate(model, loader, criterion, device,
-             metrics: SegMetricsBF1) -> Dict[str, float]:
+def evaluate(model, loader, criterion: CompositeLoss, device,
+             metrics: SegMetricsBF1,
+             curriculum_scheduler: CurriculumScheduler,
+             epoch: int) -> Dict[str, float]:
     model.eval()
     metrics.reset()
     loss_sum = 0.0
     n_batches = 0
-    for imgs, masks, _ in loader:
-        imgs = imgs.to(device, non_blocking=True).float()
-        masks = masks.to(device, non_blocking=True).long()
-        logits = model(imgs).logits
-        logits = F.interpolate(logits, size=masks.shape[-2:],
-                               mode="bilinear", align_corners=False)
-        loss = criterion(logits, masks)
-        loss_sum += float(loss.detach().cpu())
+    for batch in loader:
+        imgs = batch["image"].to(device, non_blocking=True).float()
+        masks = batch["mask"].to(device, non_blocking=True).long()
+
+        outputs = model(imgs)
+        total_loss, _ = criterion(outputs, masks, curriculum_scheduler, epoch)
+        loss_sum += float(total_loss.detach().cpu())
         n_batches += 1
-        metrics.update(logits, masks)
+
+        seg_logits = F.interpolate(outputs["seg_logits"], masks.shape[-2:],
+                                   mode="bilinear", align_corners=False)
+        metrics.update(seg_logits, masks)
+
     m = metrics.compute()
     m["loss"] = loss_sum / max(n_batches, 1)
     return m
-
-
-METRIC_KEYS: List[str] = [
-    "epoch", "split", "train_loss", "val_loss",
-    "IoU_background", "IoU_crack", "IoU_spalling",
-    "Dice_background", "Dice_crack", "Dice_spalling",
-    "mIoU_fg", "mIoU_all", "pixel_acc",
-    "BF1_crack", "BF1_spalling", "BF1_fg_mean",
-]
 
 
 def write_metrics_row(csv_path: Path, row: Dict[str, object]) -> None:
@@ -268,7 +258,7 @@ def render_curves(csv_path: Path, out_path: Path) -> None:
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    epochs: List[int] = []
+    epochs_list: List[int] = []
     train_loss: List[float] = []
     val_loss: List[float] = []
     iou_crack: List[float] = []
@@ -283,7 +273,7 @@ def render_curves(csv_path: Path, out_path: Path) -> None:
                 ep = int(row["epoch"])
             except (ValueError, KeyError):
                 continue
-            epochs.append(ep)
+            epochs_list.append(ep)
             train_loss.append(float(row.get("train_loss") or "nan"))
             val_loss.append(float(row.get("val_loss") or "nan"))
             iou_crack.append(float(row.get("IoU_crack") or "nan"))
@@ -295,13 +285,14 @@ def render_curves(csv_path: Path, out_path: Path) -> None:
                 bf1_fg.append(float("nan"))
 
     fig, axs = plt.subplots(1, 3, figsize=(15, 4))
-    axs[0].plot(epochs, train_loss, label="train"); axs[0].plot(epochs, val_loss, label="val")
+    axs[0].plot(epochs_list, train_loss, label="train")
+    axs[0].plot(epochs_list, val_loss, label="val")
     axs[0].set_title("loss"); axs[0].set_xlabel("epoch"); axs[0].legend()
-    axs[1].plot(epochs, iou_crack, label="IoU_crack")
-    axs[1].plot(epochs, iou_spalling, label="IoU_spalling")
-    axs[1].plot(epochs, miou_fg, label="mIoU_fg")
+    axs[1].plot(epochs_list, iou_crack, label="IoU_crack")
+    axs[1].plot(epochs_list, iou_spalling, label="IoU_spalling")
+    axs[1].plot(epochs_list, miou_fg, label="mIoU_fg")
     axs[1].set_title("IoU / mIoU_fg (val)"); axs[1].set_xlabel("epoch"); axs[1].legend()
-    axs[2].plot(epochs, bf1_fg, label="BF1_fg_mean")
+    axs[2].plot(epochs_list, bf1_fg, label="BF1_fg_mean")
     axs[2].set_title("Boundary F1 (val)"); axs[2].set_xlabel("epoch"); axs[2].legend()
     fig.tight_layout()
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -315,82 +306,112 @@ def render_curves(csv_path: Path, out_path: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--preset", choices=["A", "B"], required=True)
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--use-manual-weights", action="store_true")
     parser.add_argument("--epochs", type=int, default=None,
-                        help="override preset epochs (e.g. 10 for probe)")
+                        help="override default epochs (e.g. 5 for probe)")
     parser.add_argument("--grad-accum", type=int, default=None)
     parser.add_argument("--resume", type=str, default=None,
                         help="checkpoint path to resume from")
-    parser.add_argument("--train-split", type=str, default=None,
-                        help="custom train split file (e.g. splits/train_20.txt)")
     args = parser.parse_args()
 
-    cfg = C.PRESETS[args.preset]
+    cfg = C.RunCfg()
     if args.grad_accum is not None:
         cfg.grad_accum = args.grad_accum
     total_epochs = args.epochs if args.epochs is not None else cfg.epochs
 
     set_seed(C.SEED)
     device = pick_device(C.DEVICE)
+
+    # cuDNN warmup / fallback (RunPod compatibility)
+    if device == "cuda":
+        try:
+            _w = torch.randn(1, 3, 8, 8, device=device)
+            _ = torch.nn.functional.conv2d(_w, torch.randn(3, 3, 3, 3, device=device), padding=1)
+            del _w, _
+            print("[train] cuDNN warmup OK")
+        except RuntimeError as e:
+            print(f"[train] cuDNN warmup failed ({e}); disabling cuDNN")
+            torch.backends.cudnn.enabled = False
+
     import torch as _t
     try:
         import transformers as _tf
         tf_v = _tf.__version__
     except Exception:
         tf_v = "?"
-    print(f"[train] preset={args.preset} ({cfg.name})")
+    print(f"[train] full_method ({cfg.name})")
     print(f"[train] device={device}  torch={_t.__version__}  transformers={tf_v}")
     print(f"[train] cfg: pretrained={cfg.pretrained} img={cfg.img_size} bs={cfg.batch_size}"
           f" grad_accum={cfg.grad_accum} epochs={total_epochs} lr={cfg.lr}"
-          f" warmup={cfg.warmup_epochs} curriculum={cfg.curriculum}")
+          f" warmup={cfg.warmup_epochs}")
+    print(f"[train] difficulty: alpha={cfg.diff_alpha} beta={cfg.diff_beta}"
+          f" gamma={cfg.diff_gamma} delta={cfg.diff_delta}"
+          f" ema={cfg.diff_ema} tau={cfg.diff_tau}")
+    print(f"[train] bonuses: spalling={cfg.spalling_bonus}"
+          f" late_hard_crack={cfg.late_hard_crack_bonus}")
 
     rdir = C.run_dir(cfg)
     samples_dir = rdir / "samples"
 
     # ----- read split files -----
-    all_train_files = (read_split_file(Path(args.train_split))
-                        if args.train_split else read_split_file(C.SPLIT_FILES["train"]))
+    all_train_files = read_split_file(C.SPLIT_FILES["train"])
     val_files = read_split_file(C.SPLIT_FILES["val"])
     test_files = read_split_file(C.SPLIT_FILES["test"])
     print(f"[train] sizes: train={len(all_train_files)} val={len(val_files)} test={len(test_files)}")
 
-    # ----- class weights from ALL train files (shared across stages) -----
+    # ----- build records -----
+    print("[train] building records (scanning masks for has_spalling) ...")
+    records = build_records(all_train_files, C.DATA_ROOT)
+    tier_counts = {0: 0, 1: 0, 2: 0}
+    sp_count = 0
+    for r in records:
+        tier_counts[r["tier"]] += 1
+        if r["has_spalling"]:
+            sp_count += 1
+    print(f"[train] records: {tier_counts}  has_spalling={sp_count}/{len(records)}")
+
+    # ----- class weights -----
     raw_freq, smoothed, clipped = compute_class_weights(C.DATA_ROOT, all_train_files)
     print("[train] raw pixel frequency:", dict(zip(C.CLASS_NAMES, [float(x) for x in raw_freq])))
     print("[train] clipped weights    :", dict(zip(C.CLASS_NAMES, [float(x) for x in clipped])))
-    if args.use_manual_weights:
-        w = torch.tensor(C.CE_WEIGHTS, dtype=torch.float32)
-        print("[train] using MANUAL CE weights")
-    else:
-        w = torch.tensor(clipped, dtype=torch.float32)
-        print("[train] using AUTO CE weights")
+    w = torch.tensor(clipped, dtype=torch.float32)
 
-    # ----- initial loaders -----
-    if cfg.curriculum == "static":
-        tiers = get_curriculum_tiers(1, total_epochs)
-        cur_train_files = filter_by_tier(all_train_files, tiers)
-        print(f"[train] curriculum tiers={tiers}  train_subset={len(cur_train_files)}")
-    else:
-        cur_train_files = all_train_files
+    # ----- init sample bank + estimator + scheduler + sampler -----
+    sample_bank: Dict[str, SampleState] = {r["id"]: SampleState() for r in records}
 
-    train_loader, val_loader, test_loader = build_loaders(
-        cfg, device, cur_train_files, val_files, test_files)
+    estimator = DifficultyEstimator(
+        alpha=cfg.diff_alpha, beta=cfg.diff_beta,
+        gamma=cfg.diff_gamma, delta=cfg.diff_delta,
+        ema_decay=cfg.diff_ema,
+    )
+
+    curriculum_scheduler = CurriculumScheduler(total_epochs)
+
+    sampler = TierAwareDynamicSampler(
+        records, sample_bank,
+        tau=cfg.diff_tau,
+        spalling_bonus=cfg.spalling_bonus,
+        late_hard_crack_bonus=cfg.late_hard_crack_bonus,
+    )
+
+    # ----- build loaders -----
+    train_loader = build_train_loader(records, sampler, cfg, device)
+    val_loader = build_val_loader(val_files, cfg, device)
+    test_loader = build_val_loader(test_files, cfg, device)
 
     # ----- model -----
-    model = build_model(cfg).to(device)
+    model = SegFormerWithBoundary(cfg.pretrained).to(device)
     preview_model = _PreviewWrapper(model)
-    criterion = CEDiceLoss(ce_weight=w).to(device)
+    criterion = CompositeLoss(ce_weight=w, cfg=cfg).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr,
                                   weight_decay=cfg.weight_decay)
 
     # Warmup + cosine scheduler
     from torch.optim.lr_scheduler import LinearLR, CosineAnnealingLR, SequentialLR
-    warmup = LinearLR(optimizer, start_factor=1e-2, total_iters=cfg.warmup_epochs)
-    cosine = CosineAnnealingLR(optimizer, T_max=total_epochs - cfg.warmup_epochs)
-    scheduler = SequentialLR(optimizer, [warmup, cosine],
-                             milestones=[cfg.warmup_epochs])
+    warmup_sched = LinearLR(optimizer, start_factor=1e-2, total_iters=cfg.warmup_epochs)
+    cosine_sched = CosineAnnealingLR(optimizer, T_max=total_epochs - cfg.warmup_epochs)
+    lr_scheduler = SequentialLR(optimizer, [warmup_sched, cosine_sched],
+                                milestones=[cfg.warmup_epochs])
 
     # ----- OOM probe -----
     accum_notice = None
@@ -405,22 +426,23 @@ def main() -> None:
             print(f"[train] {accum_notice}")
             cfg.batch_size = new_bs
             cfg.grad_accum = new_ga
-            train_loader, val_loader, test_loader = build_loaders(
-                cfg, device, cur_train_files, val_files, test_files)
-            del model, optimizer, scheduler, preview_model
+            train_loader = build_train_loader(records, sampler, cfg, device)
+            val_loader = build_val_loader(val_files, cfg, device)
+            test_loader = build_val_loader(test_files, cfg, device)
+            del model, optimizer, lr_scheduler, preview_model
             if device == "mps" and hasattr(torch.mps, "empty_cache"):
                 torch.mps.empty_cache()
-            model = build_model(cfg).to(device)
+            model = SegFormerWithBoundary(cfg.pretrained).to(device)
             preview_model = _PreviewWrapper(model)
-            criterion = CEDiceLoss(ce_weight=w).to(device)
+            criterion = CompositeLoss(ce_weight=w, cfg=cfg).to(device)
             optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr,
                                           weight_decay=cfg.weight_decay)
-            warmup = LinearLR(optimizer, start_factor=1e-2,
-                              total_iters=cfg.warmup_epochs)
-            cosine = CosineAnnealingLR(optimizer,
-                                       T_max=total_epochs - cfg.warmup_epochs)
-            scheduler = SequentialLR(optimizer, [warmup, cosine],
-                                     milestones=[cfg.warmup_epochs])
+            warmup_sched = LinearLR(optimizer, start_factor=1e-2,
+                                    total_iters=cfg.warmup_epochs)
+            cosine_sched = CosineAnnealingLR(optimizer,
+                                             T_max=total_epochs - cfg.warmup_epochs)
+            lr_scheduler = SequentialLR(optimizer, [warmup_sched, cosine_sched],
+                                        milestones=[cfg.warmup_epochs])
         else:
             print("[train] OOM probe OK")
 
@@ -429,27 +451,53 @@ def main() -> None:
 
     # ----- dry run -----
     if args.dry_run:
-        print("[train] DRY RUN: 1 train step + 1 val batch (with BF1)")
-        imgs, masks, _ = next(iter(train_loader))
-        imgs = imgs.to(device).float(); masks = masks.to(device).long()
-        logits = model(imgs).logits
-        logits = F.interpolate(logits, size=masks.shape[-2:],
-                               mode="bilinear", align_corners=False)
-        loss = criterion(logits, masks)
-        loss.backward()
-        optimizer.step()
-        print(f"[train] dry-run train loss = {float(loss):.4f}")
+        print("[train] DRY RUN: 1 train step + 1 val batch")
+        # Set sampler for epoch 1
+        stage = curriculum_scheduler.stage(1)
+        sampler.set_epoch(1, total_epochs, cfg.warmup_epochs, stage)
 
+        batch = next(iter(train_loader))
+        imgs = batch["image"].to(device).float()
+        masks = batch["mask"].to(device).long()
+        outputs = model(imgs)
+
+        print(f"  seg_logits shape: {outputs['seg_logits'].shape}")
+        print(f"  boundary_logits shape: {outputs['boundary_logits'].shape}")
+        print(f"  fuse_feat shape: {model._fuse_feat.shape}")
+
+        total_loss, info = criterion(outputs, masks, curriculum_scheduler, 1)
+        total_loss.backward()
+        optimizer.step()
+        print(f"  train loss = {float(total_loss):.4f}")
+        print(f"  loss_ce={info['loss_ce']:.4f} loss_dice={info['loss_dice']:.4f}"
+              f" loss_tversky={info['loss_tversky']:.4f} loss_bd={info['loss_bd']:.4f}")
+        print(f"  per_sample_ce shape: {info['per_sample_ce'].shape}")
+
+        # Check sampler warmup bypass
+        print(f"  sampler._use_dynamic = {sampler._use_dynamic} (should be False during warmup)")
+        ss = sampler.get_sampling_stats()
+        if ss:
+            print(f"  sampler stats: {ss['tier_hist']} has_spalling={ss['has_spalling_ratio']:.2%}")
+
+        # Val batch
         model.eval()
         with torch.no_grad():
-            v_imgs, v_masks, _ = next(iter(val_loader))
-            v_imgs = v_imgs.to(device).float(); v_masks = v_masks.to(device).long()
-            v_logits = model(v_imgs).logits
-            v_logits = F.interpolate(v_logits, size=v_masks.shape[-2:],
-                                     mode="bilinear", align_corners=False)
+            v_batch = next(iter(val_loader))
+            v_imgs = v_batch["image"].to(device).float()
+            v_masks = v_batch["mask"].to(device).long()
+            v_out = model(v_imgs)
+            v_seg = F.interpolate(v_out["seg_logits"], v_masks.shape[-2:],
+                                  mode="bilinear", align_corners=False)
             eval_metrics.reset()
-            eval_metrics.update(v_logits, v_masks)
+            eval_metrics.update(v_seg, v_masks)
             print(format_metrics(eval_metrics.compute()))
+
+        # Check difficulty update
+        for sid in list(sample_bank.keys())[:3]:
+            s = sample_bank[sid]
+            print(f"  sample_bank[{sid[:30]}...]: ema_loss={s.ema_loss:.4f}"
+                  f" boundary_complex={s.boundary_complexity:.4f}")
+
         print("[train] dry-run OK")
         return
 
@@ -474,9 +522,14 @@ def main() -> None:
             optimizer.load_state_dict(state["optimizer"])
         if "scheduler" in state:
             try:
-                scheduler.load_state_dict(state["scheduler"])
+                lr_scheduler.load_state_dict(state["scheduler"])
             except Exception as e:
                 print(f"[train] scheduler state ignored: {e}")
+        if "sample_bank" in state:
+            for sid, sdata in state["sample_bank"].items():
+                if sid in sample_bank:
+                    sample_bank[sid] = SampleState(**sdata)
+            print(f"[train] restored sample_bank ({len(state['sample_bank'])} entries)")
         start_epoch = int(state.get("epoch", 0)) + 1
         best_miou = float(state.get("best_miou_fg", state.get("mIoU_fg", -1.0) or -1.0))
         print(f"[train] resumed at epoch={start_epoch} best_miou_fg={best_miou:.4f}")
@@ -496,29 +549,43 @@ def main() -> None:
         save_preview(preview_model, viz_files, C.DATA_ROOT,
                      samples_dir / "epoch_000_init.png", device, cfg.img_size)
 
-    # ----- track current curriculum tiers -----
-    prev_tiers: List[str] | None = None
-
     # ----- training loop -----
     run_t0 = time.time()
     epochs_done = 0
     for epoch in range(start_epoch, total_epochs + 1):
-        # Curriculum: rebuild train loader when tiers change
-        if cfg.curriculum == "static":
-            tiers = get_curriculum_tiers(epoch, total_epochs)
-            if tiers != prev_tiers:
-                cur_train_files = filter_by_tier(all_train_files, tiers)
-                train_loader = build_loader(cur_train_files, cfg, device, train=True)
-                prev_tiers = tiers
-                print(f"[curriculum] epoch {epoch}: tiers={tiers}"
-                      f"  train_subset={len(cur_train_files)}")
+        # 1. Stage + sampler update
+        stage = curriculum_scheduler.stage(epoch)
+        sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage)
 
+        allowed = sampler._allowed_tiers()
+        pool_counts = {t: sum(1 for r in records if r["tier"] == t and t in allowed)
+                       for t in range(3)}
+        print(f"[curriculum] epoch {epoch}: stage={stage} tiers={sorted(allowed)}"
+              f" pool={pool_counts}")
+
+        # 2. Train
         t0 = time.time()
         tr = train_one_epoch(model, train_loader, optimizer, criterion, device,
                              train_metrics, cfg.grad_accum,
-                             epoch=epoch, total_epochs=total_epochs)
-        va = evaluate(model, val_loader, criterion, device, eval_metrics)
-        scheduler.step()
+                             sample_bank, estimator,
+                             curriculum_scheduler, epoch, total_epochs)
+
+        # 3. Print sampler stats
+        ss = sampler.get_sampling_stats()
+        if ss:
+            print(f"  sampled: {ss['tier_hist']}  has_spalling={ss['has_spalling_ratio']:.2%}")
+
+        # 4. Epoch-level z-score normalize + rescore (before val)
+        estimator.normalize_and_score(sample_bank)
+
+        # 5. Difficulty distribution stats
+        diffs = [s.difficulty for s in sample_bank.values()]
+        print(f"  difficulty: mean={np.mean(diffs):.3f} std={np.std(diffs):.3f}")
+
+        # 6. Val
+        va = evaluate(model, val_loader, criterion, device, eval_metrics,
+                      curriculum_scheduler, epoch)
+        lr_scheduler.step()
         dt = time.time() - t0
         epochs_done += 1
         avg_ep = (time.time() - run_t0) / epochs_done
@@ -529,13 +596,19 @@ def main() -> None:
 
         print(f"[epoch {epoch:03d}/{total_epochs}] lr={optimizer.param_groups[0]['lr']:.6f}"
               f"  dt={dt:.1f}s")
-        print(f"  train loss={tr['loss']:.4f}")
+        print(f"  train loss={tr['loss']:.4f}"
+              f"  ce={tr.get('loss_ce', 0):.4f} dice={tr.get('loss_dice', 0):.4f}"
+              f"  tversky={tr.get('loss_tversky', 0):.4f} bd={tr.get('loss_bd', 0):.4f}")
         print("  val   loss={:.4f}".format(va['loss']))
         print("  " + format_metrics(va).replace("\n", "\n  "))
 
         row = {
             "epoch": epoch, "split": "val",
             "train_loss": tr["loss"], "val_loss": va["loss"],
+            "loss_ce": tr.get("loss_ce", ""),
+            "loss_dice": tr.get("loss_dice", ""),
+            "loss_tversky": tr.get("loss_tversky", ""),
+            "loss_bd": tr.get("loss_bd", ""),
             "IoU_background": va["IoU_background"],
             "IoU_crack": va["IoU_crack"],
             "IoU_spalling": va["IoU_spalling"],
@@ -551,12 +624,20 @@ def main() -> None:
         }
         write_metrics_row(csv_path, row)
 
+        # Save checkpoint (with sample_bank for resume)
+        bank_serializable = {
+            sid: {"ema_loss": s.ema_loss, "ema_uncertainty": s.ema_uncertainty,
+                  "boundary_complexity": s.boundary_complexity, "sparsity": s.sparsity,
+                  "difficulty": s.difficulty}
+            for sid, s in sample_bank.items()
+        }
         torch.save(
             {"model": model.state_dict(),
              "optimizer": optimizer.state_dict(),
-             "scheduler": scheduler.state_dict(),
+             "scheduler": lr_scheduler.state_dict(),
              "epoch": epoch,
-             "best_miou_fg": best_miou},
+             "best_miou_fg": best_miou,
+             "sample_bank": bank_serializable},
             last_pt,
         )
         if va["mIoU_fg"] > best_miou:
@@ -564,10 +645,11 @@ def main() -> None:
             torch.save(
                 {"model": model.state_dict(),
                  "optimizer": optimizer.state_dict(),
-                 "scheduler": scheduler.state_dict(),
+                 "scheduler": lr_scheduler.state_dict(),
                  "epoch": epoch,
                  "mIoU_fg": best_miou,
-                 "best_miou_fg": best_miou},
+                 "best_miou_fg": best_miou,
+                 "sample_bank": bank_serializable},
                 best_pt,
             )
             print(f"  [best] mIoU_fg={best_miou:.4f}  saved -> {best_pt.name}")
@@ -579,21 +661,29 @@ def main() -> None:
     # ----- final test eval using best -----
     print("\n[train] final test eval using best checkpoint")
     if not best_pt.exists():
-        print("[train] WARNING: best.pt missing (no completed epoch?); using current model")
+        print("[train] WARNING: best.pt missing; using current model")
     else:
         state = torch.load(best_pt, map_location=device)
         model.load_state_dict(state["model"])
-    test_m = evaluate(model, test_loader, criterion, device, eval_metrics)
+    test_m = evaluate(model, test_loader, criterion, device, eval_metrics,
+                      curriculum_scheduler, total_epochs)
     print(format_metrics(test_m))
 
     report = rdir / "test_report.txt"
     with open(report, "w") as f:
         f.write(f"run: {cfg.name}\n")
-        f.write(f"preset: {args.preset}\n")
         f.write(f"pretrained: {cfg.pretrained}  img_size: {cfg.img_size}  "
                 f"batch: {cfg.batch_size}  grad_accum: {cfg.grad_accum}  "
                 f"epochs: {total_epochs}  lr: {cfg.lr}  "
-                f"warmup: {cfg.warmup_epochs}  curriculum: {cfg.curriculum}\n")
+                f"warmup: {cfg.warmup_epochs}\n")
+        f.write(f"difficulty: alpha={cfg.diff_alpha} beta={cfg.diff_beta}"
+                f" gamma={cfg.diff_gamma} delta={cfg.diff_delta}"
+                f" ema={cfg.diff_ema} tau={cfg.diff_tau}\n")
+        f.write(f"bonuses: spalling={cfg.spalling_bonus}"
+                f" late_hard_crack={cfg.late_hard_crack_bonus}\n")
+        f.write(f"loss: ce_w={cfg.loss_ce_w} dice_w={cfg.loss_dice_w}"
+                f" tversky_alpha={cfg.loss_tversky_alpha}"
+                f" tversky_beta={cfg.loss_tversky_beta}\n")
         if accum_notice:
             f.write(f"note: {accum_notice}\n")
         if best_pt.exists():
