@@ -6,9 +6,10 @@ my\ gpu\ key.pem
 # --- Datasets (922 MB) ---
 Dataset/
 
-# --- Training outputs / checkpoints (719 MB) ---
-runs/
-**/runs/
+# --- Training checkpoints (large, 100s of MB each) ---
+# NOTE: runs/ itself is NOT ignored — we want metrics.csv, test_report.txt,
+# curves.png, and samples/*.png to be tracked so Claude can read results
+# from RunPod after `git pull`. Only the heavy checkpoint files are blocked.
 *.pt
 *.pth
 *.ckpt
