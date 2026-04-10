@@ -135,11 +135,6 @@ def build_loaders(cfg: C.RunCfg, device: str, train_files: List[str],
 
 def oom_probe(model: nn.Module, cfg: C.RunCfg, device: str) -> bool:
     try:
-        # Warm up cuDNN with a tiny conv so lazy init doesn't fail on the real probe.
-        if device == "cuda":
-            _w = torch.randn(1, 3, 8, 8, device=device)
-            _ = torch.nn.functional.conv2d(_w, torch.randn(3, 3, 3, 3, device=device), padding=1)
-            del _w, _
         x = torch.zeros(cfg.batch_size, 3, cfg.img_size, cfg.img_size, device=device)
         y = torch.zeros(cfg.batch_size, cfg.img_size, cfg.img_size,
                         device=device, dtype=torch.long)
@@ -334,6 +329,18 @@ def main() -> None:
 
     set_seed(C.SEED)
     device = pick_device(C.DEVICE)
+
+    # cuDNN warmup / fallback (RunPod compatibility)
+    if device == "cuda":
+        try:
+            _w = torch.randn(1, 3, 8, 8, device=device)
+            _ = torch.nn.functional.conv2d(_w, torch.randn(3, 3, 3, 3, device=device), padding=1)
+            del _w, _
+            print("[train] cuDNN warmup OK")
+        except RuntimeError as e:
+            print(f"[train] cuDNN warmup failed ({e}); disabling cuDNN")
+            torch.backends.cudnn.enabled = False
+
     import torch as _t
     try:
         import transformers as _tf
