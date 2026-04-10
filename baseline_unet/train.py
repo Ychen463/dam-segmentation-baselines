@@ -58,13 +58,17 @@ def build_model(num_classes: int) -> nn.Module:
     )
 
 
-def train_one_epoch(model, loader, optimizer, criterion, device, metrics: SegMetrics) -> Dict[str, float]:
+def train_one_epoch(model, loader, optimizer, criterion, device, metrics: SegMetrics,
+                    epoch: int = 0, total_epochs: int = 0) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
     n_batches = 0
     class_pixel_sum = np.zeros(C.NUM_CLASSES, dtype=np.int64)
-    for imgs, masks, _ in loader:
+    total_steps = len(loader)
+    log_every = max(1, total_steps // 10)
+    t_start = time.time()
+    for step, (imgs, masks, _) in enumerate(loader, start=1):
         imgs = imgs.to(device, non_blocking=True).float()
         masks = masks.to(device, non_blocking=True).long()
         optimizer.zero_grad()
@@ -78,6 +82,12 @@ def train_one_epoch(model, loader, optimizer, criterion, device, metrics: SegMet
         m_np = masks.detach().cpu().numpy()
         for c in range(C.NUM_CLASSES):
             class_pixel_sum[c] += int((m_np == c).sum())
+        if step % log_every == 0 or step == total_steps:
+            elapsed = time.time() - t_start
+            eta = elapsed / step * (total_steps - step)
+            print(f"  [epoch {epoch}/{total_epochs}] batch {step}/{total_steps}"
+                  f" ({step*100//total_steps}%) loss={loss_sum/n_batches:.4f}"
+                  f" elapsed={elapsed:.0f}s eta={eta:.0f}s", flush=True)
     avg_loss = loss_sum / max(n_batches, 1)
     m = metrics.compute()
     m["loss"] = avg_loss
@@ -217,12 +227,19 @@ def main() -> None:
     last_pt = C.RUN_DIR / "last.pt"
     best_pt = C.RUN_DIR / "best.pt"
 
+    run_t0 = time.time()
     for epoch in range(1, args.epochs + 1):
         t0 = time.time()
-        tr = train_one_epoch(model, train_loader, optimizer, criterion, device, metrics)
+        tr = train_one_epoch(model, train_loader, optimizer, criterion, device, metrics,
+                             epoch=epoch, total_epochs=args.epochs)
         va = evaluate(model, val_loader, criterion, device, metrics)
         scheduler.step()
         dt = time.time() - t0
+        avg_ep = (time.time() - run_t0) / epoch
+        remain = args.epochs - epoch
+        run_eta = avg_ep * remain
+        print(f"[epoch {epoch:03d}/{args.epochs}] remain={remain} epochs"
+              f" ep_eta={run_eta/60:.1f}min (avg {avg_ep:.0f}s/ep)", flush=True)
 
         print(f"[epoch {epoch:03d}/{args.epochs}] lr={optimizer.param_groups[0]['lr']:.6f}  dt={dt:.1f}s")
         print(f"  train loss={tr['loss']:.4f}  " + format_metrics(tr).replace("\n", "\n  "))

@@ -123,12 +123,16 @@ def oom_probe(model: nn.Module, cfg: C.RunCfg, device: str) -> bool:
 # ---------------------------------------------------------------------------
 
 def train_one_epoch(model, loader, optimizer, criterion, device,
-                    metrics: SegMetrics, grad_accum: int) -> Dict[str, float]:
+                    metrics: SegMetrics, grad_accum: int,
+                    epoch: int = 0, total_epochs: int = 0) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
     n_batches = 0
     class_pixel_sum = np.zeros(C.NUM_CLASSES, dtype=np.int64)
+    total_steps = len(loader)
+    log_every = max(1, total_steps // 10)
+    t_start = time.time()
 
     optimizer.zero_grad(set_to_none=True)
     for step, (imgs, masks, _) in enumerate(loader):
@@ -148,6 +152,13 @@ def train_one_epoch(model, loader, optimizer, criterion, device,
         m_np = masks.detach().cpu().numpy()
         for c in range(C.NUM_CLASSES):
             class_pixel_sum[c] += int((m_np == c).sum())
+        done = step + 1
+        if done % log_every == 0 or done == total_steps:
+            elapsed = time.time() - t_start
+            eta = elapsed / done * (total_steps - done)
+            print(f"  [epoch {epoch}/{total_epochs}] batch {done}/{total_steps}"
+                  f" ({done*100//total_steps}%) loss={loss_sum/n_batches:.4f}"
+                  f" elapsed={elapsed:.0f}s eta={eta:.0f}s", flush=True)
 
     # Flush any tail micro-batches.
     if n_batches % grad_accum != 0:
@@ -405,13 +416,22 @@ def main() -> None:
                      samples_dir / "epoch_000_init.png", device, cfg.img_size)
 
     # ----- training loop -----
+    run_t0 = time.time()
+    epochs_done = 0
     for epoch in range(start_epoch, total_epochs + 1):
         t0 = time.time()
         tr = train_one_epoch(model, train_loader, optimizer, criterion, device,
-                             train_metrics, cfg.grad_accum)
+                             train_metrics, cfg.grad_accum,
+                             epoch=epoch, total_epochs=total_epochs)
         va = evaluate(model, val_loader, criterion, device, eval_metrics)
         scheduler.step()
         dt = time.time() - t0
+        epochs_done += 1
+        avg_ep = (time.time() - run_t0) / epochs_done
+        remain = total_epochs - epoch
+        run_eta = avg_ep * remain
+        print(f"[epoch {epoch:03d}/{total_epochs}] remain={remain} epochs"
+              f" ep_eta={run_eta/60:.1f}min (avg {avg_ep:.0f}s/ep)", flush=True)
 
         print(f"[epoch {epoch:03d}/{total_epochs}] lr={optimizer.param_groups[0]['lr']:.6f}"
               f"  dt={dt:.1f}s")
