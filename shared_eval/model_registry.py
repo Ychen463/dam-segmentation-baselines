@@ -97,6 +97,13 @@ def _build_mask2former():
     return build_model_and_processor(cfg)
 
 
+def _build_full_method() -> nn.Module:
+    from full_method.model import SegFormerWithBoundary
+    from full_method import config as fm_C
+    cfg = fm_C.RunCfg()
+    return SegFormerWithBoundary(cfg.pretrained, fm_C.NUM_CLASSES)
+
+
 # ---------------------------------------------------------------------------
 # Inference wrappers
 # ---------------------------------------------------------------------------
@@ -112,6 +119,26 @@ class SegformerLogitsWrapper(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = self.model(pixel_values=x)
         logits = out.logits  # (B, C, H/4, W/4)
+        return F.interpolate(
+            logits, size=(self.target_size, self.target_size),
+            mode="bilinear", align_corners=False,
+        )
+
+    def parameters(self, recurse=True):
+        return self.model.parameters(recurse=recurse)
+
+
+class FullMethodLogitsWrapper(nn.Module):
+    """Wraps SegFormerWithBoundary (dict output) to return (B,C,H,W) logits."""
+
+    def __init__(self, model: nn.Module, target_size: int):
+        super().__init__()
+        self.model = model
+        self.target_size = target_size
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out = self.model(x)  # dict with seg_logits, boundary_logits
+        logits = out["seg_logits"]  # (B, C, H/4, W/4)
         return F.interpolate(
             logits, size=(self.target_size, self.target_size),
             mode="bilinear", align_corners=False,
@@ -236,4 +263,13 @@ register(ModelEntry(
     checkpoint=_CODES / "baseline_mask2former" / "runs" / "mask2former_swin_small_512" / "best.pt",
     img_size=512,
     build_fn=lambda: None,  # handled specially in load_model
+))
+
+# Full Method: SegFormer-B2 + Boundary Head + Dynamic Curriculum
+register(ModelEntry(
+    name="segformer_b2_full_512",
+    checkpoint=_CODES / "full_method" / "runs" / "segformer_b2_full_512" / "best.pt",
+    img_size=512,
+    build_fn=_build_full_method,
+    inference_wrapper=FullMethodLogitsWrapper,
 ))
