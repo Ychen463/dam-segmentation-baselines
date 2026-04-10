@@ -40,8 +40,8 @@ from baseline_unet.losses import CEDiceLoss
 from baseline_unet.metrics import SegMetrics
 from baseline_unet.visualize import pick_viz_samples, save_preview
 
-from . import config as C
-from .metrics import SegMetricsBF1, format_metrics
+from baseline_deeplab import config as C
+from baseline_deeplab.metrics import SegMetricsBF1, format_metrics
 
 
 # ---------------------------------------------------------------------------
