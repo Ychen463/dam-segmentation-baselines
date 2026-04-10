@@ -1,0 +1,16 @@
+best epoch: 30
+best val mIoU_fg: 0.6350364456459104
+test set metrics:
+  IoU_background: 0.9676817335396942
+  IoU_crack: 0.5097760208890679
+  IoU_spalling: 0.680772384768919
+  Dice_background: 0.9835754604469658
+  Dice_crack: 0.6753001953082737
+  Dice_spalling: 0.8100708828132192
+  mIoU_fg: 0.5952742028289935
+  mIoU_all: 0.719410046399227
+  pixel_acc: 0.9685999348958333
+confusion matrix (rows=gt, cols=pred):
+[[14280389   278044    43320]
+ [  121733   421310     1360]
+ [   33834     4014   175996]]

@@ -1,0 +1,33 @@
+Python(47249) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[train] preset=A (deeplabv3p_r50_512)
+[train] device=mps  torch=2.8.0  smp=0.5.0
+[train] cfg: encoder=resnet50 img=512 bs=4 grad_accum=1 epochs=10 lr=0.0005
+[train] sizes: train=1200 val=150 test=150
+[train] raw pixel frequency: {'background': 0.952165391031901, 'crack': 0.03423014119466146, 'spalling': 0.0136044677734375}
+[train] clipped weights    : {'background': 0.25, 'crack': 1.080772481700143, 'spalling': 1.7143055384148256}
+[train] using AUTO CE weights
+[train] running OOM probe ...
+[train] OOM probe OK
+[train] viz samples (6):
+    Hard/H (99).jpg
+    Hard/H (365).jpg
+    Medium/M (127).jpg
+    Medium/M (422).jpg
+    Hard/H (431).jpg
+    Hard/H (476).jpg
+Python(47250) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(47251) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Error: command buffer exited with error status.
+	The Metal Performance Shaders operations encoded on it may not have completed.
+	Error: 
+	(null)
+	Internal Error (00000001:Internal Error)
+	<AGXG15GFamilyCommandBuffer: 0x3199e4b00>
+    label = <none> 
+    device = <AGXG15GDevice: 0x129997c00>
+        name = Apple M3 
+    commandQueue = <AGXG15GFamilyCommandQueue: 0x129d67400>
+        label = <none> 
+        device = <AGXG15GDevice: 0x129997c00>
+            name = Apple M3 
+    retainedReferences = 1

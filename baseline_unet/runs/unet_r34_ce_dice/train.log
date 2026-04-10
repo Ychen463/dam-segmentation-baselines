@@ -1,0 +1,333 @@
+[train] device = mps
+[train] sizes: train=1200 val=150 test=150
+[train] raw pixel frequency: {'background': 0.952165391031901, 'crack': 0.03423014119466146, 'spalling': 0.0136044677734375}
+[train] smoothed weights   : {'background': 0.20492197988503144, 'crack': 1.080772481700143, 'spalling': 1.7143055384148256}
+[train] clipped weights    : {'background': 0.25, 'crack': 1.080772481700143, 'spalling': 1.7143055384148256}
+[train] manual fallback    : {'background': 0.2, 'crack': 2.0, 'spalling': 3.0}
+[train] using AUTO CE weights
+[train] viz samples (6):
+    Hard/H (99).jpg
+    Hard/H (365).jpg
+    Medium/M (127).jpg
+    Medium/M (422).jpg
+    Hard/H (431).jpg
+    Hard/H (476).jpg
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+[epoch 001/30] lr=0.000997  dt=88.1s
+  train loss=0.5523  IoU   bg=0.9153  crack=0.3055  spalling=0.1491  | mIoU_fg=0.2273  pix_acc=0.9151
+  Dice  bg=0.9558  crack=0.4680  spalling=0.2596
+  val   loss=0.5130  IoU   bg=0.9244  crack=0.3802  spalling=0.1607  | mIoU_fg=0.2704  pix_acc=0.9223
+  Dice  bg=0.9607  crack=0.5509  spalling=0.2769
+  [best] mIoU_fg=0.2704  saved -> best.pt
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(10281) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(10282) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 002/30] lr=0.000989  dt=130.2s
+  train loss=0.4367  IoU   bg=0.9455  crack=0.4130  spalling=0.2685  | mIoU_fg=0.3407  pix_acc=0.9458
+  Dice  bg=0.9720  crack=0.5846  spalling=0.4233
+  val   loss=0.4520  IoU   bg=0.9630  crack=0.4399  spalling=0.2551  | mIoU_fg=0.3475  pix_acc=0.9634
+  Dice  bg=0.9812  crack=0.6110  spalling=0.4065
+  [best] mIoU_fg=0.3475  saved -> best.pt
+Python(10378) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(10379) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(10666) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(10667) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 003/30] lr=0.000976  dt=99.8s
+  train loss=0.4434  IoU   bg=0.9439  crack=0.4183  spalling=0.2321  | mIoU_fg=0.3252  pix_acc=0.9441
+  Dice  bg=0.9711  crack=0.5898  spalling=0.3767
+  val   loss=0.3721  IoU   bg=0.9591  crack=0.4416  spalling=0.4484  | mIoU_fg=0.4450  pix_acc=0.9595
+  Dice  bg=0.9791  crack=0.6127  spalling=0.6192
+  [best] mIoU_fg=0.4450  saved -> best.pt
+Python(10719) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(10720) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(10961) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(10962) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 004/30] lr=0.000957  dt=93.7s
+  train loss=0.4096  IoU   bg=0.9483  crack=0.4396  spalling=0.2729  | mIoU_fg=0.3562  pix_acc=0.9487
+  Dice  bg=0.9735  crack=0.6107  spalling=0.4287
+  val   loss=0.3965  IoU   bg=0.9627  crack=0.4393  spalling=0.3959  | mIoU_fg=0.4176  pix_acc=0.9628
+  Dice  bg=0.9810  crack=0.6104  spalling=0.5672
+Python(11018) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(11019) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(11296) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(11297) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 005/30] lr=0.000933  dt=98.2s
+  train loss=0.4163  IoU   bg=0.9470  crack=0.4419  spalling=0.2584  | mIoU_fg=0.3501  pix_acc=0.9474
+  Dice  bg=0.9728  crack=0.6129  spalling=0.4106
+  val   loss=0.3739  IoU   bg=0.9523  crack=0.4237  spalling=0.4308  | mIoU_fg=0.4272  pix_acc=0.9532
+  Dice  bg=0.9756  crack=0.5952  spalling=0.6022
+Python(11358) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(11359) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(11613) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(11614) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 006/30] lr=0.000905  dt=90.7s
+  train loss=0.3908  IoU   bg=0.9497  crack=0.4550  spalling=0.2878  | mIoU_fg=0.3714  pix_acc=0.9502
+  Dice  bg=0.9742  crack=0.6254  spalling=0.4469
+  val   loss=0.3498  IoU   bg=0.9557  crack=0.4453  spalling=0.4653  | mIoU_fg=0.4553  pix_acc=0.9566
+  Dice  bg=0.9773  crack=0.6162  spalling=0.6351
+  [best] mIoU_fg=0.4553  saved -> best.pt
+Python(11669) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(11670) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(11916) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(11917) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 007/30] lr=0.000872  dt=91.9s
+  train loss=0.3948  IoU   bg=0.9519  crack=0.4555  spalling=0.2997  | mIoU_fg=0.3776  pix_acc=0.9525
+  Dice  bg=0.9754  crack=0.6259  spalling=0.4612
+  val   loss=0.3752  IoU   bg=0.9591  crack=0.4471  spalling=0.4379  | mIoU_fg=0.4425  pix_acc=0.9600
+  Dice  bg=0.9791  crack=0.6179  spalling=0.6091
+Python(11972) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(11973) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(12238) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(12239) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 008/30] lr=0.000835  dt=95.2s
+  train loss=0.3844  IoU   bg=0.9531  crack=0.4664  spalling=0.3182  | mIoU_fg=0.3923  pix_acc=0.9537
+  Dice  bg=0.9760  crack=0.6361  spalling=0.4827
+  val   loss=0.3629  IoU   bg=0.9601  crack=0.4528  spalling=0.5169  | mIoU_fg=0.4848  pix_acc=0.9607
+  Dice  bg=0.9796  crack=0.6233  spalling=0.6815
+  [best] mIoU_fg=0.4848  saved -> best.pt
+Python(12297) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(12298) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(12680) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(12681) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 009/30] lr=0.000794  dt=138.1s
+  train loss=0.3783  IoU   bg=0.9532  crack=0.4642  spalling=0.3347  | mIoU_fg=0.3995  pix_acc=0.9539
+  Dice  bg=0.9760  crack=0.6341  spalling=0.5016
+  val   loss=0.3105  IoU   bg=0.9669  crack=0.4948  spalling=0.5999  | mIoU_fg=0.5474  pix_acc=0.9675
+  Dice  bg=0.9831  crack=0.6620  spalling=0.7499
+  [best] mIoU_fg=0.5474  saved -> best.pt
+Python(12763) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(12764) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(13052) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(13053) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 010/30] lr=0.000750  dt=107.1s
+  train loss=0.3715  IoU   bg=0.9545  crack=0.4676  spalling=0.3447  | mIoU_fg=0.4061  pix_acc=0.9551
+  Dice  bg=0.9767  crack=0.6372  spalling=0.5127
+  val   loss=0.6117  IoU   bg=0.8422  crack=0.4129  spalling=0.0766  | mIoU_fg=0.2448  pix_acc=0.8411
+  Dice  bg=0.9144  crack=0.5845  spalling=0.1424
+Python(13125) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(13126) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(13746) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(13747) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 011/30] lr=0.000703  dt=199.0s
+  train loss=0.3698  IoU   bg=0.9550  crack=0.4726  spalling=0.3462  | mIoU_fg=0.4094  pix_acc=0.9556
+  Dice  bg=0.9770  crack=0.6419  spalling=0.5144
+  val   loss=0.3438  IoU   bg=0.9626  crack=0.4688  spalling=0.4702  | mIoU_fg=0.4695  pix_acc=0.9632
+  Dice  bg=0.9809  crack=0.6383  spalling=0.6396
+Python(13841) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(13842) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(14126) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(14127) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 012/30] lr=0.000655  dt=107.3s
+  train loss=0.3465  IoU   bg=0.9594  crack=0.4814  spalling=0.4012  | mIoU_fg=0.4413  pix_acc=0.9600
+  Dice  bg=0.9793  crack=0.6499  spalling=0.5727
+  val   loss=0.3142  IoU   bg=0.9641  crack=0.4816  spalling=0.6203  | mIoU_fg=0.5510  pix_acc=0.9650
+  Dice  bg=0.9817  crack=0.6501  spalling=0.7657
+  [best] mIoU_fg=0.5510  saved -> best.pt
+Python(14181) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(14182) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(14598) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(14599) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 013/30] lr=0.000604  dt=157.2s
+  train loss=0.3432  IoU   bg=0.9594  crack=0.4830  spalling=0.4145  | mIoU_fg=0.4487  pix_acc=0.9602
+  Dice  bg=0.9793  crack=0.6514  spalling=0.5861
+  val   loss=0.3274  IoU   bg=0.9607  crack=0.4654  spalling=0.5979  | mIoU_fg=0.5317  pix_acc=0.9618
+  Dice  bg=0.9800  crack=0.6352  spalling=0.7484
+Python(14757) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(14764) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(15063) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(15064) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 014/30] lr=0.000552  dt=114.4s
+  train loss=0.3289  IoU   bg=0.9603  crack=0.4847  spalling=0.4520  | mIoU_fg=0.4684  pix_acc=0.9612
+  Dice  bg=0.9798  crack=0.6529  spalling=0.6226
+  val   loss=0.3074  IoU   bg=0.9671  crack=0.4883  spalling=0.6263  | mIoU_fg=0.5573  pix_acc=0.9675
+  Dice  bg=0.9833  crack=0.6562  spalling=0.7702
+  [best] mIoU_fg=0.5573  saved -> best.pt
+Python(15116) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(15117) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(15428) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(15429) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 015/30] lr=0.000500  dt=112.4s
+  train loss=0.3316  IoU   bg=0.9593  crack=0.4864  spalling=0.4142  | mIoU_fg=0.4503  pix_acc=0.9600
+  Dice  bg=0.9792  crack=0.6544  spalling=0.5858
+  val   loss=0.3023  IoU   bg=0.9692  crack=0.5022  spalling=0.6302  | mIoU_fg=0.5662  pix_acc=0.9696
+  Dice  bg=0.9843  crack=0.6686  spalling=0.7732
+  [best] mIoU_fg=0.5662  saved -> best.pt
+Python(15496) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(15497) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(15828) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(15829) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 016/30] lr=0.000448  dt=112.5s
+  train loss=0.3114  IoU   bg=0.9636  crack=0.4932  spalling=0.5099  | mIoU_fg=0.5015  pix_acc=0.9645
+  Dice  bg=0.9815  crack=0.6606  spalling=0.6754
+  val   loss=0.3370  IoU   bg=0.9703  crack=0.5020  spalling=0.6074  | mIoU_fg=0.5547  pix_acc=0.9710
+  Dice  bg=0.9849  crack=0.6685  spalling=0.7558
+Python(15880) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(15881) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(16206) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(16207) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 017/30] lr=0.000396  dt=101.4s
+  train loss=0.3021  IoU   bg=0.9625  crack=0.4942  spalling=0.4946  | mIoU_fg=0.4944  pix_acc=0.9634
+  Dice  bg=0.9809  crack=0.6615  spalling=0.6618
+  val   loss=0.2961  IoU   bg=0.9681  crack=0.4962  spalling=0.6414  | mIoU_fg=0.5688  pix_acc=0.9688
+  Dice  bg=0.9838  crack=0.6633  spalling=0.7815
+  [best] mIoU_fg=0.5688  saved -> best.pt
+Python(16273) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(16274) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(16513) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(16514) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 018/30] lr=0.000345  dt=88.9s
+  train loss=0.3031  IoU   bg=0.9633  crack=0.4928  spalling=0.5124  | mIoU_fg=0.5026  pix_acc=0.9641
+  Dice  bg=0.9813  crack=0.6602  spalling=0.6776
+  val   loss=0.2905  IoU   bg=0.9709  crack=0.5159  spalling=0.6468  | mIoU_fg=0.5813  pix_acc=0.9715
+  Dice  bg=0.9852  crack=0.6807  spalling=0.7855
+  [best] mIoU_fg=0.5813  saved -> best.pt
+Python(16571) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(16572) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(16848) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(16849) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 019/30] lr=0.000297  dt=90.2s
+  train loss=0.2967  IoU   bg=0.9645  crack=0.5001  spalling=0.5261  | mIoU_fg=0.5131  pix_acc=0.9654
+  Dice  bg=0.9820  crack=0.6667  spalling=0.6895
+  val   loss=0.2843  IoU   bg=0.9656  crack=0.5129  spalling=0.5696  | mIoU_fg=0.5412  pix_acc=0.9664
+  Dice  bg=0.9825  crack=0.6780  spalling=0.7258
+Python(16896) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(16897) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(17126) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(17127) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 020/30] lr=0.000250  dt=89.1s
+  train loss=0.2852  IoU   bg=0.9664  crack=0.5030  spalling=0.6022  | mIoU_fg=0.5526  pix_acc=0.9673
+  Dice  bg=0.9829  crack=0.6693  spalling=0.7517
+  val   loss=0.2767  IoU   bg=0.9684  crack=0.5243  spalling=0.5971  | mIoU_fg=0.5607  pix_acc=0.9692
+  Dice  bg=0.9839  crack=0.6879  spalling=0.7477
+Python(17188) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(17189) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(17428) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(17429) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 021/30] lr=0.000206  dt=89.3s
+  train loss=0.2737  IoU   bg=0.9677  crack=0.5043  spalling=0.6405  | mIoU_fg=0.5724  pix_acc=0.9686
+  Dice  bg=0.9836  crack=0.6705  spalling=0.7809
+  val   loss=0.2767  IoU   bg=0.9716  crack=0.5238  spalling=0.6903  | mIoU_fg=0.6071  pix_acc=0.9723
+  Dice  bg=0.9856  crack=0.6875  spalling=0.8168
+  [best] mIoU_fg=0.6071  saved -> best.pt
+Python(17482) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(17483) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(17721) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(17722) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 022/30] lr=0.000165  dt=89.6s
+  train loss=0.2811  IoU   bg=0.9665  crack=0.5043  spalling=0.5951  | mIoU_fg=0.5497  pix_acc=0.9674
+  Dice  bg=0.9830  crack=0.6705  spalling=0.7462
+  val   loss=0.2918  IoU   bg=0.9716  crack=0.5205  spalling=0.6847  | mIoU_fg=0.6026  pix_acc=0.9723
+  Dice  bg=0.9856  crack=0.6847  spalling=0.8129
+Python(17770) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(17771) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(18039) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(18040) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 023/30] lr=0.000128  dt=190.9s
+  train loss=0.2611  IoU   bg=0.9684  crack=0.5103  spalling=0.6614  | mIoU_fg=0.5858  pix_acc=0.9694
+  Dice  bg=0.9840  crack=0.6758  spalling=0.7962
+  val   loss=0.2753  IoU   bg=0.9708  crack=0.5203  spalling=0.7044  | mIoU_fg=0.6123  pix_acc=0.9716
+  Dice  bg=0.9852  crack=0.6845  spalling=0.8266
+  [best] mIoU_fg=0.6123  saved -> best.pt
+Python(18105) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(18106) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(18361) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(18362) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 024/30] lr=0.000095  dt=250.0s
+  train loss=0.2568  IoU   bg=0.9692  crack=0.5105  spalling=0.6887  | mIoU_fg=0.5996  pix_acc=0.9701
+  Dice  bg=0.9843  crack=0.6759  spalling=0.8157
+  val   loss=0.2683  IoU   bg=0.9708  crack=0.5201  spalling=0.6906  | mIoU_fg=0.6053  pix_acc=0.9715
+  Dice  bg=0.9852  crack=0.6843  spalling=0.8170
+Python(18459) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(18460) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(18997) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(18998) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 025/30] lr=0.000067  dt=195.8s
+  train loss=0.2468  IoU   bg=0.9698  crack=0.5138  spalling=0.7132  | mIoU_fg=0.6135  pix_acc=0.9708
+  Dice  bg=0.9847  crack=0.6788  spalling=0.8326
+  val   loss=0.2743  IoU   bg=0.9710  crack=0.5181  spalling=0.7080  | mIoU_fg=0.6131  pix_acc=0.9718
+  Dice  bg=0.9853  crack=0.6826  spalling=0.8291
+  [best] mIoU_fg=0.6131  saved -> best.pt
+Python(19068) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(19069) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(19299) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(19300) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 026/30] lr=0.000043  dt=90.0s
+  train loss=0.2515  IoU   bg=0.9702  crack=0.5154  spalling=0.7230  | mIoU_fg=0.6192  pix_acc=0.9711
+  Dice  bg=0.9849  crack=0.6802  spalling=0.8392
+  val   loss=0.2680  IoU   bg=0.9707  crack=0.5210  spalling=0.7079  | mIoU_fg=0.6145  pix_acc=0.9715
+  Dice  bg=0.9851  crack=0.6851  spalling=0.8290
+  [best] mIoU_fg=0.6145  saved -> best.pt
+Python(19352) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(19353) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(19621) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(19622) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 027/30] lr=0.000024  dt=91.1s
+  train loss=0.2395  IoU   bg=0.9707  crack=0.5160  spalling=0.7493  | mIoU_fg=0.6326  pix_acc=0.9716
+  Dice  bg=0.9851  crack=0.6807  spalling=0.8567
+  val   loss=0.2542  IoU   bg=0.9709  crack=0.5201  spalling=0.7338  | mIoU_fg=0.6269  pix_acc=0.9717
+  Dice  bg=0.9852  crack=0.6843  spalling=0.8465
+  [best] mIoU_fg=0.6269  saved -> best.pt
+Python(19674) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(19675) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(19984) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(19985) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 028/30] lr=0.000011  dt=97.1s
+  train loss=0.2390  IoU   bg=0.9709  crack=0.5171  spalling=0.7551  | mIoU_fg=0.6361  pix_acc=0.9718
+  Dice  bg=0.9852  crack=0.6817  spalling=0.8605
+  val   loss=0.2556  IoU   bg=0.9717  crack=0.5224  spalling=0.7397  | mIoU_fg=0.6311  pix_acc=0.9725
+  Dice  bg=0.9857  crack=0.6863  spalling=0.8504
+  [best] mIoU_fg=0.6311  saved -> best.pt
+Python(20034) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(20035) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(20260) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(20261) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 029/30] lr=0.000003  dt=88.5s
+  train loss=0.2373  IoU   bg=0.9707  crack=0.5176  spalling=0.7488  | mIoU_fg=0.6332  pix_acc=0.9716
+  Dice  bg=0.9851  crack=0.6821  spalling=0.8563
+  val   loss=0.2537  IoU   bg=0.9710  crack=0.5207  spalling=0.7409  | mIoU_fg=0.6308  pix_acc=0.9718
+  Dice  bg=0.9853  crack=0.6848  spalling=0.8512
+Python(20317) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(20318) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+Python(20593) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(20594) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+[epoch 030/30] lr=0.000000  dt=99.3s
+  train loss=0.2405  IoU   bg=0.9708  crack=0.5173  spalling=0.7507  | mIoU_fg=0.6340  pix_acc=0.9718
+  Dice  bg=0.9852  crack=0.6818  spalling=0.8576
+  val   loss=0.2553  IoU   bg=0.9708  crack=0.5166  spalling=0.7534  | mIoU_fg=0.6350  pix_acc=0.9717
+  Dice  bg=0.9852  crack=0.6813  spalling=0.8594
+  [best] mIoU_fg=0.6350  saved -> best.pt
+
+[train] final test eval using best checkpoint
+Python(20661) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+Python(20662) MallocStackLogging: can't turn off malloc stack logging because it was not enabled.
+IoU   bg=0.9677  crack=0.5098  spalling=0.6808  | mIoU_fg=0.5953  pix_acc=0.9686
+Dice  bg=0.9836  crack=0.6753  spalling=0.8101
+[train] wrote /Users/lynnchen/Documents/Research/Dynamic Difficulty-Aware Curriculum Learning with Boundary Refinement for Fine-Grained Crack and Spalling Segmentation in Concrete Dams/Codes/baseline_unet/runs/unet_r34_ce_dice/test_report.txt
