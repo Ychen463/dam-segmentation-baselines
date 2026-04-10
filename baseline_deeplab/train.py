@@ -30,6 +30,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+# Workaround: cuDNN may fail to initialize on some CUDA 12.x / driver combos.
+torch.backends.cudnn.enabled = False
+
 from baseline_unet.dataset import (
     DamSegmentDataset,
     build_transforms,

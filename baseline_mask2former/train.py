@@ -28,6 +28,9 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 
+# Workaround: cuDNN may fail to initialize on some CUDA 12.x / driver combos.
+torch.backends.cudnn.enabled = False
+
 from baseline_unet.dataset import (
     decode_mask,
     image_path,
