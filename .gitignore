@@ -1,0 +1,42 @@
+# --- Secrets ---
+*.pem
+*.key
+my\ gpu\ key.pem
+
+# --- Datasets (922 MB) ---
+Dataset/
+
+# --- Training outputs / checkpoints (719 MB) ---
+runs/
+**/runs/
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+wandb/
+lightning_logs/
+tb_logs/
+
+# --- Virtual envs (~1 GB) ---
+.venv/
+**/.venv/
+venv/
+env/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# --- OS / IDE ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- Claude Code workspace ---
+.claude/
