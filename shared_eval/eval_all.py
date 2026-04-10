@@ -134,6 +134,10 @@ def _format_results(results: Dict[str, Dict[str, float]]) -> str:
             f"  clDice  crack={m['clDice_crack']:.4f}  spalling={m['clDice_spalling']:.4f}"
             f"  | clDice_fg_mean={m['clDice_fg_mean']:.4f}"
         )
+        lines.append(
+            f"  ConnR   crack={m['ConnR_crack']:.4f}  spalling={m['ConnR_spalling']:.4f}"
+            f"  | ConnR_fg_mean={m['ConnR_fg_mean']:.4f}"
+        )
     return "\n".join(lines)
 
 
