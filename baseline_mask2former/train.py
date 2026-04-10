@@ -526,6 +526,11 @@ def main() -> None:
     # ----- dry run -----
     if args.dry_run:
         print("[train] DRY RUN: 1 train step + 1 val batch (with BF1)")
+        # cuDNN warmup to avoid CUDNN_STATUS_NOT_INITIALIZED on first conv
+        if device == "cuda":
+            _w = torch.randn(1, 3, 8, 8, device=device)
+            _ = torch.nn.functional.conv2d(_w, torch.randn(3, 3, 3, 3, device=device), padding=1)
+            del _w, _
         model.train()
         batch = next(iter(train_loader))
         pv = batch["pixel_values"].to(device)
