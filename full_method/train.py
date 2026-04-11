@@ -133,7 +133,7 @@ def oom_probe(model: nn.Module, cfg: C.RunCfg, device: str) -> bool:
 
 METRIC_KEYS: List[str] = [
     "epoch", "split", "train_loss", "val_loss",
-    "loss_ce", "loss_dice", "loss_tversky", "loss_bd",
+    "loss_ce", "loss_dice", "loss_tversky", "loss_bd", "loss_cldice",
     "IoU_background", "IoU_crack", "IoU_spalling",
     "Dice_background", "Dice_crack", "Dice_spalling",
     "mIoU_fg", "mIoU_all", "pixel_acc",
@@ -151,7 +151,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
     model.train()
     metrics.reset()
     loss_sum = 0.0
-    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0}
+    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0}
     n_batches = 0
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)
@@ -334,12 +334,13 @@ def main() -> None:
     # Ablation controls
     parser.add_argument("--ablation", type=str, default=None,
                         choices=sorted(ABLATION_PRESETS.keys()),
-                        help="named ablation preset (e.g. A2, A3, B0, S1-S5)")
+                        help="named ablation preset (e.g. A2, A3, B0, S1, S2)")
     parser.add_argument("--no-dynamic-difficulty", action="store_true")
     parser.add_argument("--no-class-sampling-bonus", action="store_true")
     parser.add_argument("--no-class-loss-schedule", action="store_true")
     parser.add_argument("--no-boundary-loss", action="store_true")
     parser.add_argument("--no-tversky-loss", action="store_true")
+    parser.add_argument("--no-cldice-loss", action="store_true")
     parser.add_argument("--diff-alpha", type=float, default=None)
     parser.add_argument("--diff-beta", type=float, default=None)
     parser.add_argument("--diff-gamma", type=float, default=None)
@@ -366,6 +367,8 @@ def main() -> None:
         cfg.use_boundary_loss = False
     if args.no_tversky_loss:
         cfg.use_tversky_loss = False
+    if args.no_cldice_loss:
+        cfg.use_cldice_loss = False
     if args.diff_alpha is not None:
         cfg.diff_alpha = args.diff_alpha
     if args.diff_beta is not None:
@@ -427,6 +430,9 @@ def main() -> None:
           f" (lambda={cfg.loss_reweight_lambda})"
           f" soft_boundary={cfg.use_soft_boundary_schedule}"
           f" (start={cfg.boundary_start_ratio} max={cfg.boundary_max_weight})")
+    print(f"[train] cldice: use={cfg.use_cldice_loss}"
+          f" weight={cfg.cldice_weight} start_epoch={cfg.cldice_start_epoch}"
+          f" iters={cfg.cldice_iters}")
 
     rdir = C.run_dir(cfg)
     samples_dir = rdir / "samples"
@@ -552,7 +558,8 @@ def main() -> None:
         optimizer.step()
         print(f"  train loss = {float(total_loss):.4f}")
         print(f"  loss_ce={info['loss_ce']:.4f} loss_dice={info['loss_dice']:.4f}"
-              f" loss_tversky={info['loss_tversky']:.4f} loss_bd={info['loss_bd']:.4f}")
+              f" loss_tversky={info['loss_tversky']:.4f} loss_bd={info['loss_bd']:.4f}"
+              f" loss_cldice={info['loss_cldice']:.4f}")
         print(f"  per_sample_ce shape: {info['per_sample_ce'].shape}")
 
         # Check sampler warmup bypass
@@ -687,7 +694,8 @@ def main() -> None:
               f"  dt={dt:.1f}s")
         print(f"  train loss={tr['loss']:.4f}"
               f"  ce={tr.get('loss_ce', 0):.4f} dice={tr.get('loss_dice', 0):.4f}"
-              f"  tversky={tr.get('loss_tversky', 0):.4f} bd={tr.get('loss_bd', 0):.4f}")
+              f"  tversky={tr.get('loss_tversky', 0):.4f} bd={tr.get('loss_bd', 0):.4f}"
+              f"  cldice={tr.get('loss_cldice', 0):.4f}")
         print("  val   loss={:.4f}".format(va['loss']))
         print("  " + format_metrics(va).replace("\n", "\n  "))
 
@@ -698,6 +706,7 @@ def main() -> None:
             "loss_dice": tr.get("loss_dice", ""),
             "loss_tversky": tr.get("loss_tversky", ""),
             "loss_bd": tr.get("loss_bd", ""),
+            "loss_cldice": tr.get("loss_cldice", ""),
             "IoU_background": va["IoU_background"],
             "IoU_crack": va["IoU_crack"],
             "IoU_spalling": va["IoU_spalling"],
@@ -754,7 +763,16 @@ def main() -> None:
     else:
         state = torch.load(best_pt, map_location=device, weights_only=False)
         model.load_state_dict(state["model"])
-    test_m = evaluate(model, test_loader, criterion, device, eval_metrics,
+
+    # Use SegMetricsFull for final test (adds clDice + connectivity)
+    try:
+        from shared_eval.metrics_full import SegMetricsFull
+        test_eval_metrics = SegMetricsFull(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
+    except ImportError:
+        print("[train] WARNING: shared_eval not available; using SegMetricsBF1 for test")
+        test_eval_metrics = eval_metrics
+
+    test_m = evaluate(model, test_loader, criterion, device, test_eval_metrics,
                       curriculum_scheduler, total_epochs)
     print(format_metrics(test_m))
 
@@ -780,6 +798,9 @@ def main() -> None:
                 f" dynamic_loss_reweight={cfg.use_dynamic_loss_reweight}"
                 f" (lambda={cfg.loss_reweight_lambda})"
                 f" soft_boundary={cfg.use_soft_boundary_schedule}\n")
+        f.write(f"cldice: use={cfg.use_cldice_loss}"
+                f" weight={cfg.cldice_weight} start_epoch={cfg.cldice_start_epoch}"
+                f" iters={cfg.cldice_iters}\n")
         f.write(f"loss: ce_w={cfg.loss_ce_w} dice_w={cfg.loss_dice_w}"
                 f" tversky_alpha={cfg.loss_tversky_alpha}"
                 f" tversky_beta={cfg.loss_tversky_beta}\n")
@@ -792,10 +813,12 @@ def main() -> None:
         for k in ("IoU_background", "IoU_crack", "IoU_spalling",
                   "Dice_background", "Dice_crack", "Dice_spalling",
                   "mIoU_fg", "mIoU_all", "pixel_acc",
-                  "BF1_crack", "BF1_spalling", "BF1_fg_mean"):
+                  "BF1_crack", "BF1_spalling", "BF1_fg_mean",
+                  "clDice_crack", "clDice_spalling", "clDice_fg_mean",
+                  "ConnR_crack", "ConnR_spalling", "ConnR_fg_mean"):
             f.write(f"  {k}: {test_m.get(k)}\n")
         f.write("confusion matrix (rows=gt, cols=pred):\n")
-        f.write(str(eval_metrics.cm) + "\n")
+        f.write(str(test_eval_metrics.cm) + "\n")
     print(f"[train] wrote {report}")
 
     try:

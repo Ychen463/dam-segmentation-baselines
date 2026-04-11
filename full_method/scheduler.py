@@ -29,13 +29,11 @@ class CurriculumScheduler:
     def tier_mix(self, epoch: int) -> Dict[int, float]:
         """Smooth tier mixing ratios for soft curriculum."""
         ratio = epoch / self.total_epochs
-        if ratio < 0.25:
-            return {0: 0.85, 1: 0.15, 2: 0.00}
-        elif ratio < 0.55:
-            return {0: 0.55, 1: 0.35, 2: 0.10}
-        elif ratio < 0.80:
-            return {0: 0.30, 1: 0.40, 2: 0.30}
-        return {0: 0.20, 1: 0.35, 2: 0.45}
+        if ratio < 0.30:
+            return {0: 0.80, 1: 0.20, 2: 0.00}
+        elif ratio < 0.60:
+            return {0: 0.50, 1: 0.35, 2: 0.15}
+        return {0: 0.30, 1: 0.35, 2: 0.35}
 
     def crack_weight(self, epoch: int) -> float:
         ratio = epoch / self.total_epochs

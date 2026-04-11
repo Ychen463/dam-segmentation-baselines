@@ -72,6 +72,41 @@ def boundary_bce_loss(boundary_logits: torch.Tensor,
 
 
 # ---------------------------------------------------------------------------
+# Soft-clDice (topology-preserving loss for thin structures)
+# ---------------------------------------------------------------------------
+
+def soft_erode(img):
+    p1 = -F.max_pool2d(-img, (3, 1), stride=1, padding=(1, 0))
+    p2 = -F.max_pool2d(-img, (1, 3), stride=1, padding=(0, 1))
+    return torch.min(p1, p2)
+
+def soft_dilate(img):
+    return F.max_pool2d(img, (3, 3), stride=1, padding=1)
+
+def soft_open(img):
+    return soft_dilate(soft_erode(img))
+
+def soft_skel(img, iters: int):
+    img1 = soft_open(img)
+    skel = F.relu(img - img1)
+    for _ in range(iters):
+        img = soft_erode(img)
+        img1 = soft_open(img)
+        delta = F.relu(img - img1)
+        skel = skel + F.relu(delta - skel * delta)
+    return skel
+
+def soft_cldice_loss(prob, target, iters=7, eps=1e-6):
+    """Soft clDice loss on (B,1,H,W) probability and binary target."""
+    sp = soft_skel(prob, iters)
+    sl = soft_skel(target, iters)
+    tprec = (sp * target).sum(dim=(1, 2, 3)) / (sp.sum(dim=(1, 2, 3)) + eps)
+    tsens = (sl * prob).sum(dim=(1, 2, 3)) / (sl.sum(dim=(1, 2, 3)) + eps)
+    cl = 2 * tprec * tsens / (tprec + tsens + eps)
+    return 1 - cl.mean()
+
+
+# ---------------------------------------------------------------------------
 # Foreground Dice loss (reusable, matches baseline_unet.losses logic)
 # ---------------------------------------------------------------------------
 
@@ -142,6 +177,16 @@ class CompositeLoss(nn.Module):
         else:
             loss_bd = seg_logits.new_zeros(())
 
+        # Crack-only soft-clDice loss
+        if self.cfg.use_cldice_loss and epoch >= self.cfg.cldice_start_epoch:
+            probs = seg_logits.softmax(dim=1)
+            p_crack = probs[:, 1:2, :, :]                       # (B,1,H,W)
+            y_crack = (targets == 1).float().unsqueeze(1)        # (B,1,H,W)
+            loss_cldice = soft_cldice_loss(p_crack, y_crack,
+                                           iters=self.cfg.cldice_iters)
+        else:
+            loss_cldice = seg_logits.new_zeros(())
+
         # Loss weights: scheduled vs constant
         if self.cfg.use_class_loss_schedule:
             lam_crack = scheduler.crack_weight(epoch)
@@ -153,7 +198,8 @@ class CompositeLoss(nn.Module):
         total = (self.cfg.loss_ce_w * loss_ce
                  + self.cfg.loss_dice_w * loss_dice
                  + lam_crack * loss_tversky
-                 + lam_bd * loss_bd)
+                 + lam_bd * loss_bd
+                 + self.cfg.cldice_weight * loss_cldice)
 
         # Per-sample signals for difficulty estimation (detach!)
         ps_ce = per_sample_ce(seg_logits, targets, self.ce_weight).detach()
@@ -164,6 +210,7 @@ class CompositeLoss(nn.Module):
             "loss_dice": loss_dice.item(),
             "loss_tversky": loss_tversky.item(),
             "loss_bd": loss_bd.item(),
+            "loss_cldice": loss_cldice.item(),
             "per_sample_ce": ps_ce.cpu(),
             "per_sample_ent": ps_ent.cpu(),
         }

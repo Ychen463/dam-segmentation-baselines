@@ -593,7 +593,16 @@ def main() -> None:
     else:
         state = torch.load(best_pt, map_location=device, weights_only=False)
         model.load_state_dict(state["model"])
-    test_m = evaluate(model, test_loader, criterion, device, eval_metrics)
+
+    # Use SegMetricsFull for final test (adds clDice + connectivity)
+    try:
+        from shared_eval.metrics_full import SegMetricsFull
+        test_eval_metrics = SegMetricsFull(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
+    except ImportError:
+        print("[train] WARNING: shared_eval not available; using SegMetricsBF1 for test")
+        test_eval_metrics = eval_metrics
+
+    test_m = evaluate(model, test_loader, criterion, device, test_eval_metrics)
     print(format_metrics(test_m))
 
     report = rdir / "test_report.txt"
@@ -613,10 +622,12 @@ def main() -> None:
         for k in ("IoU_background", "IoU_crack", "IoU_spalling",
                   "Dice_background", "Dice_crack", "Dice_spalling",
                   "mIoU_fg", "mIoU_all", "pixel_acc",
-                  "BF1_crack", "BF1_spalling", "BF1_fg_mean"):
+                  "BF1_crack", "BF1_spalling", "BF1_fg_mean",
+                  "clDice_crack", "clDice_spalling", "clDice_fg_mean",
+                  "ConnR_crack", "ConnR_spalling", "ConnR_fg_mean"):
             f.write(f"  {k}: {test_m.get(k)}\n")
         f.write("confusion matrix (rows=gt, cols=pred):\n")
-        f.write(str(eval_metrics.cm) + "\n")
+        f.write(str(test_eval_metrics.cm) + "\n")
     print(f"[train] wrote {report}")
 
     try:

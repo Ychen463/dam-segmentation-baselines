@@ -65,8 +65,8 @@ class RunCfg:
 
     # Ablation switches
     use_dynamic_difficulty: bool = True       # dynamic scoring + softmax sampling
-    use_class_sampling_bonus: bool = True     # spalling_bonus + late_hard_crack_bonus
-    use_class_loss_schedule: bool = True      # scheduled crack_weight / boundary_weight
+    use_class_sampling_bonus: bool = False    # spalling_bonus + late_hard_crack_bonus
+    use_class_loss_schedule: bool = False     # scheduled crack_weight / boundary_weight
     use_boundary_loss: bool = True            # boundary BCE loss
     use_tversky_loss: bool = False            # crack Tversky loss (off by default)
 
@@ -83,6 +83,12 @@ class RunCfg:
     boundary_start_ratio: float = 0.6
     boundary_max_weight: float = 0.10
 
+    # Crack-only soft-clDice (topology-preserving)
+    use_cldice_loss: bool = False
+    cldice_weight: float = 0.15
+    cldice_start_epoch: int = 40
+    cldice_iters: int = 7
+
 
 # ---------------------------------------------------------------------------
 # Ablation presets
@@ -92,6 +98,7 @@ class RunCfg:
 _LEGACY_COMPAT = {
     "use_soft_curriculum": False, "use_softmax_sampling": True,
     "use_dynamic_loss_reweight": False, "use_soft_boundary_schedule": False,
+    "use_cldice_loss": False,
     "loss_tversky_alpha": 0.3, "loss_tversky_beta": 0.7,
 }
 
@@ -153,42 +160,20 @@ ABLATION_PRESETS = {
            "use_tversky_loss": True,
            "diff_alpha": 1.0, "diff_beta": 0.5, "diff_gamma": 0.3, "diff_delta": 0.3},
 
-    # Set S: probe presets for soft curriculum fixes
-    "S1": {"name": "probe_S1_soft_curriculum_only",
+    # Set S: stabilized presets (soft curriculum + optional clDice)
+    "S1": {"name": "stabilized_S1_softcurr",
            "use_soft_curriculum": True, "use_softmax_sampling": False,
-           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": False,
-           "use_class_sampling_bonus": False, "use_class_loss_schedule": True,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
            "use_boundary_loss": False, "use_tversky_loss": False,
-           "use_soft_boundary_schedule": False},
-    "S2": {"name": "probe_S2_soft_reweight",
+           "use_cldice_loss": False, "use_soft_boundary_schedule": False},
+    "S2": {"name": "stabilized_S2_softcurr_cldice",
            "use_soft_curriculum": True, "use_softmax_sampling": False,
-           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
-           "loss_reweight_lambda": 0.5,
-           "use_class_sampling_bonus": False, "use_class_loss_schedule": True,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
            "use_boundary_loss": False, "use_tversky_loss": False,
-           "use_soft_boundary_schedule": False},
-    "S3": {"name": "probe_S3_soft_reweight_boundary",
-           "use_soft_curriculum": True, "use_softmax_sampling": False,
-           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
-           "loss_reweight_lambda": 0.5,
-           "use_class_sampling_bonus": True, "use_class_loss_schedule": True,
-           "use_boundary_loss": True, "use_tversky_loss": False,
-           "use_soft_boundary_schedule": True,
-           "boundary_start_ratio": 0.6, "boundary_max_weight": 0.10},
-    "S4": {"name": "probe_S4_full_minus_tversky",
-           "use_soft_curriculum": True, "use_softmax_sampling": False,
-           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
-           "loss_reweight_lambda": 0.5,
-           "use_class_sampling_bonus": True, "use_class_loss_schedule": True,
-           "use_boundary_loss": True, "use_tversky_loss": False,
-           "use_soft_boundary_schedule": True,
-           "boundary_start_ratio": 0.6, "boundary_max_weight": 0.10},
-    "S5": {"name": "probe_S5_full_minus_boundary",
-           "use_soft_curriculum": True, "use_softmax_sampling": False,
-           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
-           "loss_reweight_lambda": 0.5,
-           "use_class_sampling_bonus": True, "use_class_loss_schedule": True,
-           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": True, "cldice_weight": 0.15,
+           "cldice_start_epoch": 40, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
 }
 
