@@ -54,4 +54,6 @@ def format_metrics(m: Dict[str, float]) -> str:
             "\nBF1   crack={BF1_crack:.4f}  spalling={BF1_spalling:.4f}"
             "  | BF1_fg_mean={BF1_fg_mean:.4f}".format(**m)
         )
+    if "clDice_crack" in m:
+        base += "\nclDice crack={clDice_crack:.4f}".format(**m)
     return base

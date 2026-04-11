@@ -65,73 +65,116 @@ class RunCfg:
 
     # Ablation switches
     use_dynamic_difficulty: bool = True       # dynamic scoring + softmax sampling
-    use_class_sampling_bonus: bool = True     # spalling_bonus + late_hard_crack_bonus
-    use_class_loss_schedule: bool = True      # scheduled crack_weight / boundary_weight
+    use_class_sampling_bonus: bool = False    # spalling_bonus + late_hard_crack_bonus
+    use_class_loss_schedule: bool = False     # scheduled crack_weight / boundary_weight
     use_boundary_loss: bool = True            # boundary BCE loss
-    use_tversky_loss: bool = True             # crack Tversky loss
+    use_tversky_loss: bool = False            # crack Tversky loss (off by default)
+
+    # Soft curriculum (Change 1): smooth tier mixing instead of hard stage gates
+    use_soft_curriculum: bool = True
+
+    # Loss reweighting (Change 2): weight loss by difficulty instead of softmax sampling
+    use_softmax_sampling: bool = False        # legacy softmax sampling (off by default)
+    use_dynamic_loss_reweight: bool = True
+    loss_reweight_lambda: float = 0.5         # w_i = 1 + λ * norm(d_i)
+
+    # Late boundary (Change 4): ramp boundary loss in from boundary_start_ratio
+    use_soft_boundary_schedule: bool = True
+    boundary_start_ratio: float = 0.6
+    boundary_max_weight: float = 0.10
+
+    # Crack-only soft-clDice (topology-preserving)
+    use_cldice_loss: bool = False
+    cldice_weight: float = 0.15
+    cldice_start_epoch: int = 40
+    cldice_iters: int = 7
 
 
 # ---------------------------------------------------------------------------
 # Ablation presets
 # ---------------------------------------------------------------------------
 
+# Backward-compat keys shared by all legacy presets (A/B series)
+_LEGACY_COMPAT = {
+    "use_soft_curriculum": False, "use_softmax_sampling": True,
+    "use_dynamic_loss_reweight": False, "use_soft_boundary_schedule": False,
+    "use_cldice_loss": False,
+    "loss_tversky_alpha": 0.3, "loss_tversky_beta": 0.7,
+}
+
 ABLATION_PRESETS = {
     # Set A: module-level cumulative ablation (all build on A1 static curriculum)
-    "A2": {"name": "ablation_A2_dynamic_refinement",
+    "A2": {**_LEGACY_COMPAT, "name": "ablation_A2_dynamic_refinement",
            "use_dynamic_difficulty": True, "use_class_sampling_bonus": False,
            "use_class_loss_schedule": False, "use_boundary_loss": False,
            "use_tversky_loss": False},
-    "A3": {"name": "ablation_A3_dynamic_classaware",
+    "A3": {**_LEGACY_COMPAT, "name": "ablation_A3_dynamic_classaware",
            "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
            "use_class_loss_schedule": True, "use_boundary_loss": False,
            "use_tversky_loss": False},
-    "A3a": {"name": "ablation_A3a_sampling_bonus_only",
+    "A3a": {**_LEGACY_COMPAT, "name": "ablation_A3a_sampling_bonus_only",
             "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
             "use_class_loss_schedule": False, "use_boundary_loss": False,
             "use_tversky_loss": False},
-    "A3b": {"name": "ablation_A3b_loss_schedule_only",
+    "A3b": {**_LEGACY_COMPAT, "name": "ablation_A3b_loss_schedule_only",
             "use_dynamic_difficulty": True, "use_class_sampling_bonus": False,
             "use_class_loss_schedule": True, "use_boundary_loss": False,
             "use_tversky_loss": False},
-    "A4": {"name": "ablation_A4_classaware_boundary",
+    "A4": {**_LEGACY_COMPAT, "name": "ablation_A4_classaware_boundary",
            "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
            "use_class_loss_schedule": True, "use_boundary_loss": True,
            "use_tversky_loss": False},
-    "A5": {"name": "ablation_A5_full",
+    "A5": {**_LEGACY_COMPAT, "name": "ablation_A5_full",
            "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
            "use_class_loss_schedule": True, "use_boundary_loss": True,
            "use_tversky_loss": True},
     # Set B: difficulty score mechanism ablation (all modules ON, vary diff_* weights)
-    "B0": {"name": "ablation_B0_diff_loss",
+    "B0": {**_LEGACY_COMPAT, "name": "ablation_B0_diff_loss",
            "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
            "use_class_loss_schedule": True, "use_boundary_loss": True,
            "use_tversky_loss": True,
            "diff_alpha": 1.0, "diff_beta": 0.0, "diff_gamma": 0.0, "diff_delta": 0.0},
-    "B1": {"name": "ablation_B1_diff_loss_uncert",
+    "B1": {**_LEGACY_COMPAT, "name": "ablation_B1_diff_loss_uncert",
            "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
            "use_class_loss_schedule": True, "use_boundary_loss": True,
            "use_tversky_loss": True,
            "diff_alpha": 1.0, "diff_beta": 0.5, "diff_gamma": 0.0, "diff_delta": 0.0},
-    "B2": {"name": "ablation_B2_diff_loss_boundary",
+    "B2": {**_LEGACY_COMPAT, "name": "ablation_B2_diff_loss_boundary",
            "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
            "use_class_loss_schedule": True, "use_boundary_loss": True,
            "use_tversky_loss": True,
            "diff_alpha": 1.0, "diff_beta": 0.0, "diff_gamma": 0.3, "diff_delta": 0.0},
-    "B3": {"name": "ablation_B3_diff_loss_sparsity",
+    "B3": {**_LEGACY_COMPAT, "name": "ablation_B3_diff_loss_sparsity",
            "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
            "use_class_loss_schedule": True, "use_boundary_loss": True,
            "use_tversky_loss": True,
            "diff_alpha": 1.0, "diff_beta": 0.0, "diff_gamma": 0.0, "diff_delta": 0.3},
-    "B4": {"name": "ablation_B4_diff_loss_uncert_sparsity",
+    "B4": {**_LEGACY_COMPAT, "name": "ablation_B4_diff_loss_uncert_sparsity",
            "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
            "use_class_loss_schedule": True, "use_boundary_loss": True,
            "use_tversky_loss": True,
            "diff_alpha": 1.0, "diff_beta": 0.5, "diff_gamma": 0.0, "diff_delta": 0.3},
-    "B5": {"name": "ablation_B5_diff_all",
+    "B5": {**_LEGACY_COMPAT, "name": "ablation_B5_diff_all",
            "use_dynamic_difficulty": True, "use_class_sampling_bonus": True,
            "use_class_loss_schedule": True, "use_boundary_loss": True,
            "use_tversky_loss": True,
            "diff_alpha": 1.0, "diff_beta": 0.5, "diff_gamma": 0.3, "diff_delta": 0.3},
+
+    # Set S: stabilized presets (soft curriculum + optional clDice)
+    "S1": {"name": "stabilized_S1_softcurr",
+           "use_soft_curriculum": True, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_soft_boundary_schedule": False},
+    "S2": {"name": "stabilized_S2_softcurr_cldice",
+           "use_soft_curriculum": True, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": True, "cldice_weight": 0.15,
+           "cldice_start_epoch": 40, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
 }
 
 

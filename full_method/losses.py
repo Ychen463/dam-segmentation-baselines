@@ -72,6 +72,41 @@ def boundary_bce_loss(boundary_logits: torch.Tensor,
 
 
 # ---------------------------------------------------------------------------
+# Soft-clDice (topology-preserving loss for thin structures)
+# ---------------------------------------------------------------------------
+
+def soft_erode(img):
+    p1 = -F.max_pool2d(-img, (3, 1), stride=1, padding=(1, 0))
+    p2 = -F.max_pool2d(-img, (1, 3), stride=1, padding=(0, 1))
+    return torch.min(p1, p2)
+
+def soft_dilate(img):
+    return F.max_pool2d(img, (3, 3), stride=1, padding=1)
+
+def soft_open(img):
+    return soft_dilate(soft_erode(img))
+
+def soft_skel(img, iters: int):
+    img1 = soft_open(img)
+    skel = F.relu(img - img1)
+    for _ in range(iters):
+        img = soft_erode(img)
+        img1 = soft_open(img)
+        delta = F.relu(img - img1)
+        skel = skel + F.relu(delta - skel * delta)
+    return skel
+
+def soft_cldice_loss(prob, target, iters=7, eps=1e-6):
+    """Soft clDice loss on (B,1,H,W) probability and binary target."""
+    sp = soft_skel(prob, iters)
+    sl = soft_skel(target, iters)
+    tprec = (sp * target).sum(dim=(1, 2, 3)) / (sp.sum(dim=(1, 2, 3)) + eps)
+    tsens = (sl * prob).sum(dim=(1, 2, 3)) / (sl.sum(dim=(1, 2, 3)) + eps)
+    cl = 2 * tprec * tsens / (tprec + tsens + eps)
+    return 1 - cl.mean()
+
+
+# ---------------------------------------------------------------------------
 # Foreground Dice loss (reusable, matches baseline_unet.losses logic)
 # ---------------------------------------------------------------------------
 
@@ -109,26 +144,48 @@ class CompositeLoss(nn.Module):
                                    beta=cfg.loss_tversky_beta)
 
     def forward(self, outputs: dict, targets: torch.Tensor,
-                scheduler, epoch: int) -> tuple:
+                scheduler, epoch: int,
+                sample_weights: torch.Tensor = None) -> tuple:
         seg_logits = F.interpolate(outputs["seg_logits"], targets.shape[-2:],
                                    mode="bilinear", align_corners=False)
         bd_logits = F.interpolate(outputs["boundary_logits"], targets.shape[-2:],
                                   mode="bilinear", align_corners=False)
 
-        loss_ce = F.cross_entropy(seg_logits, targets, weight=self.ce_weight)
+        # CE loss: per-sample weighted when sample_weights provided
+        if sample_weights is not None:
+            ce_unreduced = F.cross_entropy(seg_logits, targets, weight=self.ce_weight,
+                                           reduction='none')  # (B,H,W)
+            ce_per_sample = ce_unreduced.mean(dim=(1, 2))  # (B,)
+            loss_ce = (ce_per_sample * sample_weights).mean()
+        else:
+            loss_ce = F.cross_entropy(seg_logits, targets, weight=self.ce_weight)
+
         loss_dice = fg_dice_loss(seg_logits, targets)
 
-        # Tversky loss: only when enabled
+        # Tversky loss: only when enabled, with optional per-sample weighting
         if self.cfg.use_tversky_loss:
-            loss_tversky = self.tversky(seg_logits, targets)
+            if sample_weights is not None:
+                loss_tversky = self._tversky_weighted(seg_logits, targets, sample_weights)
+            else:
+                loss_tversky = self.tversky(seg_logits, targets)
         else:
             loss_tversky = seg_logits.new_zeros(())
 
-        # Boundary BCE loss: only when enabled
+        # Boundary BCE loss: only when enabled (batch-level, not per-sample weighted)
         if self.cfg.use_boundary_loss:
             loss_bd = boundary_bce_loss(bd_logits, targets)
         else:
             loss_bd = seg_logits.new_zeros(())
+
+        # Crack-only soft-clDice loss
+        if self.cfg.use_cldice_loss and epoch >= self.cfg.cldice_start_epoch:
+            probs = seg_logits.softmax(dim=1)
+            p_crack = probs[:, 1:2, :, :]                       # (B,1,H,W)
+            y_crack = (targets == 1).float().unsqueeze(1)        # (B,1,H,W)
+            loss_cldice = soft_cldice_loss(p_crack, y_crack,
+                                           iters=self.cfg.cldice_iters)
+        else:
+            loss_cldice = seg_logits.new_zeros(())
 
         # Loss weights: scheduled vs constant
         if self.cfg.use_class_loss_schedule:
@@ -141,7 +198,8 @@ class CompositeLoss(nn.Module):
         total = (self.cfg.loss_ce_w * loss_ce
                  + self.cfg.loss_dice_w * loss_dice
                  + lam_crack * loss_tversky
-                 + lam_bd * loss_bd)
+                 + lam_bd * loss_bd
+                 + self.cfg.cldice_weight * loss_cldice)
 
         # Per-sample signals for difficulty estimation (detach!)
         ps_ce = per_sample_ce(seg_logits, targets, self.ce_weight).detach()
@@ -152,6 +210,20 @@ class CompositeLoss(nn.Module):
             "loss_dice": loss_dice.item(),
             "loss_tversky": loss_tversky.item(),
             "loss_bd": loss_bd.item(),
+            "loss_cldice": loss_cldice.item(),
             "per_sample_ce": ps_ce.cpu(),
             "per_sample_ent": ps_ent.cpu(),
         }
+
+    def _tversky_weighted(self, logits: torch.Tensor, targets: torch.Tensor,
+                          sample_weights: torch.Tensor) -> torch.Tensor:
+        """Tversky loss with per-sample weighting (multiply before mean)."""
+        crack_prob = torch.softmax(logits, dim=1)[:, 1:2]
+        crack_gt = (targets == 1).float().unsqueeze(1)
+        tp = (crack_prob * crack_gt).sum(dim=(1, 2, 3))
+        fp = (crack_prob * (1 - crack_gt)).sum(dim=(1, 2, 3))
+        fn = ((1 - crack_prob) * crack_gt).sum(dim=(1, 2, 3))
+        tversky = (tp + self.tversky.eps) / (
+            tp + self.tversky.alpha * fp + self.tversky.beta * fn + self.tversky.eps)
+        per_sample_loss = 1.0 - tversky  # (B,)
+        return (per_sample_loss * sample_weights).mean()

@@ -3,11 +3,13 @@
 During warmup: uniform random sampling within allowed tiers.
 After warmup: softmax(difficulty / tau) sampling without replacement,
 with class-aware bonuses for spalling and late-stage hard crack samples.
+
+Soft curriculum mode: tier-mix proportional sampling (no hard tier gating).
 """
 from __future__ import annotations
 
 import random
-from typing import Dict, Iterator, List, Set
+from typing import Dict, Iterator, List, Optional, Set
 
 import torch
 from torch.utils.data import Sampler
@@ -21,24 +23,31 @@ class TierAwareDynamicSampler(Sampler[int]):
     def __init__(self, records: List[Dict], sample_bank: Dict[str, SampleState],
                  tau: float = 0.5, spalling_bonus: float = 0.3,
                  late_hard_crack_bonus: float = 0.4,
-                 enable_dynamic: bool = True):
+                 enable_dynamic: bool = True,
+                 use_soft_curriculum: bool = False,
+                 use_softmax_sampling: bool = True):
         self.records = records
         self.sample_bank = sample_bank
         self.tau = tau
         self.spalling_bonus = spalling_bonus
         self.late_hard_crack_bonus = late_hard_crack_bonus
         self._enable_dynamic = enable_dynamic
+        self._use_softmax_sampling = use_softmax_sampling
+        self._use_soft_curriculum = use_soft_curriculum
         self._stage = 0
         self._epoch_ratio = 0.0
         self._use_dynamic = False
+        self._tier_mix: Optional[Dict[int, float]] = None
         self._last_sampled_indices: List[int] = []
 
     def set_epoch(self, epoch: int, total_epochs: int,
-                  warmup_epochs: int, stage: int) -> None:
+                  warmup_epochs: int, stage: int,
+                  tier_mix: Optional[Dict[int, float]] = None) -> None:
         """Update state for the new epoch. Stage is computed externally."""
         self._stage = stage
         self._epoch_ratio = epoch / total_epochs
         self._use_dynamic = self._enable_dynamic and (epoch > warmup_epochs)
+        self._tier_mix = tier_mix
 
     def _allowed_tiers(self) -> Set[int]:
         if self._stage == 0:
@@ -48,17 +57,38 @@ class TierAwareDynamicSampler(Sampler[int]):
         return {0, 1, 2}
 
     def __iter__(self) -> Iterator[int]:
-        allowed = self._allowed_tiers()
-        valid = [(i, r) for i, r in enumerate(self.records) if r["tier"] in allowed]
+        # Soft curriculum mode: tier-mix proportional sampling
+        if self._tier_mix is not None:
+            by_tier: Dict[int, List[int]] = {0: [], 1: [], 2: []}
+            for i, r in enumerate(self.records):
+                by_tier[r["tier"]].append(i)
 
-        if not self._use_dynamic:
-            # Warmup: uniform random
-            indices = [i for i, _r in valid]
+            total_n = len(self.records)
+            indices: List[int] = []
+            for tier, ratio in self._tier_mix.items():
+                pool = by_tier.get(tier, [])
+                n = round(ratio * total_n)
+                if n > 0 and pool:
+                    n = min(n, len(pool))
+                    indices.extend(random.sample(pool, n))
             random.shuffle(indices)
             self._last_sampled_indices = indices
             yield from indices
             return
 
+        # Legacy path: hard tier gating
+        allowed = self._allowed_tiers()
+        valid = [(i, r) for i, r in enumerate(self.records) if r["tier"] in allowed]
+
+        if not self._use_dynamic or not self._use_softmax_sampling:
+            # Uniform random within allowed tiers
+            indices = [i for i, _ in valid]
+            random.shuffle(indices)
+            self._last_sampled_indices = indices
+            yield from indices
+            return
+
+        # Legacy softmax sampling path
         scores = []
         for i, r in valid:
             sid = r["id"]
@@ -98,5 +128,7 @@ class TierAwareDynamicSampler(Sampler[int]):
         }
 
     def __len__(self) -> int:
+        if self._tier_mix is not None:
+            return len(self.records)
         allowed = self._allowed_tiers()
         return sum(1 for r in self.records if r["tier"] in allowed)
