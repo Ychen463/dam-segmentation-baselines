@@ -281,7 +281,7 @@ def main() -> None:
 
     # ----- final test eval (loads best) -----
     print("\n[train] final test eval using best checkpoint")
-    state = torch.load(best_pt, map_location=device)
+    state = torch.load(best_pt, map_location=device, weights_only=False)
     model.load_state_dict(state["model"])
     test_m = evaluate(model, test_loader, criterion, device, metrics)
     print(format_metrics(test_m))

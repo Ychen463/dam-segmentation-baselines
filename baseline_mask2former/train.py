@@ -600,7 +600,7 @@ def main() -> None:
             resume_path = (rdir / resume_path).resolve() if not resume_path.exists() \
                 else resume_path.resolve()
         print(f"[train] resuming from {resume_path}")
-        state = torch.load(resume_path, map_location=device)
+        state = torch.load(resume_path, map_location=device, weights_only=False)
         model.load_state_dict(state["model"])
         if "optimizer" in state:
             optimizer.load_state_dict(state["optimizer"])
@@ -699,7 +699,7 @@ def main() -> None:
     if not best_pt.exists():
         print("[train] WARNING: best.pt missing (no completed epoch?); using current model")
     else:
-        state = torch.load(best_pt, map_location=device)
+        state = torch.load(best_pt, map_location=device, weights_only=False)
         model.load_state_dict(state["model"])
     test_m = evaluate(model, test_loader, processor, device, eval_metrics, cfg.img_size)
     print(format_metrics(test_m))

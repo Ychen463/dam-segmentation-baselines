@@ -189,7 +189,7 @@ def load_model(name: str, device: str = "cpu") -> nn.Module:
     if "mask2former" in name:
         model, processor = _build_mask2former()
         if ckpt_path.exists():
-            state = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+            state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
             model.load_state_dict(state["model"])
         wrapper = Mask2FormerLogitsWrapper(
             model, processor, C.NUM_CLASSES, entry.img_size,
@@ -199,7 +199,7 @@ def load_model(name: str, device: str = "cpu") -> nn.Module:
 
     model = entry.build_fn()
     if ckpt_path.exists():
-        state = torch.load(ckpt_path, map_location="cpu", weights_only=True)
+        state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
         model.load_state_dict(state["model"])
 
     if entry.inference_wrapper is not None:

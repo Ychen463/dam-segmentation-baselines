@@ -65,7 +65,7 @@ def main() -> None:
 
     print(f"[backfill] device={device}")
     print(f"[backfill] loading {ckpt_path}")
-    state = torch.load(ckpt_path, map_location=device)
+    state = torch.load(ckpt_path, map_location=device, weights_only=False)
     model = build_unet().to(device)
     model.load_state_dict(state["model"])
 
