@@ -551,8 +551,11 @@ def main() -> None:
                              train_metrics, cfg.grad_accum,
                              epoch=epoch, total_epochs=total_epochs,
                              scaler=scaler)
-        va = evaluate(model, val_loader, criterion, device, eval_metrics,
-                      use_amp=use_amp)
+        # Val every 5 epochs, every epoch in last 10, or epoch 1
+        do_val = (epoch % 5 == 0) or (epoch > total_epochs - 10) or (epoch == 1)
+        if do_val:
+            va = evaluate(model, val_loader, criterion, device, eval_metrics,
+                          use_amp=use_amp)
         scheduler.step()
         dt = time.time() - t0
         epochs_done += 1
@@ -565,26 +568,31 @@ def main() -> None:
         print(f"[epoch {epoch:03d}/{total_epochs}] lr={optimizer.param_groups[0]['lr']:.6f}"
               f"  dt={dt:.1f}s")
         print(f"  train loss={tr['loss']:.4f}")
-        print("  val   loss={:.4f}".format(va['loss']))
-        print("  " + format_metrics(va).replace("\n", "\n  "))
+        if do_val:
+            print("  val   loss={:.4f}".format(va['loss']))
+            print("  " + format_metrics(va).replace("\n", "\n  "))
+        else:
+            print("  val   skipped (next val at epoch {})".format(
+                epoch + (5 - epoch % 5)))
 
-        row = {
-            "epoch": epoch, "split": "val",
-            "train_loss": tr["loss"], "val_loss": va["loss"],
-            "IoU_background": va["IoU_background"],
-            "IoU_crack": va["IoU_crack"],
-            "IoU_spalling": va["IoU_spalling"],
-            "Dice_background": va["Dice_background"],
-            "Dice_crack": va["Dice_crack"],
-            "Dice_spalling": va["Dice_spalling"],
-            "mIoU_fg": va["mIoU_fg"],
-            "mIoU_all": va["mIoU_all"],
-            "pixel_acc": va["pixel_acc"],
-            "BF1_crack": va["BF1_crack"],
-            "BF1_spalling": va["BF1_spalling"],
-            "BF1_fg_mean": va["BF1_fg_mean"],
-        }
-        write_metrics_row(csv_path, row)
+        if do_val:
+            row = {
+                "epoch": epoch, "split": "val",
+                "train_loss": tr["loss"], "val_loss": va["loss"],
+                "IoU_background": va["IoU_background"],
+                "IoU_crack": va["IoU_crack"],
+                "IoU_spalling": va["IoU_spalling"],
+                "Dice_background": va["Dice_background"],
+                "Dice_crack": va["Dice_crack"],
+                "Dice_spalling": va["Dice_spalling"],
+                "mIoU_fg": va["mIoU_fg"],
+                "mIoU_all": va["mIoU_all"],
+                "pixel_acc": va["pixel_acc"],
+                "BF1_crack": va["BF1_crack"],
+                "BF1_spalling": va["BF1_spalling"],
+                "BF1_fg_mean": va["BF1_fg_mean"],
+            }
+            write_metrics_row(csv_path, row)
 
         torch.save(
             {"model": model.state_dict(),
@@ -594,7 +602,7 @@ def main() -> None:
              "best_miou_fg": best_miou},
             last_pt,
         )
-        if va["mIoU_fg"] > best_miou:
+        if do_val and va["mIoU_fg"] > best_miou:
             best_miou = va["mIoU_fg"]
             torch.save(
                 {"model": model.state_dict(),

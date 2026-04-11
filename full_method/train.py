@@ -707,9 +707,11 @@ def main() -> None:
             diffs = [s.difficulty for s in sample_bank.values()]
             print(f"  difficulty: mean={np.mean(diffs):.3f} std={np.std(diffs):.3f}")
 
-        # 6. Val
-        va = evaluate(model, val_loader, criterion, device, eval_metrics,
-                      curriculum_scheduler, epoch, use_amp=use_amp)
+        # 6. Val (every 5 epochs, or every epoch in last 10, or epoch 1)
+        do_val = (epoch % 5 == 0) or (epoch > total_epochs - 10) or (epoch == 1)
+        if do_val:
+            va = evaluate(model, val_loader, criterion, device, eval_metrics,
+                          curriculum_scheduler, epoch, use_amp=use_amp)
         lr_scheduler.step()
         dt = time.time() - t0
         epochs_done += 1
@@ -725,31 +727,36 @@ def main() -> None:
               f"  ce={tr.get('loss_ce', 0):.4f} dice={tr.get('loss_dice', 0):.4f}"
               f"  tversky={tr.get('loss_tversky', 0):.4f} bd={tr.get('loss_bd', 0):.4f}"
               f"  cldice={tr.get('loss_cldice', 0):.4f}")
-        print("  val   loss={:.4f}".format(va['loss']))
-        print("  " + format_metrics(va).replace("\n", "\n  "))
+        if do_val:
+            print("  val   loss={:.4f}".format(va['loss']))
+            print("  " + format_metrics(va).replace("\n", "\n  "))
+        else:
+            print("  val   skipped (next val at epoch {})".format(
+                epoch + (5 - epoch % 5)))
 
-        row = {
-            "epoch": epoch, "split": "val",
-            "train_loss": tr["loss"], "val_loss": va["loss"],
-            "loss_ce": tr.get("loss_ce", ""),
-            "loss_dice": tr.get("loss_dice", ""),
-            "loss_tversky": tr.get("loss_tversky", ""),
-            "loss_bd": tr.get("loss_bd", ""),
-            "loss_cldice": tr.get("loss_cldice", ""),
-            "IoU_background": va["IoU_background"],
-            "IoU_crack": va["IoU_crack"],
-            "IoU_spalling": va["IoU_spalling"],
-            "Dice_background": va["Dice_background"],
-            "Dice_crack": va["Dice_crack"],
-            "Dice_spalling": va["Dice_spalling"],
-            "mIoU_fg": va["mIoU_fg"],
-            "mIoU_all": va["mIoU_all"],
-            "pixel_acc": va["pixel_acc"],
-            "BF1_crack": va["BF1_crack"],
-            "BF1_spalling": va["BF1_spalling"],
-            "BF1_fg_mean": va["BF1_fg_mean"],
-        }
-        write_metrics_row(csv_path, row)
+        if do_val:
+            row = {
+                "epoch": epoch, "split": "val",
+                "train_loss": tr["loss"], "val_loss": va["loss"],
+                "loss_ce": tr.get("loss_ce", ""),
+                "loss_dice": tr.get("loss_dice", ""),
+                "loss_tversky": tr.get("loss_tversky", ""),
+                "loss_bd": tr.get("loss_bd", ""),
+                "loss_cldice": tr.get("loss_cldice", ""),
+                "IoU_background": va["IoU_background"],
+                "IoU_crack": va["IoU_crack"],
+                "IoU_spalling": va["IoU_spalling"],
+                "Dice_background": va["Dice_background"],
+                "Dice_crack": va["Dice_crack"],
+                "Dice_spalling": va["Dice_spalling"],
+                "mIoU_fg": va["mIoU_fg"],
+                "mIoU_all": va["mIoU_all"],
+                "pixel_acc": va["pixel_acc"],
+                "BF1_crack": va["BF1_crack"],
+                "BF1_spalling": va["BF1_spalling"],
+                "BF1_fg_mean": va["BF1_fg_mean"],
+            }
+            write_metrics_row(csv_path, row)
 
         # Save checkpoint (with sample_bank for resume)
         bank_serializable = {
@@ -767,7 +774,7 @@ def main() -> None:
              "sample_bank": bank_serializable},
             last_pt,
         )
-        if va["mIoU_fg"] > best_miou:
+        if do_val and va["mIoU_fg"] > best_miou:
             best_miou = va["mIoU_fg"]
             torch.save(
                 {"model": model.state_dict(),
