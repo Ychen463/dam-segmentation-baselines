@@ -165,7 +165,8 @@ def oom_probe(model: nn.Module, cfg: C.RunCfg, device: str) -> bool:
 
 def train_one_epoch(model, loader, optimizer, criterion, device,
                     metrics: SegMetricsBF1, grad_accum: int,
-                    epoch: int = 0, total_epochs: int = 0) -> Dict[str, float]:
+                    epoch: int = 0, total_epochs: int = 0,
+                    scaler: torch.amp.GradScaler = None) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
@@ -174,24 +175,35 @@ def train_one_epoch(model, loader, optimizer, criterion, device,
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)
     t_start = time.time()
+    use_amp = scaler is not None
 
     optimizer.zero_grad(set_to_none=True)
     for step, (imgs, masks, _) in enumerate(loader):
         imgs = imgs.to(device, non_blocking=True).float()
         masks = masks.to(device, non_blocking=True).long()
-        logits = model(imgs).logits
-        logits = F.interpolate(logits, size=masks.shape[-2:],
-                               mode="bilinear", align_corners=False)
-        loss = criterion(logits, masks)
-        (loss / grad_accum).backward()
 
-        if (step + 1) % grad_accum == 0:
-            optimizer.step()
-            optimizer.zero_grad(set_to_none=True)
+        with torch.amp.autocast("cuda", enabled=use_amp):
+            logits = model(imgs).logits
+            logits = F.interpolate(logits, size=masks.shape[-2:],
+                                   mode="bilinear", align_corners=False)
+            loss = criterion(logits, masks)
+            loss_scaled = loss / grad_accum
+
+        if use_amp:
+            scaler.scale(loss_scaled).backward()
+            if (step + 1) % grad_accum == 0:
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad(set_to_none=True)
+        else:
+            loss_scaled.backward()
+            if (step + 1) % grad_accum == 0:
+                optimizer.step()
+                optimizer.zero_grad(set_to_none=True)
 
         loss_sum += float(loss.detach().cpu())
         n_batches += 1
-        metrics.update(logits, masks)
+        metrics.update(logits.float(), masks)
         m_np = masks.detach().cpu().numpy()
         for c in range(C.NUM_CLASSES):
             class_pixel_sum[c] += int((m_np == c).sum())
@@ -205,7 +217,11 @@ def train_one_epoch(model, loader, optimizer, criterion, device,
 
     # Flush any tail micro-batches.
     if n_batches % grad_accum != 0:
-        optimizer.step()
+        if use_amp:
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            optimizer.step()
         optimizer.zero_grad(set_to_none=True)
 
     avg_loss = loss_sum / max(n_batches, 1)
@@ -219,7 +235,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device,
 
 @torch.no_grad()
 def evaluate(model, loader, criterion, device,
-             metrics: SegMetricsBF1) -> Dict[str, float]:
+             metrics: SegMetricsBF1, use_amp: bool = False) -> Dict[str, float]:
     model.eval()
     metrics.reset()
     loss_sum = 0.0
@@ -227,13 +243,14 @@ def evaluate(model, loader, criterion, device,
     for imgs, masks, _ in loader:
         imgs = imgs.to(device, non_blocking=True).float()
         masks = masks.to(device, non_blocking=True).long()
-        logits = model(imgs).logits
-        logits = F.interpolate(logits, size=masks.shape[-2:],
-                               mode="bilinear", align_corners=False)
-        loss = criterion(logits, masks)
+        with torch.amp.autocast("cuda", enabled=use_amp):
+            logits = model(imgs).logits
+            logits = F.interpolate(logits, size=masks.shape[-2:],
+                                   mode="bilinear", align_corners=False)
+            loss = criterion(logits, masks)
         loss_sum += float(loss.detach().cpu())
         n_batches += 1
-        metrics.update(logits, masks)
+        metrics.update(logits.float(), masks)
     m = metrics.compute()
     m["loss"] = loss_sum / max(n_batches, 1)
     return m
@@ -434,6 +451,12 @@ def main() -> None:
         else:
             print("[train] OOM probe OK")
 
+    # Mixed precision
+    use_amp = (device == "cuda")
+    scaler = torch.amp.GradScaler("cuda", enabled=use_amp) if use_amp else None
+    if use_amp:
+        print("[train] mixed precision (AMP) enabled")
+
     train_metrics = SegMetricsBF1(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
     eval_metrics = SegMetricsBF1(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
 
@@ -526,8 +549,10 @@ def main() -> None:
         t0 = time.time()
         tr = train_one_epoch(model, train_loader, optimizer, criterion, device,
                              train_metrics, cfg.grad_accum,
-                             epoch=epoch, total_epochs=total_epochs)
-        va = evaluate(model, val_loader, criterion, device, eval_metrics)
+                             epoch=epoch, total_epochs=total_epochs,
+                             scaler=scaler)
+        va = evaluate(model, val_loader, criterion, device, eval_metrics,
+                      use_amp=use_amp)
         scheduler.step()
         dt = time.time() - t0
         epochs_done += 1
@@ -602,7 +627,8 @@ def main() -> None:
         print("[train] WARNING: shared_eval not available; using SegMetricsBF1 for test")
         test_eval_metrics = eval_metrics
 
-    test_m = evaluate(model, test_loader, criterion, device, test_eval_metrics)
+    test_m = evaluate(model, test_loader, criterion, device, test_eval_metrics,
+                      use_amp=use_amp)
     print(format_metrics(test_m))
 
     report = rdir / "test_report.txt"

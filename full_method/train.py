@@ -147,7 +147,8 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     estimator: DifficultyEstimator,
                     curriculum_scheduler: CurriculumScheduler,
                     epoch: int, total_epochs: int,
-                    cfg: C.RunCfg = None) -> Dict[str, float]:
+                    cfg: C.RunCfg = None,
+                    scaler: torch.amp.GradScaler = None) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
@@ -156,6 +157,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)
     t_start = time.time()
+    use_amp = scaler is not None
 
     optimizer.zero_grad(set_to_none=True)
     for step, batch in enumerate(loader):
@@ -163,34 +165,43 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
         masks = batch["mask"].to(device, non_blocking=True).long()
         sample_ids = batch["sample_id"]
 
-        outputs = model(imgs)
+        with torch.amp.autocast("cuda", enabled=use_amp):
+            outputs = model(imgs)
 
-        # Compute per-sample loss weights from difficulty scores
-        if cfg is not None and cfg.use_dynamic_loss_reweight:
-            diffs = torch.tensor([sample_bank.get(sid, SampleState()).difficulty
-                                  for sid in sample_ids], device=device)
-            d_min, d_max = diffs.min(), diffs.max()
-            d_norm = (diffs - d_min) / (d_max - d_min + 1e-8)
-            sample_weights = 1.0 + cfg.loss_reweight_lambda * d_norm
-            sample_weights = sample_weights / sample_weights.mean()
+            # Compute per-sample loss weights from difficulty scores
+            if cfg is not None and cfg.use_dynamic_loss_reweight:
+                diffs = torch.tensor([sample_bank.get(sid, SampleState()).difficulty
+                                      for sid in sample_ids], device=device)
+                d_min, d_max = diffs.min(), diffs.max()
+                d_norm = (diffs - d_min) / (d_max - d_min + 1e-8)
+                sample_weights = 1.0 + cfg.loss_reweight_lambda * d_norm
+                sample_weights = sample_weights / sample_weights.mean()
+            else:
+                sample_weights = None
+
+            total_loss, info = criterion(outputs, masks, curriculum_scheduler, epoch,
+                                         sample_weights=sample_weights)
+            total_loss = total_loss / grad_accum
+
+        if use_amp:
+            scaler.scale(total_loss).backward()
+            if (step + 1) % grad_accum == 0:
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad(set_to_none=True)
         else:
-            sample_weights = None
+            total_loss.backward()
+            if (step + 1) % grad_accum == 0:
+                optimizer.step()
+                optimizer.zero_grad(set_to_none=True)
 
-        total_loss, info = criterion(outputs, masks, curriculum_scheduler, epoch,
-                                     sample_weights=sample_weights)
-        (total_loss / grad_accum).backward()
-
-        if (step + 1) % grad_accum == 0:
-            optimizer.step()
-            optimizer.zero_grad(set_to_none=True)
-
-        loss_sum += float(total_loss.detach().cpu())
+        loss_sum += float(total_loss.detach().cpu()) * grad_accum
         for k in loss_parts:
             loss_parts[k] += info[k]
         n_batches += 1
 
         # Update metrics with seg_logits
-        seg_logits = F.interpolate(outputs["seg_logits"], masks.shape[-2:],
+        seg_logits = F.interpolate(outputs["seg_logits"].float(), masks.shape[-2:],
                                    mode="bilinear", align_corners=False)
         metrics.update(seg_logits, masks)
 
@@ -221,7 +232,11 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
 
     # Flush any tail micro-batches
     if n_batches % grad_accum != 0:
-        optimizer.step()
+        if use_amp:
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            optimizer.step()
         optimizer.zero_grad(set_to_none=True)
 
     avg_loss = loss_sum / max(n_batches, 1)
@@ -236,7 +251,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
 def evaluate(model, loader, criterion: CompositeLoss, device,
              metrics: SegMetricsBF1,
              curriculum_scheduler: CurriculumScheduler,
-             epoch: int) -> Dict[str, float]:
+             epoch: int, use_amp: bool = False) -> Dict[str, float]:
     model.eval()
     metrics.reset()
     loss_sum = 0.0
@@ -245,12 +260,13 @@ def evaluate(model, loader, criterion: CompositeLoss, device,
         imgs = batch["image"].to(device, non_blocking=True).float()
         masks = batch["mask"].to(device, non_blocking=True).long()
 
-        outputs = model(imgs)
-        total_loss, _ = criterion(outputs, masks, curriculum_scheduler, epoch)
+        with torch.amp.autocast("cuda", enabled=use_amp):
+            outputs = model(imgs)
+            total_loss, _ = criterion(outputs, masks, curriculum_scheduler, epoch)
         loss_sum += float(total_loss.detach().cpu())
         n_batches += 1
 
-        seg_logits = F.interpolate(outputs["seg_logits"], masks.shape[-2:],
+        seg_logits = F.interpolate(outputs["seg_logits"].float(), masks.shape[-2:],
                                    mode="bilinear", align_corners=False)
         metrics.update(seg_logits, masks)
 
@@ -533,6 +549,12 @@ def main() -> None:
         else:
             print("[train] OOM probe OK")
 
+    # Mixed precision
+    use_amp = (device == "cuda")
+    scaler = torch.amp.GradScaler("cuda", enabled=use_amp) if use_amp else None
+    if use_amp:
+        print("[train] mixed precision (AMP) enabled")
+
     train_metrics = SegMetricsBF1(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
     eval_metrics = SegMetricsBF1(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
 
@@ -547,15 +569,22 @@ def main() -> None:
         batch = next(iter(train_loader))
         imgs = batch["image"].to(device).float()
         masks = batch["mask"].to(device).long()
-        outputs = model(imgs)
+        with torch.amp.autocast("cuda", enabled=use_amp):
+            outputs = model(imgs)
 
         print(f"  seg_logits shape: {outputs['seg_logits'].shape}")
         print(f"  boundary_logits shape: {outputs['boundary_logits'].shape}")
         print(f"  fuse_feat shape: {model._fuse_feat.shape}")
 
-        total_loss, info = criterion(outputs, masks, curriculum_scheduler, 1)
-        total_loss.backward()
-        optimizer.step()
+        with torch.amp.autocast("cuda", enabled=use_amp):
+            total_loss, info = criterion(outputs, masks, curriculum_scheduler, 1)
+        if scaler is not None:
+            scaler.scale(total_loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            total_loss.backward()
+            optimizer.step()
         print(f"  train loss = {float(total_loss):.4f}")
         print(f"  loss_ce={info['loss_ce']:.4f} loss_dice={info['loss_dice']:.4f}"
               f" loss_tversky={info['loss_tversky']:.4f} loss_bd={info['loss_bd']:.4f}"
@@ -663,7 +692,7 @@ def main() -> None:
                              train_metrics, cfg.grad_accum,
                              sample_bank, estimator,
                              curriculum_scheduler, epoch, total_epochs,
-                             cfg=cfg)
+                             cfg=cfg, scaler=scaler)
 
         # 3. Print sampler stats
         ss = sampler.get_sampling_stats()
@@ -680,7 +709,7 @@ def main() -> None:
 
         # 6. Val
         va = evaluate(model, val_loader, criterion, device, eval_metrics,
-                      curriculum_scheduler, epoch)
+                      curriculum_scheduler, epoch, use_amp=use_amp)
         lr_scheduler.step()
         dt = time.time() - t0
         epochs_done += 1
@@ -773,7 +802,7 @@ def main() -> None:
         test_eval_metrics = eval_metrics
 
     test_m = evaluate(model, test_loader, criterion, device, test_eval_metrics,
-                      curriculum_scheduler, total_epochs)
+                      curriculum_scheduler, total_epochs, use_amp=use_amp)
     print(format_metrics(test_m))
 
     report = rdir / "test_report.txt"
