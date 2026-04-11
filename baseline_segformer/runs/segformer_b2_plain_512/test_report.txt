@@ -1,22 +1,22 @@
 run: segformer_b2_plain_512
 preset: A
-pretrained: nvidia/segformer-b2-finetuned-ade-512-512  img_size: 512  batch: 4  grad_accum: 1  epochs: 10  lr: 6e-05  warmup: 5  curriculum: none
-best epoch: 10
-best val mIoU_fg: 0.6654576156187444
+pretrained: nvidia/segformer-b2-finetuned-ade-512-512  img_size: 512  batch: 4  grad_accum: 1  epochs: 100  lr: 6e-05  warmup: 5  curriculum: none
+best epoch: 59
+best val mIoU_fg: 0.7088111368393804
 test set metrics:
-  IoU_background: 0.9722267667075882
-  IoU_crack: 0.537162653147444
-  IoU_spalling: 0.8170234689544151
-  Dice_background: 0.9859178296526336
-  Dice_crack: 0.6989015144852333
-  Dice_spalling: 0.8992987519578508
-  mIoU_fg: 0.6770930610509296
-  mIoU_all: 0.7754709629364824
-  pixel_acc: 0.9730829111735027
-  BF1_crack: 0.6939554169016849
-  BF1_spalling: 0.5883520266602983
-  BF1_fg_mean: 0.6411537217809916
+  IoU_background: 0.9758543443795443
+  IoU_crack: 0.574183781242703
+  IoU_spalling: 0.8319487059255257
+  Dice_background: 0.9877796378619003
+  Dice_crack: 0.7295003138571621
+  Dice_spalling: 0.9082663758374324
+  mIoU_fg: 0.7030662435841144
+  mIoU_all: 0.7939956105159244
+  pixel_acc: 0.9766596984863282
+  BF1_crack: 0.7428020730662949
+  BF1_spalling: 0.6429431485513453
+  BF1_fg_mean: 0.6928726108088201
 confusion matrix (rows=gt, cols=pred):
-[[36654283   669375    56810]
- [  277885  1112531     2994]
- [   43019     8340   496363]]
+[[36800208   541120    39140]
+ [  277742  1113924     1744]
+ [   52549     5483   489690]]

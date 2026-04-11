@@ -1,22 +1,22 @@
 run: deeplabv3p_r50_512
 preset: A
 encoder: resnet50  img_size: 512  batch: 4  grad_accum: 1  epochs: 50  lr: 0.0005
-best epoch: 32
-best val mIoU_fg: 0.6021980835000043
+best epoch: 40
+best val mIoU_fg: 0.6200542738561714
 test set metrics:
-  IoU_background: 0.9688925593604739
-  IoU_crack: 0.5187899214481803
-  IoU_spalling: 0.661012454978677
-  Dice_background: 0.9842005392871055
-  Dice_crack: 0.6831621860560008
-  Dice_spalling: 0.795915109483225
-  mIoU_fg: 0.5899011882134286
-  mIoU_all: 0.7162316452624437
-  pixel_acc: 0.9697367350260416
-  BF1_crack: 0.6598060908454264
-  BF1_spalling: 0.43425451596258646
-  BF1_fg_mean: 0.5470303034040065
+  IoU_background: 0.9715649362899179
+  IoU_crack: 0.536391338861351
+  IoU_spalling: 0.7213479400878847
+  Dice_background: 0.9855774145772793
+  Dice_crack: 0.6982483242308315
+  Dice_spalling: 0.8381198516449333
+  mIoU_fg: 0.6288696394746178
+  mIoU_all: 0.7431014050797179
+  pixel_acc: 0.9723921203613282
+  BF1_crack: 0.694949142363676
+  BF1_spalling: 0.47702535297443444
+  BF1_fg_mean: 0.5859872476690552
 confusion matrix (rows=gt, cols=pred):
-[[36633101   624002   123365]
- [  335878  1049774     7758]
- [   92904     6093   448725]]
+[[36725824   598483    56161]
+ [  318234  1073038     2138]
+ [  101987     8583   437152]]

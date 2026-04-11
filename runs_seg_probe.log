@@ -107,114 +107,121 @@ You should probably TRAIN this model on a down-stream task to be able to use it 
   [best] mIoU_fg=0.5090  saved -> best.pt
   [epoch 5/10] batch 30/300 (10%) loss=0.3528 elapsed=480s eta=4317s
   [epoch 5/10] batch 60/300 (20%) loss=0.3427 elapsed=926s eta=3704s
-selines/baseline_unet/.venv/lib/python3.11/site-packages/torch/optim/lr_scheduler.py:243: UserWarning: The epoch parameter in `scheduler.step()` was not necessary and is being deprecated where possible. Please use `scheduler.step()` to step the scheduler. During the deprecation, if epoch is different from None, the closed form is used instead of the new chainable form, where available. Please open an issue if you are unable to replicate your use case: https://github.com/pytorch/pytorch/issues/new/choose.
-  warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
-[epoch 005/10] remain=5 epochs ep_eta=30.8min (avg 369s/ep)
-[epoch 005/10] lr=0.000060  dt=325.6s
-  train loss=0.3157
-  val   loss=0.2937
-  IoU   bg=0.9661  crack=0.4903  spalling=0.7681  | mIoU_fg=0.6292  pix_acc=0.9670
-  Dice  bg=0.9827  crack=0.6580  spalling=0.8688
-  BF1   crack=0.6036  spalling=0.4347  | BF1_fg_mean=0.5192
-  [best] mIoU_fg=0.6292  saved -> best.pt
-  [epoch 6/10] batch 30/300 (10%) loss=0.2872 elapsed=30s eta=271s
-  [epoch 6/10] batch 60/300 (20%) loss=0.2881 elapsed=60s eta=240s
-  [epoch 6/10] batch 90/300 (30%) loss=0.2908 elapsed=89s eta=207s
-  [epoch 6/10] batch 120/300 (40%) loss=0.2929 elapsed=117s eta=176s
-  [epoch 6/10] batch 150/300 (50%) loss=0.2889 elapsed=149s eta=149s
-  [epoch 6/10] batch 180/300 (60%) loss=0.2864 elapsed=180s eta=120s
-  [epoch 6/10] batch 210/300 (70%) loss=0.2840 elapsed=212s eta=91s
-  [epoch 6/10] batch 240/300 (80%) loss=0.2808 elapsed=242s eta=61s
-  [epoch 6/10] batch 270/300 (90%) loss=0.2807 elapsed=274s eta=30s
-  [epoch 6/10] batch 300/300 (100%) loss=0.2772 elapsed=302s eta=0s
+  [epoch 5/10] batch 90/300 (30%) loss=0.3388 elapsed=1380s eta=3221s
+  [epoch 5/10] batch 120/300 (40%) loss=0.3370 elapsed=1831s eta=2747s
+  [epoch 5/10] batch 150/300 (50%) loss=0.3316 elapsed=2290s eta=2290s
+  [epoch 5/10] batch 180/300 (60%) loss=0.3258 elapsed=2751s eta=1834s
+  [epoch 5/10] batch 210/300 (70%) loss=0.3223 elapsed=3209s eta=1375s
+  [epoch 5/10] batch 240/300 (80%) loss=0.3200 elapsed=3663s eta=916s
+  [epoch 5/10] batch 270/300 (90%) loss=0.3239 elapsed=4114s eta=457s
+  [epoch 5/10] batch 300/300 (100%) loss=0.3212 elapsed=4565s eta=0s
   [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
-[epoch 006/10] remain=4 epochs ep_eta=24.4min (avg 366s/ep)
-[epoch 006/10] lr=0.000054  dt=334.0s
-  train loss=0.2772
-  val   loss=0.2565
-  IoU   bg=0.9702  crack=0.5171  spalling=0.7619  | mIoU_fg=0.6395  pix_acc=0.9710
-  Dice  bg=0.9849  crack=0.6817  spalling=0.8649
-  BF1   crack=0.6521  spalling=0.4749  | BF1_fg_mean=0.5635
-  [best] mIoU_fg=0.6395  saved -> best.pt
-  [epoch 7/10] batch 30/300 (10%) loss=0.2315 elapsed=41s eta=366s
-  [epoch 7/10] batch 60/300 (20%) loss=0.2479 elapsed=74s eta=295s
-  [epoch 7/10] batch 90/300 (30%) loss=0.2508 elapsed=109s eta=253s
-  [epoch 7/10] batch 120/300 (40%) loss=0.2498 elapsed=142s eta=213s
-  [epoch 7/10] batch 150/300 (50%) loss=0.2489 elapsed=172s eta=172s
-  [epoch 7/10] batch 180/300 (60%) loss=0.2494 elapsed=205s eta=136s
-  [epoch 7/10] batch 210/300 (70%) loss=0.2502 elapsed=243s eta=104s
-  [epoch 7/10] batch 240/300 (80%) loss=0.2496 elapsed=285s eta=71s
-  [epoch 7/10] batch 270/300 (90%) loss=0.2515 elapsed=328s eta=36s
-  [epoch 7/10] batch 300/300 (100%) loss=0.2512 elapsed=360s eta=0s
+[epoch 005/10] remain=5 epochs ep_eta=395.7min (avg 4748s/ep)
+[epoch 005/10] lr=0.000060  dt=4696.5s
+  train loss=0.3212
+  val   loss=0.3032
+  IoU   bg=0.9639  crack=0.5069  spalling=0.5334  | mIoU_fg=0.5202  pix_acc=0.9646
+  Dice  bg=0.9816  crack=0.6728  spalling=0.6957
+  BF1   crack=0.6421  spalling=0.3168  | BF1_fg_mean=0.4795
+  [best] mIoU_fg=0.5202  saved -> best.pt
+  [epoch 6/10] batch 30/300 (10%) loss=0.3016 elapsed=478s eta=4304s
+  [epoch 6/10] batch 60/300 (20%) loss=0.2969 elapsed=935s eta=3742s
+  [epoch 6/10] batch 90/300 (30%) loss=0.2914 elapsed=1399s eta=3264s
+  [epoch 6/10] batch 120/300 (40%) loss=0.2818 elapsed=1845s eta=2767s
+  [epoch 6/10] batch 150/300 (50%) loss=0.2861 elapsed=2295s eta=2295s
+  [epoch 6/10] batch 180/300 (60%) loss=0.2832 elapsed=2748s eta=1832s
+  [epoch 6/10] batch 210/300 (70%) loss=0.2770 elapsed=3197s eta=1370s
+  [epoch 6/10] batch 240/300 (80%) loss=0.2763 elapsed=3642s eta=910s
+  [epoch 6/10] batch 270/300 (90%) loss=0.2766 elapsed=4093s eta=455s
+  [epoch 6/10] batch 300/300 (100%) loss=0.2746 elapsed=4543s eta=0s
   [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
-[epoch 007/10] remain=3 epochs ep_eta=18.6min (avg 372s/ep)
-[epoch 007/10] lr=0.000039  dt=401.4s
-  train loss=0.2512
-  val   loss=0.3451
-  IoU   bg=0.9642  crack=0.4976  spalling=0.4392  | mIoU_fg=0.4684  pix_acc=0.9648
-  Dice  bg=0.9818  crack=0.6645  spalling=0.6103
-  BF1   crack=0.6251  spalling=0.3266  | BF1_fg_mean=0.4758
-  [epoch 8/10] batch 30/300 (10%) loss=0.2245 elapsed=34s eta=308s
-  [epoch 8/10] batch 60/300 (20%) loss=0.2276 elapsed=67s eta=268s
-  [epoch 8/10] batch 90/300 (30%) loss=0.2251 elapsed=102s eta=237s
-  [epoch 8/10] batch 120/300 (40%) loss=0.2240 elapsed=138s eta=207s
-  [epoch 8/10] batch 150/300 (50%) loss=0.2257 elapsed=169s eta=169s
-  [epoch 8/10] batch 180/300 (60%) loss=0.2277 elapsed=201s eta=134s
-  [epoch 8/10] batch 210/300 (70%) loss=0.2285 elapsed=233s eta=100s
-  [epoch 8/10] batch 240/300 (80%) loss=0.2312 elapsed=263s eta=66s
-  [epoch 8/10] batch 270/300 (90%) loss=0.2295 elapsed=297s eta=33s
-  [epoch 8/10] batch 300/300 (100%) loss=0.2289 elapsed=331s eta=0s
+[epoch 006/10] remain=4 epochs ep_eta=315.9min (avg 4738s/ep)
+[epoch 006/10] lr=0.000054  dt=4670.2s
+  train loss=0.2746
+  val   loss=0.2661
+  IoU   bg=0.9656  crack=0.4958  spalling=0.6885  | mIoU_fg=0.5921  pix_acc=0.9664
+  Dice  bg=0.9825  crack=0.6629  spalling=0.8155
+  BF1   crack=0.6253  spalling=0.5026  | BF1_fg_mean=0.5639
+  [best] mIoU_fg=0.5921  saved -> best.pt
+  [epoch 7/10] batch 30/300 (10%) loss=0.2218 elapsed=496s eta=4463s
+  [epoch 7/10] batch 60/300 (20%) loss=0.2368 elapsed=959s eta=3835s
+  [epoch 7/10] batch 90/300 (30%) loss=0.2376 elapsed=1427s eta=3329s
+  [epoch 7/10] batch 120/300 (40%) loss=0.2422 elapsed=1893s eta=2840s
+  [epoch 7/10] batch 150/300 (50%) loss=0.2452 elapsed=2359s eta=2359s
+  [epoch 7/10] batch 180/300 (60%) loss=0.2464 elapsed=2826s eta=1884s
+  [epoch 7/10] batch 210/300 (70%) loss=0.2462 elapsed=3298s eta=1413s
+  [epoch 7/10] batch 240/300 (80%) loss=0.2434 elapsed=3769s eta=942s
+  [epoch 7/10] batch 270/300 (90%) loss=0.2448 elapsed=4242s eta=471s
+  [epoch 7/10] batch 300/300 (100%) loss=0.2459 elapsed=4733s eta=0s
   [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
-[epoch 008/10] remain=2 epochs ep_eta=12.4min (avg 371s/ep)
-[epoch 008/10] lr=0.000021  dt=362.8s
-  train loss=0.2289
-  val   loss=0.2351
-  IoU   bg=0.9713  crack=0.5309  spalling=0.7794  | mIoU_fg=0.6552  pix_acc=0.9719
-  Dice  bg=0.9855  crack=0.6936  spalling=0.8760
-  BF1   crack=0.6660  spalling=0.5455  | BF1_fg_mean=0.6057
-  [best] mIoU_fg=0.6552  saved -> best.pt
-  [epoch 9/10] batch 30/300 (10%) loss=0.2236 elapsed=31s eta=277s
-  [epoch 9/10] batch 60/300 (20%) loss=0.2068 elapsed=62s eta=250s
-  [epoch 9/10] batch 90/300 (30%) loss=0.2133 elapsed=96s eta=224s
-  [epoch 9/10] batch 120/300 (40%) loss=0.2166 elapsed=132s eta=198s
-  [epoch 9/10] batch 150/300 (50%) loss=0.2187 elapsed=164s eta=164s
-  [epoch 9/10] batch 180/300 (60%) loss=0.2215 elapsed=197s eta=131s
-  [epoch 9/10] batch 210/300 (70%) loss=0.2212 elapsed=233s eta=100s
-  [epoch 9/10] batch 240/300 (80%) loss=0.2201 elapsed=264s eta=66s
-  [epoch 9/10] batch 270/300 (90%) loss=0.2181 elapsed=293s eta=33s
-  [epoch 9/10] batch 300/300 (100%) loss=0.2188 elapsed=323s eta=0s
+[epoch 007/10] remain=3 epochs ep_eta=237.9min (avg 4757s/ep)
+[epoch 007/10] lr=0.000039  dt=4871.2s
+  train loss=0.2459
+  val   loss=0.2482
+  IoU   bg=0.9713  crack=0.5343  spalling=0.7065  | mIoU_fg=0.6204  pix_acc=0.9720
+  Dice  bg=0.9855  crack=0.6965  spalling=0.8280
+  BF1   crack=0.6769  spalling=0.4856  | BF1_fg_mean=0.5813
+  [best] mIoU_fg=0.6204  saved -> best.pt
+  [epoch 8/10] batch 30/300 (10%) loss=0.2340 elapsed=489s eta=4397s
+  [epoch 8/10] batch 60/300 (20%) loss=0.2250 elapsed=953s eta=3813s
+  [epoch 8/10] batch 90/300 (30%) loss=0.2285 elapsed=1423s eta=3320s
+  [epoch 8/10] batch 120/300 (40%) loss=0.2332 elapsed=1888s eta=2831s
+  [epoch 8/10] batch 150/300 (50%) loss=0.2311 elapsed=2352s eta=2352s
+  [epoch 8/10] batch 180/300 (60%) loss=0.2341 elapsed=2809s eta=1872s
+  [epoch 8/10] batch 210/300 (70%) loss=0.2323 elapsed=3270s eta=1401s
+  [epoch 8/10] batch 240/300 (80%) loss=0.2328 elapsed=3734s eta=934s
+  [epoch 8/10] batch 270/300 (90%) loss=0.2321 elapsed=4199s eta=467s
+  [epoch 8/10] batch 300/300 (100%) loss=0.2315 elapsed=4661s eta=0s
   [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
-[epoch 009/10] remain=1 epochs ep_eta=6.2min (avg 370s/ep)
-[epoch 009/10] lr=0.000006  dt=356.1s
-  train loss=0.2188
-  val   loss=0.2323
-  IoU   bg=0.9729  crack=0.5342  spalling=0.7822  | mIoU_fg=0.6582  pix_acc=0.9734
-  Dice  bg=0.9862  crack=0.6964  spalling=0.8778
-  BF1   crack=0.6781  spalling=0.5624  | BF1_fg_mean=0.6202
-  [best] mIoU_fg=0.6582  saved -> best.pt
-  [epoch 10/10] batch 30/300 (10%) loss=0.2313 elapsed=30s eta=273s
-  [epoch 10/10] batch 60/300 (20%) loss=0.2236 elapsed=68s eta=271s
-  [epoch 10/10] batch 90/300 (30%) loss=0.2174 elapsed=102s eta=238s
-  [epoch 10/10] batch 120/300 (40%) loss=0.2152 elapsed=134s eta=201s
-  [epoch 10/10] batch 150/300 (50%) loss=0.2146 elapsed=166s eta=166s
-  [epoch 10/10] batch 180/300 (60%) loss=0.2167 elapsed=194s eta=129s
-  [epoch 10/10] batch 210/300 (70%) loss=0.2158 elapsed=225s eta=96s
-  [epoch 10/10] batch 240/300 (80%) loss=0.2130 elapsed=255s eta=64s
-  [epoch 10/10] batch 270/300 (90%) loss=0.2122 elapsed=286s eta=32s
-  [epoch 10/10] batch 300/300 (100%) loss=0.2123 elapsed=321s eta=0s
+[epoch 008/10] remain=2 epochs ep_eta=158.7min (avg 4762s/ep)
+[epoch 008/10] lr=0.000021  dt=4796.6s
+  train loss=0.2315
+  val   loss=0.2367
+  IoU   bg=0.9727  crack=0.5360  spalling=0.7870  | mIoU_fg=0.6615  pix_acc=0.9735
+  Dice  bg=0.9862  crack=0.6979  spalling=0.8808
+  BF1   crack=0.6735  spalling=0.5483  | BF1_fg_mean=0.6109
+  [best] mIoU_fg=0.6615  saved -> best.pt
+  [epoch 9/10] batch 30/300 (10%) loss=0.2249 elapsed=490s eta=4407s
+  [epoch 9/10] batch 60/300 (20%) loss=0.2328 elapsed=956s eta=3825s
+  [epoch 9/10] batch 90/300 (30%) loss=0.2271 elapsed=1429s eta=3335s
+  [epoch 9/10] batch 120/300 (40%) loss=0.2209 elapsed=1913s eta=2870s
+  [epoch 9/10] batch 150/300 (50%) loss=0.2173 elapsed=2388s eta=2388s
+  [epoch 9/10] batch 180/300 (60%) loss=0.2163 elapsed=2868s eta=1912s
+  [epoch 9/10] batch 210/300 (70%) loss=0.2141 elapsed=3344s eta=1433s
+  [epoch 9/10] batch 240/300 (80%) loss=0.2134 elapsed=3803s eta=951s
+  [epoch 9/10] batch 270/300 (90%) loss=0.2137 elapsed=4258s eta=473s
+  [epoch 9/10] batch 300/300 (100%) loss=0.2144 elapsed=4722s eta=0s
   [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
-[epoch 010/10] remain=0 epochs ep_eta=0.0min (avg 369s/ep)
-[epoch 010/10] lr=0.000000  dt=356.5s
-  train loss=0.2123
-  val   loss=0.2307
-  IoU   bg=0.9733  crack=0.5371  spalling=0.7938  | mIoU_fg=0.6655  pix_acc=0.9738
-  Dice  bg=0.9864  crack=0.6988  spalling=0.8851
-  BF1   crack=0.6820  spalling=0.5492  | BF1_fg_mean=0.6156
-  [best] mIoU_fg=0.6655  saved -> best.pt
+[epoch 009/10] remain=1 epochs ep_eta=79.6min (avg 4773s/ep)
+[epoch 009/10] lr=0.000006  dt=4858.0s
+  train loss=0.2144
+  val   loss=0.2462
+  IoU   bg=0.9722  crack=0.5326  spalling=0.7794  | mIoU_fg=0.6560  pix_acc=0.9729
+  Dice  bg=0.9859  crack=0.6951  spalling=0.8760
+  BF1   crack=0.6732  spalling=0.5095  | BF1_fg_mean=0.5914
+  [epoch 10/10] batch 30/300 (10%) loss=0.2094 elapsed=502s eta=4517s
+  [epoch 10/10] batch 60/300 (20%) loss=0.2029 elapsed=963s eta=3852s
+  [epoch 10/10] batch 90/300 (30%) loss=0.1981 elapsed=1419s eta=3312s
+  [epoch 10/10] batch 120/300 (40%) loss=0.1961 elapsed=1885s eta=2827s
+  [epoch 10/10] batch 150/300 (50%) loss=0.1976 elapsed=2351s eta=2351s
+  [epoch 10/10] batch 180/300 (60%) loss=0.1974 elapsed=2813s eta=1875s
+  [epoch 10/10] batch 210/300 (70%) loss=0.2003 elapsed=3281s eta=1406s
+  [epoch 10/10] batch 240/300 (80%) loss=0.2005 elapsed=3749s eta=937s
+  [epoch 10/10] batch 270/300 (90%) loss=0.2012 elapsed=4217s eta=469s
+  [epoch 10/10] batch 300/300 (100%) loss=0.2014 elapsed=4685s eta=0s
+  [train] label px frac: bg=0.9521 crack=0.0343 spalling=0.0136
+[epoch 010/10] remain=0 epochs ep_eta=0.0min (avg 4778s/ep)
+[epoch 010/10] lr=0.000000  dt=4816.0s
+  train loss=0.2014
+  val   loss=0.2337
+  IoU   bg=0.9736  crack=0.5439  spalling=0.7886  | mIoU_fg=0.6663  pix_acc=0.9743
+  Dice  bg=0.9866  crack=0.7046  spalling=0.8818
+  BF1   crack=0.6919  spalling=0.5259  | BF1_fg_mean=0.6089
+  [best] mIoU_fg=0.6663  saved -> best.pt
 
 [train] final test eval using best checkpoint
-IoU   bg=0.9722  crack=0.5372  spalling=0.8170  | mIoU_fg=0.6771  pix_acc=0.9731
-Dice  bg=0.9859  crack=0.6989  spalling=0.8993
-BF1   crack=0.6940  spalling=0.5884  | BF1_fg_mean=0.6412
+IoU   bg=0.9727  crack=0.5458  spalling=0.8091  | mIoU_fg=0.6775  pix_acc=0.9736
+Dice  bg=0.9862  crack=0.7062  spalling=0.8945
+BF1   crack=0.7010  spalling=0.5737  | BF1_fg_mean=0.6374
 [train] wrote /workspace/dam-segmentation-baselines/baseline_segformer/runs/segformer_b2_plain_512/test_report.txt
 [train] wrote /workspace/dam-segmentation-baselines/baseline_segformer/runs/segformer_b2_plain_512/curves.png
