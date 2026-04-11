@@ -4,6 +4,7 @@ Usage:
     python -m baseline_unet.train            # full 30-epoch training
     python -m baseline_unet.train --dry-run  # 1 batch forward+backward sanity
     python -m baseline_unet.train --use-manual-weights
+    python -m baseline_unet.train --resume baseline_unet/runs/unet_r34_ce_dice/last.pt
 """
 from __future__ import annotations
 
@@ -155,6 +156,8 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=C.EPOCHS)
     parser.add_argument("--train-split", type=str, default=None,
                         help="custom train split file (e.g. splits/train_20.txt)")
+    parser.add_argument("--resume", type=str, default=None,
+                        help="checkpoint path to resume from")
     args = parser.parse_args()
 
     set_seed(C.SEED)
@@ -226,16 +229,34 @@ def main() -> None:
     save_preview(model, viz_files, C.DATA_ROOT,
                  C.SAMPLES_DIR / "epoch_000_init.png", device, C.IMG_SIZE)
 
-    # ----- training loop -----
+    # ----- resume -----
     csv_path = C.RUN_DIR / "metrics.csv"
-    if csv_path.exists():
-        csv_path.unlink()
     best_miou = -1.0
+    start_epoch = 1
     last_pt = C.RUN_DIR / "last.pt"
     best_pt = C.RUN_DIR / "best.pt"
 
+    if args.resume is not None:
+        resume_path = Path(args.resume)
+        if not resume_path.is_absolute():
+            resume_path = resume_path.resolve()
+        print(f"[train] resuming from {resume_path}")
+        state = torch.load(resume_path, map_location=device, weights_only=False)
+        model.load_state_dict(state["model"])
+        if "optimizer" in state:
+            optimizer.load_state_dict(state["optimizer"])
+        if "scheduler" in state:
+            scheduler.load_state_dict(state["scheduler"])
+        start_epoch = state.get("epoch", 0) + 1
+        best_miou = state.get("mIoU_fg", best_miou)
+        print(f"[train] resumed at epoch={start_epoch} best_miou_fg={best_miou:.4f}")
+
+    # ----- training loop -----
+    if args.resume is None and csv_path.exists():
+        csv_path.unlink()
+
     run_t0 = time.time()
-    for epoch in range(1, args.epochs + 1):
+    for epoch in range(start_epoch, args.epochs + 1):
         t0 = time.time()
         tr = train_one_epoch(model, train_loader, optimizer, criterion, device, metrics,
                              epoch=epoch, total_epochs=args.epochs)
@@ -268,7 +289,9 @@ def main() -> None:
         }
         write_metrics_row(csv_path, row)
 
-        torch.save({"model": model.state_dict(), "epoch": epoch}, last_pt)
+        torch.save({"model": model.state_dict(), "optimizer": optimizer.state_dict(),
+                    "scheduler": scheduler.state_dict(), "epoch": epoch,
+                    "mIoU_fg": best_miou}, last_pt)
         if va["mIoU_fg"] > best_miou:
             best_miou = va["mIoU_fg"]
             torch.save({"model": model.state_dict(), "epoch": epoch,
