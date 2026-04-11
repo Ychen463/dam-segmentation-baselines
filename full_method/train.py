@@ -81,7 +81,7 @@ def build_train_loader(records: List[Dict], sampler: TierAwareDynamicSampler,
                            build_transforms(cfg.img_size, train=True))
     pin = (device == "cuda")
     return DataLoader(ds, batch_size=cfg.batch_size, sampler=sampler,
-                      num_workers=2, pin_memory=pin, drop_last=False,
+                      num_workers=4, pin_memory=pin, drop_last=False,
                       collate_fn=dict_collate)
 
 
@@ -92,7 +92,7 @@ def build_val_loader(val_files: List[str], cfg: C.RunCfg, device: str) -> DataLo
                            build_transforms(cfg.img_size, train=False))
     pin = (device == "cuda")
     return DataLoader(ds, batch_size=cfg.batch_size, shuffle=False,
-                      num_workers=2, pin_memory=pin, drop_last=False,
+                      num_workers=4, pin_memory=pin, drop_last=False,
                       collate_fn=dict_collate)
 
 

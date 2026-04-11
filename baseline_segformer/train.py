@@ -121,7 +121,7 @@ def build_loader(files: List[str], cfg: C.RunCfg, device: str,
                            build_transforms(cfg.img_size, train=train))
     pin = (device == "cuda")
     return DataLoader(ds, batch_size=cfg.batch_size, shuffle=train,
-                      num_workers=2, pin_memory=pin, drop_last=False)
+                      num_workers=4, pin_memory=pin, drop_last=False)
 
 
 def build_loaders(cfg: C.RunCfg, device: str, train_files: List[str],
