@@ -226,7 +226,8 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
         if done % log_every == 0 or done == total_steps:
             elapsed = time.time() - t_start
             eta = elapsed / done * (total_steps - done)
-            print(f"  [epoch {epoch}/{total_epochs}] batch {done}/{total_steps}"
+            run_tag = cfg.name if cfg else "full"
+            print(f"  [{run_tag}] [epoch {epoch}/{total_epochs}] batch {done}/{total_steps}"
                   f" ({done*100//total_steps}%) loss={loss_sum/n_batches:.4f}"
                   f" elapsed={elapsed:.0f}s eta={eta:.0f}s", flush=True)
 
@@ -678,12 +679,12 @@ def main() -> None:
 
         if tier_mix is not None:
             mix_str = " ".join(f"t{t}={r:.0%}" for t, r in tier_mix.items())
-            print(f"[curriculum] epoch {epoch}: stage={stage} tier_mix=[{mix_str}]")
+            print(f"[{cfg.name}] [curriculum] epoch {epoch}: stage={stage} tier_mix=[{mix_str}]")
         else:
             allowed = sampler._allowed_tiers()
             pool_counts = {t: sum(1 for r in records if r["tier"] == t and t in allowed)
                            for t in range(3)}
-            print(f"[curriculum] epoch {epoch}: stage={stage} tiers={sorted(allowed)}"
+            print(f"[{cfg.name}] [curriculum] epoch {epoch}: stage={stage} tiers={sorted(allowed)}"
                   f" pool={pool_counts}")
 
         # 2. Train
@@ -718,10 +719,10 @@ def main() -> None:
         avg_ep = (time.time() - run_t0) / epochs_done
         remain = total_epochs - epoch
         run_eta = avg_ep * remain
-        print(f"[epoch {epoch:03d}/{total_epochs}] remain={remain} epochs"
+        print(f"[{cfg.name}] [epoch {epoch:03d}/{total_epochs}] remain={remain} epochs"
               f" ep_eta={run_eta/60:.1f}min (avg {avg_ep:.0f}s/ep)", flush=True)
 
-        print(f"[epoch {epoch:03d}/{total_epochs}] lr={optimizer.param_groups[0]['lr']:.6f}"
+        print(f"[{cfg.name}] [epoch {epoch:03d}/{total_epochs}] lr={optimizer.param_groups[0]['lr']:.6f}"
               f"  dt={dt:.1f}s")
         print(f"  train loss={tr['loss']:.4f}"
               f"  ce={tr.get('loss_ce', 0):.4f} dice={tr.get('loss_dice', 0):.4f}"
@@ -786,7 +787,7 @@ def main() -> None:
                  "sample_bank": bank_serializable},
                 best_pt,
             )
-            print(f"  [best] mIoU_fg={best_miou:.4f}  saved -> {best_pt.name}")
+            print(f"  [{cfg.name}] [best] mIoU_fg={best_miou:.4f}  saved -> {best_pt.name}")
 
         if epoch % 5 == 0 or epoch == 1 or epoch == total_epochs:
             save_preview(preview_model, viz_files, C.DATA_ROOT,

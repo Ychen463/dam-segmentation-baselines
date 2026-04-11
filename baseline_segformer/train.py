@@ -166,7 +166,8 @@ def oom_probe(model: nn.Module, cfg: C.RunCfg, device: str) -> bool:
 def train_one_epoch(model, loader, optimizer, criterion, device,
                     metrics: SegMetricsBF1, grad_accum: int,
                     epoch: int = 0, total_epochs: int = 0,
-                    scaler: torch.amp.GradScaler = None) -> Dict[str, float]:
+                    scaler: torch.amp.GradScaler = None,
+                    run_name: str = "") -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
@@ -211,7 +212,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device,
         if done % log_every == 0 or done == total_steps:
             elapsed = time.time() - t_start
             eta = elapsed / done * (total_steps - done)
-            print(f"  [epoch {epoch}/{total_epochs}] batch {done}/{total_steps}"
+            print(f"  [{run_name}] [epoch {epoch}/{total_epochs}] batch {done}/{total_steps}"
                   f" ({done*100//total_steps}%) loss={loss_sum/n_batches:.4f}"
                   f" elapsed={elapsed:.0f}s eta={eta:.0f}s", flush=True)
 
@@ -550,7 +551,7 @@ def main() -> None:
         tr = train_one_epoch(model, train_loader, optimizer, criterion, device,
                              train_metrics, cfg.grad_accum,
                              epoch=epoch, total_epochs=total_epochs,
-                             scaler=scaler)
+                             scaler=scaler, run_name=cfg.name)
         # Val every 5 epochs, every epoch in last 10, or epoch 1
         do_val = (epoch % 5 == 0) or (epoch > total_epochs - 10) or (epoch == 1)
         if do_val:
@@ -562,10 +563,10 @@ def main() -> None:
         avg_ep = (time.time() - run_t0) / epochs_done
         remain = total_epochs - epoch
         run_eta = avg_ep * remain
-        print(f"[epoch {epoch:03d}/{total_epochs}] remain={remain} epochs"
+        print(f"[{cfg.name}] [epoch {epoch:03d}/{total_epochs}] remain={remain} epochs"
               f" ep_eta={run_eta/60:.1f}min (avg {avg_ep:.0f}s/ep)", flush=True)
 
-        print(f"[epoch {epoch:03d}/{total_epochs}] lr={optimizer.param_groups[0]['lr']:.6f}"
+        print(f"[{cfg.name}] [epoch {epoch:03d}/{total_epochs}] lr={optimizer.param_groups[0]['lr']:.6f}"
               f"  dt={dt:.1f}s")
         print(f"  train loss={tr['loss']:.4f}")
         if do_val:
@@ -613,7 +614,7 @@ def main() -> None:
                  "best_miou_fg": best_miou},
                 best_pt,
             )
-            print(f"  [best] mIoU_fg={best_miou:.4f}  saved -> {best_pt.name}")
+            print(f"  [{cfg.name}] [best] mIoU_fg={best_miou:.4f}  saved -> {best_pt.name}")
 
         if epoch % 5 == 0 or epoch == 1 or epoch == total_epochs:
             save_preview(preview_model, viz_files, C.DATA_ROOT,
