@@ -109,22 +109,34 @@ class CompositeLoss(nn.Module):
                                    beta=cfg.loss_tversky_beta)
 
     def forward(self, outputs: dict, targets: torch.Tensor,
-                scheduler, epoch: int) -> tuple:
+                scheduler, epoch: int,
+                sample_weights: torch.Tensor = None) -> tuple:
         seg_logits = F.interpolate(outputs["seg_logits"], targets.shape[-2:],
                                    mode="bilinear", align_corners=False)
         bd_logits = F.interpolate(outputs["boundary_logits"], targets.shape[-2:],
                                   mode="bilinear", align_corners=False)
 
-        loss_ce = F.cross_entropy(seg_logits, targets, weight=self.ce_weight)
+        # CE loss: per-sample weighted when sample_weights provided
+        if sample_weights is not None:
+            ce_unreduced = F.cross_entropy(seg_logits, targets, weight=self.ce_weight,
+                                           reduction='none')  # (B,H,W)
+            ce_per_sample = ce_unreduced.mean(dim=(1, 2))  # (B,)
+            loss_ce = (ce_per_sample * sample_weights).mean()
+        else:
+            loss_ce = F.cross_entropy(seg_logits, targets, weight=self.ce_weight)
+
         loss_dice = fg_dice_loss(seg_logits, targets)
 
-        # Tversky loss: only when enabled
+        # Tversky loss: only when enabled, with optional per-sample weighting
         if self.cfg.use_tversky_loss:
-            loss_tversky = self.tversky(seg_logits, targets)
+            if sample_weights is not None:
+                loss_tversky = self._tversky_weighted(seg_logits, targets, sample_weights)
+            else:
+                loss_tversky = self.tversky(seg_logits, targets)
         else:
             loss_tversky = seg_logits.new_zeros(())
 
-        # Boundary BCE loss: only when enabled
+        # Boundary BCE loss: only when enabled (batch-level, not per-sample weighted)
         if self.cfg.use_boundary_loss:
             loss_bd = boundary_bce_loss(bd_logits, targets)
         else:
@@ -155,3 +167,16 @@ class CompositeLoss(nn.Module):
             "per_sample_ce": ps_ce.cpu(),
             "per_sample_ent": ps_ent.cpu(),
         }
+
+    def _tversky_weighted(self, logits: torch.Tensor, targets: torch.Tensor,
+                          sample_weights: torch.Tensor) -> torch.Tensor:
+        """Tversky loss with per-sample weighting (multiply before mean)."""
+        crack_prob = torch.softmax(logits, dim=1)[:, 1:2]
+        crack_gt = (targets == 1).float().unsqueeze(1)
+        tp = (crack_prob * crack_gt).sum(dim=(1, 2, 3))
+        fp = (crack_prob * (1 - crack_gt)).sum(dim=(1, 2, 3))
+        fn = ((1 - crack_prob) * crack_gt).sum(dim=(1, 2, 3))
+        tversky = (tp + self.tversky.eps) / (
+            tp + self.tversky.alpha * fp + self.tversky.beta * fn + self.tversky.eps)
+        per_sample_loss = 1.0 - tversky  # (B,)
+        return (per_sample_loss * sample_weights).mean()
