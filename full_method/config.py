@@ -89,6 +89,9 @@ class RunCfg:
     cldice_start_epoch: int = 40
     cldice_iters: int = 7
 
+    # No-curriculum mode: fully uniform sampling over all samples
+    no_curriculum: bool = False
+
 
 # ---------------------------------------------------------------------------
 # Ablation presets
@@ -169,6 +172,24 @@ ABLATION_PRESETS = {
            "use_cldice_loss": False, "use_soft_boundary_schedule": False},
     "S2": {"name": "stabilized_S2_softcurr_cldice",
            "use_soft_curriculum": True, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": True, "cldice_weight": 0.15,
+           "cldice_start_epoch": 40, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+
+    # Set P: 2x2 experiment matrix (Algorithm V2 main line)
+    "P0": {"name": "plain_segformer_P0",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_soft_boundary_schedule": False},
+    "P1": {"name": "plain_cldice_P1",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
            "use_boundary_loss": False, "use_tversky_loss": False,

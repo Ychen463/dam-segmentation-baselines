@@ -25,7 +25,8 @@ class TierAwareDynamicSampler(Sampler[int]):
                  late_hard_crack_bonus: float = 0.4,
                  enable_dynamic: bool = True,
                  use_soft_curriculum: bool = False,
-                 use_softmax_sampling: bool = True):
+                 use_softmax_sampling: bool = True,
+                 no_curriculum: bool = False):
         self.records = records
         self.sample_bank = sample_bank
         self.tau = tau
@@ -34,6 +35,7 @@ class TierAwareDynamicSampler(Sampler[int]):
         self._enable_dynamic = enable_dynamic
         self._use_softmax_sampling = use_softmax_sampling
         self._use_soft_curriculum = use_soft_curriculum
+        self._no_curriculum = no_curriculum
         self._stage = 0
         self._epoch_ratio = 0.0
         self._use_dynamic = False
@@ -57,6 +59,14 @@ class TierAwareDynamicSampler(Sampler[int]):
         return {0, 1, 2}
 
     def __iter__(self) -> Iterator[int]:
+        # No-curriculum mode: all samples, uniform shuffle
+        if self._no_curriculum:
+            indices = list(range(len(self.records)))
+            random.shuffle(indices)
+            self._last_sampled_indices = indices
+            yield from indices
+            return
+
         # Soft curriculum mode: tier-mix proportional sampling
         if self._tier_mix is not None:
             by_tier: Dict[int, List[int]] = {0: [], 1: [], 2: []}
@@ -128,7 +138,7 @@ class TierAwareDynamicSampler(Sampler[int]):
         }
 
     def __len__(self) -> int:
-        if self._tier_mix is not None:
+        if self._no_curriculum or self._tier_mix is not None:
             return len(self.records)
         allowed = self._allowed_tiers()
         return sum(1 for r in self.records if r["tier"] in allowed)

@@ -138,6 +138,7 @@ METRIC_KEYS: List[str] = [
     "Dice_background", "Dice_crack", "Dice_spalling",
     "mIoU_fg", "mIoU_all", "pixel_acc",
     "BF1_crack", "BF1_spalling", "BF1_fg_mean",
+    "sampled_t0", "sampled_t1", "sampled_t2",
 ]
 
 
@@ -450,6 +451,7 @@ def main() -> None:
     print(f"[train] cldice: use={cfg.use_cldice_loss}"
           f" weight={cfg.cldice_weight} start_epoch={cfg.cldice_start_epoch}"
           f" iters={cfg.cldice_iters}")
+    print(f"[train] no_curriculum={cfg.no_curriculum}")
 
     rdir = C.run_dir(cfg)
     samples_dir = rdir / "samples"
@@ -496,6 +498,7 @@ def main() -> None:
         enable_dynamic=cfg.use_dynamic_difficulty,
         use_soft_curriculum=cfg.use_soft_curriculum,
         use_softmax_sampling=cfg.use_softmax_sampling,
+        no_curriculum=cfg.no_curriculum,
     )
 
     # ----- build loaders -----
@@ -655,8 +658,10 @@ def main() -> None:
 
     # ----- file outputs -----
     csv_path = rdir / "metrics.csv"
-    if args.resume is None and csv_path.exists():
-        csv_path.unlink()
+    if args.resume is None and csv_path.exists() and csv_path.stat().st_size > 0:
+        print(f"[ERROR] Run directory {rdir} already has metrics.csv with data. "
+              f"Delete the directory manually or use --resume to continue.")
+        _sys.exit(1)
     if args.resume is None and accum_notice is not None:
         with open(csv_path, "w") as f:
             f.write(f"# {accum_notice}\n")
@@ -698,7 +703,8 @@ def main() -> None:
         # 3. Print sampler stats
         ss = sampler.get_sampling_stats()
         if ss:
-            print(f"  sampled: {ss['tier_hist']}  has_spalling={ss['has_spalling_ratio']:.2%}")
+            print(f"[{cfg.name}] [sampler] sampled: {ss['tier_hist']} total={ss['total']}"
+                  f" spalling_ratio={ss['has_spalling_ratio']:.2%}")
 
         # 4. Epoch-level z-score normalize + rescore (before val)
         if cfg.use_dynamic_difficulty:
@@ -756,6 +762,9 @@ def main() -> None:
                 "BF1_crack": va["BF1_crack"],
                 "BF1_spalling": va["BF1_spalling"],
                 "BF1_fg_mean": va["BF1_fg_mean"],
+                "sampled_t0": ss.get("tier_hist", {}).get(0, "") if ss else "",
+                "sampled_t1": ss.get("tier_hist", {}).get(1, "") if ss else "",
+                "sampled_t2": ss.get("tier_hist", {}).get(2, "") if ss else "",
             }
             write_metrics_row(csv_path, row)
 
