@@ -21,6 +21,7 @@ Pillow==11.3.0
 
 # ---- Metrics / math ----
 scipy==1.13.1
+scikit-image>=0.22
 
 # ---- Plotting + progress ----
 matplotlib==3.9.4

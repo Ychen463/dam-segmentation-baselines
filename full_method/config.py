@@ -175,8 +175,8 @@ ABLATION_PRESETS = {
            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
            "use_boundary_loss": False, "use_tversky_loss": False,
-           "use_cldice_loss": True, "cldice_weight": 0.15,
-           "cldice_start_epoch": 40, "cldice_iters": 7,
+           "use_cldice_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
 
     # Set P: 2x2 experiment matrix (Algorithm V2 main line)
@@ -193,8 +193,8 @@ ABLATION_PRESETS = {
            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
            "use_boundary_loss": False, "use_tversky_loss": False,
-           "use_cldice_loss": True, "cldice_weight": 0.15,
-           "cldice_start_epoch": 40, "cldice_iters": 7,
+           "use_cldice_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
 }
 
