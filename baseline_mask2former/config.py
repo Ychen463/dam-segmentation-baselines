@@ -1,9 +1,10 @@
-"""Mask2Former Swin-Small config — single plain run (no presets, no curriculum)."""
+"""Mask2Former Swin-Small config — M0 plain baseline + M1 soft curriculum."""
 from __future__ import annotations
 
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Dict
 
 from baseline_unet import config as base
 
@@ -34,10 +35,29 @@ class RunCfg:
     img_size: int = 512
     batch_size: int = 4
     grad_accum: int = 1
-    epochs: int = 40
+    epochs: int = 100
     lr: float = 1e-4
     weight_decay: float = 1e-4
     warmup_epochs: int = 5
+    # Curriculum controls (M1 only)
+    use_soft_curriculum: bool = False
+    no_curriculum: bool = True
+
+
+# ----- Ablation presets -----
+ABLATION_PRESETS: Dict[str, Dict] = {
+    "M0": {"name": "mask2former_plain_M0",
+           "no_curriculum": True, "use_soft_curriculum": False},
+    "M1": {"name": "mask2former_softcurr_M1",
+           "no_curriculum": False, "use_soft_curriculum": True},
+}
+
+
+def apply_preset(cfg: RunCfg, preset_key: str) -> None:
+    """Apply an ablation preset to cfg (mutates in place)."""
+    p = ABLATION_PRESETS[preset_key]
+    for k, v in p.items():
+        setattr(cfg, k, v)
 
 
 CFG = RunCfg()

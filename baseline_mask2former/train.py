@@ -1,12 +1,11 @@
-"""Mask2Former Swin-Small plain semantic segmentation — upper-bound reference.
-
-No curriculum, no presets. Single plain run for architecture comparison.
+"""Mask2Former Swin-Small semantic segmentation — M0 plain / M1 soft curriculum.
 
 Usage:
-    python -m baseline_mask2former.train --dry-run
-    python -m baseline_mask2former.train --epochs 5          # probe
-    python -m baseline_mask2former.train
-    python -m baseline_mask2former.train --resume runs/mask2former_swin_small_512/last.pt
+    python -m baseline_mask2former.train --ablation M0 --dry-run
+    python -m baseline_mask2former.train --ablation M1 --dry-run
+    python -m baseline_mask2former.train --ablation M0
+    python -m baseline_mask2former.train --ablation M1
+    python -m baseline_mask2former.train --resume runs/mask2former_plain_M0/last.pt
 """
 from __future__ import annotations
 
@@ -41,6 +40,12 @@ from baseline_unet.dataset import (
 )
 from baseline_unet.visualize import pick_viz_samples
 from baseline_deeplab.metrics import SegMetricsBF1, format_metrics
+from shared_eval.metrics_full import SegMetricsFull
+
+from full_method.dataset import build_records
+from full_method.sampler import TierAwareDynamicSampler
+from full_method.scheduler import CurriculumScheduler
+from full_method.difficulty import SampleState
 
 from baseline_mask2former import config as C
 
@@ -116,7 +121,7 @@ class Mask2FormerDamDataset(Dataset):
             self.aug = A.Compose([
                 A.Resize(img_size, img_size),
                 A.HorizontalFlip(p=0.5),
-                A.VerticalFlip(p=0.3),
+                A.VerticalFlip(p=0.5),
                 A.RandomBrightnessContrast(p=0.3),
             ])
         else:
@@ -133,6 +138,34 @@ class Mask2FormerDamDataset(Dataset):
         return out["image"], out["mask"], rel
         # image: np (img_size,img_size,3) uint8
         # mask:  np (img_size,img_size) int64
+
+
+class Mask2FormerRecordDataset(Dataset):
+    """Like Mask2FormerDamDataset but initialized from records list (for curriculum sampler)."""
+
+    def __init__(self, root: Path, records: List[Dict], img_size: int,
+                 train: bool = True):
+        self.root = root
+        self.records = records
+        if train:
+            self.aug = A.Compose([
+                A.Resize(img_size, img_size),
+                A.HorizontalFlip(p=0.5),
+                A.VerticalFlip(p=0.5),
+                A.RandomBrightnessContrast(p=0.3),
+            ])
+        else:
+            self.aug = A.Compose([A.Resize(img_size, img_size)])
+
+    def __len__(self) -> int:
+        return len(self.records)
+
+    def __getitem__(self, idx: int):
+        rel = self.records[idx]["rel"]
+        img = read_image_rgb(image_path(self.root, rel))
+        label, _ = decode_mask(read_mask_rgb(mask_path(self.root, rel)))
+        out = self.aug(image=img, mask=label)
+        return out["image"], out["mask"], rel
 
 
 # ---------------------------------------------------------------------------
@@ -162,11 +195,18 @@ def mask2former_collate(batch, processor):
 
 
 def build_loader(files: List[str], cfg: C.RunCfg, device: str,
-                 train: bool, processor) -> DataLoader:
-    ds = Mask2FormerDamDataset(C.DATA_ROOT, files, cfg.img_size, train=train)
+                 train: bool, processor,
+                 sampler=None, records=None) -> DataLoader:
+    if sampler is not None and records is not None:
+        ds = Mask2FormerRecordDataset(C.DATA_ROOT, records, cfg.img_size, train=train)
+        shuffle = False
+    else:
+        ds = Mask2FormerDamDataset(C.DATA_ROOT, files, cfg.img_size, train=train)
+        shuffle = train
     pin = (device == "cuda")
     collate_fn = functools.partial(mask2former_collate, processor=processor)
-    return DataLoader(ds, batch_size=cfg.batch_size, shuffle=train,
+    return DataLoader(ds, batch_size=cfg.batch_size, shuffle=shuffle,
+                      sampler=sampler if sampler is not None else None,
                       num_workers=2, pin_memory=pin, drop_last=False,
                       collate_fn=collate_fn)
 
@@ -309,6 +349,7 @@ METRIC_KEYS: List[str] = [
     "Dice_background", "Dice_crack", "Dice_spalling",
     "mIoU_fg", "mIoU_all", "pixel_acc",
     "BF1_crack", "BF1_spalling", "BF1_fg_mean",
+    "sampled_t0", "sampled_t1", "sampled_t2",
 ]
 
 
@@ -437,12 +478,23 @@ def main() -> None:
                         help="checkpoint path to resume from")
     parser.add_argument("--train-split", type=str, default=None,
                         help="custom train split file (e.g. splits/train_20.txt)")
+    parser.add_argument("--ablation", type=str, default=None,
+                        choices=list(C.ABLATION_PRESETS.keys()),
+                        help="ablation preset: M0 (plain) or M1 (soft curriculum)")
+    parser.add_argument("--name", type=str, default=None,
+                        help="override run name")
     args = parser.parse_args()
 
-    cfg = C.CFG
+    cfg = C.RunCfg()
+    if args.ablation is not None:
+        C.apply_preset(cfg, args.ablation)
+    if args.name is not None:
+        cfg.name = args.name
     if args.grad_accum is not None:
         cfg.grad_accum = args.grad_accum
     total_epochs = args.epochs if args.epochs is not None else cfg.epochs
+
+    use_sampler = not cfg.no_curriculum
 
     set_seed(C.SEED)
     device = pick_device(C.DEVICE)
@@ -457,9 +509,20 @@ def main() -> None:
     print(f"[train] cfg: pretrained={cfg.pretrained} img={cfg.img_size} bs={cfg.batch_size}"
           f" grad_accum={cfg.grad_accum} epochs={total_epochs} lr={cfg.lr}"
           f" warmup={cfg.warmup_epochs}")
+    print(f"[train] curriculum: no_curriculum={cfg.no_curriculum}"
+          f" use_soft_curriculum={cfg.use_soft_curriculum}"
+          f" use_sampler={use_sampler}")
 
     rdir = C.run_dir(cfg)
     samples_dir = rdir / "samples"
+
+    # ----- fresh directory guard -----
+    csv_guard = rdir / "metrics.csv"
+    if args.resume is None and csv_guard.exists():
+        raise RuntimeError(
+            f"metrics.csv already exists in {rdir}. "
+            "Delete it or use --resume to continue a previous run."
+        )
 
     # ----- read split files -----
     train_files = (read_split_file(Path(args.train_split))
@@ -495,8 +558,29 @@ def main() -> None:
     scheduler = SequentialLR(optimizer, [warmup, cosine],
                              milestones=[cfg.warmup_epochs])
 
+    # ----- curriculum setup -----
+    train_records = None
+    sampler = None
+    curriculum_scheduler = None
+    if use_sampler:
+        print("[train] building records for curriculum sampler ...")
+        train_records = build_records(train_files, C.DATA_ROOT)
+        sample_bank = {r["id"]: SampleState() for r in train_records}
+        sampler = TierAwareDynamicSampler(
+            train_records, sample_bank,
+            use_soft_curriculum=cfg.use_soft_curriculum,
+            no_curriculum=False,
+            enable_dynamic=False,
+        )
+        curriculum_scheduler = CurriculumScheduler(total_epochs)
+        tier_hist = {0: 0, 1: 0, 2: 0}
+        for r in train_records:
+            tier_hist[r["tier"]] += 1
+        print(f"[train] records: {len(train_records)} total, tier distribution: {tier_hist}")
+
     # ----- data loaders -----
-    train_loader = build_loader(train_files, cfg, device, train=True, processor=processor)
+    train_loader = build_loader(train_files, cfg, device, train=True, processor=processor,
+                                sampler=sampler, records=train_records)
     val_loader = build_loader(val_files, cfg, device, train=False, processor=processor)
     test_loader = build_loader(test_files, cfg, device, train=False, processor=processor)
 
@@ -515,7 +599,8 @@ def main() -> None:
             cfg.grad_accum = new_ga
 
             # Rebuild everything
-            train_loader = build_loader(train_files, cfg, device, train=True, processor=processor)
+            train_loader = build_loader(train_files, cfg, device, train=True, processor=processor,
+                                        sampler=sampler, records=train_records)
             val_loader = build_loader(val_files, cfg, device, train=False, processor=processor)
             test_loader = build_loader(test_files, cfg, device, train=False, processor=processor)
 
@@ -535,11 +620,17 @@ def main() -> None:
         else:
             print("[train] OOM probe OK")
 
-    eval_metrics = SegMetricsBF1(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
+    eval_metrics = SegMetricsFull(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
 
     # ----- dry run -----
     if args.dry_run:
-        print("[train] DRY RUN: 1 train step + 1 val batch (with BF1)")
+        print("[train] DRY RUN: 1 train step + 1 val batch (with BF1 + clDice + ConnR)")
+        if use_sampler:
+            stage = curriculum_scheduler.stage(1)
+            tier_mix = curriculum_scheduler.tier_mix(1) if cfg.use_soft_curriculum else None
+            sampler.set_epoch(1, total_epochs, cfg.warmup_epochs, stage, tier_mix=tier_mix)
+            stats = sampler.get_sampling_stats()
+            print(f"[train] dry-run sampler epoch=1 tier_mix={tier_mix} stats={stats}")
         model.train()
         batch = next(iter(train_loader))
         pv = batch["pixel_values"].to(device)
@@ -615,8 +706,6 @@ def main() -> None:
 
     # ----- file outputs -----
     csv_path = rdir / "metrics.csv"
-    if args.resume is None and csv_path.exists():
-        csv_path.unlink()
     if args.resume is None and accum_notice is not None:
         with open(csv_path, "w") as f:
             f.write(f"# {accum_notice}\n")
@@ -633,9 +722,37 @@ def main() -> None:
     epochs_done = 0
     for epoch in range(start_epoch, total_epochs + 1):
         t0 = time.time()
+
+        # Curriculum epoch setup
+        sampler_row = {}
+        if use_sampler:
+            stage = curriculum_scheduler.stage(epoch)
+            tier_mix = curriculum_scheduler.tier_mix(epoch) if cfg.use_soft_curriculum else None
+            sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage, tier_mix=tier_mix)
+            if tier_mix:
+                print(f"  [curriculum] epoch={epoch} stage={stage} tier_mix={tier_mix}")
+
         tr = train_one_epoch(model, train_loader, optimizer, device,
                              cfg.grad_accum, epoch=epoch, total_epochs=total_epochs)
-        va = evaluate(model, val_loader, processor, device, eval_metrics, cfg.img_size)
+
+        # Sampler stats
+        if use_sampler:
+            stats = sampler.get_sampling_stats()
+            th = stats.get("tier_hist", {})
+            sampler_row = {
+                "sampled_t0": th.get(0, 0),
+                "sampled_t1": th.get(1, 0),
+                "sampled_t2": th.get(2, 0),
+            }
+            print(f"  [sampler] tier_hist={th} total={stats.get('total', 0)}")
+
+        # Val schedule: every 5 epochs + last 10 + epoch 1
+        do_val = (epoch % 5 == 0) or (epoch == 1) or (epoch > total_epochs - 10)
+        if do_val:
+            va = evaluate(model, val_loader, processor, device, eval_metrics, cfg.img_size)
+        else:
+            va = None
+
         scheduler.step()
         dt = time.time() - t0
         epochs_done += 1
@@ -648,26 +765,42 @@ def main() -> None:
         print(f"[epoch {epoch:03d}/{total_epochs}] lr={optimizer.param_groups[0]['lr']:.6f}"
               f"  dt={dt:.1f}s")
         print(f"  train loss={tr['loss']:.4f}")
-        print(f"  val   loss={va['loss']:.4f}")
-        print("  " + format_metrics(va).replace("\n", "\n  "))
 
-        row = {
-            "epoch": epoch, "split": "val",
-            "train_loss": tr["loss"], "val_loss": va["loss"],
-            "IoU_background": va["IoU_background"],
-            "IoU_crack": va["IoU_crack"],
-            "IoU_spalling": va["IoU_spalling"],
-            "Dice_background": va["Dice_background"],
-            "Dice_crack": va["Dice_crack"],
-            "Dice_spalling": va["Dice_spalling"],
-            "mIoU_fg": va["mIoU_fg"],
-            "mIoU_all": va["mIoU_all"],
-            "pixel_acc": va["pixel_acc"],
-            "BF1_crack": va["BF1_crack"],
-            "BF1_spalling": va["BF1_spalling"],
-            "BF1_fg_mean": va["BF1_fg_mean"],
-        }
-        write_metrics_row(csv_path, row)
+        if va is not None:
+            print(f"  val   loss={va['loss']:.4f}")
+            print("  " + format_metrics(va).replace("\n", "\n  "))
+
+            row = {
+                "epoch": epoch, "split": "val",
+                "train_loss": tr["loss"], "val_loss": va["loss"],
+                "IoU_background": va["IoU_background"],
+                "IoU_crack": va["IoU_crack"],
+                "IoU_spalling": va["IoU_spalling"],
+                "Dice_background": va["Dice_background"],
+                "Dice_crack": va["Dice_crack"],
+                "Dice_spalling": va["Dice_spalling"],
+                "mIoU_fg": va["mIoU_fg"],
+                "mIoU_all": va["mIoU_all"],
+                "pixel_acc": va["pixel_acc"],
+                "BF1_crack": va["BF1_crack"],
+                "BF1_spalling": va["BF1_spalling"],
+                "BF1_fg_mean": va["BF1_fg_mean"],
+                **sampler_row,
+            }
+            write_metrics_row(csv_path, row)
+
+            if va["mIoU_fg"] > best_miou:
+                best_miou = va["mIoU_fg"]
+                torch.save(
+                    {"model": model.state_dict(),
+                     "optimizer": optimizer.state_dict(),
+                     "scheduler": scheduler.state_dict(),
+                     "epoch": epoch,
+                     "mIoU_fg": best_miou,
+                     "best_miou_fg": best_miou},
+                    best_pt,
+                )
+                print(f"  [best] mIoU_fg={best_miou:.4f}  saved -> {best_pt.name}")
 
         torch.save(
             {"model": model.state_dict(),
@@ -677,18 +810,6 @@ def main() -> None:
              "best_miou_fg": best_miou},
             last_pt,
         )
-        if va["mIoU_fg"] > best_miou:
-            best_miou = va["mIoU_fg"]
-            torch.save(
-                {"model": model.state_dict(),
-                 "optimizer": optimizer.state_dict(),
-                 "scheduler": scheduler.state_dict(),
-                 "epoch": epoch,
-                 "mIoU_fg": best_miou,
-                 "best_miou_fg": best_miou},
-                best_pt,
-            )
-            print(f"  [best] mIoU_fg={best_miou:.4f}  saved -> {best_pt.name}")
 
         if epoch % 5 == 0 or epoch == 1 or epoch == total_epochs:
             render_preview(model, processor, viz_files, C.DATA_ROOT,
@@ -711,6 +832,8 @@ def main() -> None:
                 f"batch: {cfg.batch_size}  grad_accum: {cfg.grad_accum}  "
                 f"epochs: {total_epochs}  lr: {cfg.lr}  "
                 f"warmup: {cfg.warmup_epochs}\n")
+        f.write(f"curriculum: no_curriculum={cfg.no_curriculum}"
+                f" use_soft_curriculum={cfg.use_soft_curriculum}\n")
         if accum_notice:
             f.write(f"note: {accum_notice}\n")
         if best_pt.exists():
@@ -720,7 +843,9 @@ def main() -> None:
         for k in ("IoU_background", "IoU_crack", "IoU_spalling",
                   "Dice_background", "Dice_crack", "Dice_spalling",
                   "mIoU_fg", "mIoU_all", "pixel_acc",
-                  "BF1_crack", "BF1_spalling", "BF1_fg_mean"):
+                  "BF1_crack", "BF1_spalling", "BF1_fg_mean",
+                  "clDice_crack", "clDice_spalling", "clDice_fg_mean",
+                  "ConnR_crack", "ConnR_spalling", "ConnR_fg_mean"):
             f.write(f"  {k}: {test_m.get(k)}\n")
         f.write("confusion matrix (rows=gt, cols=pred):\n")
         f.write(str(eval_metrics.cm) + "\n")
