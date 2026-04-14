@@ -452,6 +452,10 @@ def main() -> None:
           f" weight={cfg.cldice_weight} start_epoch={cfg.cldice_start_epoch}"
           f" iters={cfg.cldice_iters}")
     print(f"[train] no_curriculum={cfg.no_curriculum}")
+    print(f"[train] competence: hard={cfg.use_competence_curriculum}"
+          f" soft={cfg.use_competence_soft_mixing}"
+          f" c0={cfg.competence_c0} duration={cfg.competence_duration}"
+          f" floors=[{cfg.competence_floor_easy},{cfg.competence_floor_medium},{cfg.competence_floor_hard}]")
 
     rdir = C.run_dir(cfg)
     samples_dir = rdir / "samples"
@@ -567,8 +571,17 @@ def main() -> None:
         print("[train] DRY RUN: 1 train step + 1 val batch")
         # Set sampler for epoch 1
         stage = curriculum_scheduler.stage(1)
-        tier_mix = curriculum_scheduler.tier_mix(1) if cfg.use_soft_curriculum else None
-        sampler.set_epoch(1, total_epochs, cfg.warmup_epochs, stage, tier_mix=tier_mix)
+        if cfg.use_competence_soft_mixing:
+            weights = curriculum_scheduler.competence_tier_weights(1)
+            sampler.set_epoch(1, total_epochs, cfg.warmup_epochs, stage,
+                              competence_tier_weights=weights)
+        elif cfg.use_competence_curriculum:
+            max_tier = curriculum_scheduler.max_allowed_tier(1)
+            sampler.set_epoch(1, total_epochs, cfg.warmup_epochs, stage,
+                              competence_tier=max_tier)
+        else:
+            tier_mix = curriculum_scheduler.tier_mix(1) if cfg.use_soft_curriculum else None
+            sampler.set_epoch(1, total_epochs, cfg.warmup_epochs, stage, tier_mix=tier_mix)
 
         batch = next(iter(train_loader))
         imgs = batch["image"].to(device).float()
@@ -679,13 +692,27 @@ def main() -> None:
     for epoch in range(start_epoch, total_epochs + 1):
         # 1. Stage + sampler update
         stage = curriculum_scheduler.stage(epoch)
-        tier_mix = curriculum_scheduler.tier_mix(epoch) if cfg.use_soft_curriculum else None
-        sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage, tier_mix=tier_mix)
 
-        if tier_mix is not None:
+        if cfg.use_competence_soft_mixing:
+            comp = curriculum_scheduler.competence(epoch)
+            weights = curriculum_scheduler.competence_tier_weights(epoch)
+            sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage,
+                              competence_tier_weights=weights)
+            print(f"[{cfg.name}] [curriculum] epoch {epoch}: c={comp:.3f} "
+                  f"target_weights={{0:{weights[0]:.3f}, 1:{weights[1]:.3f}, 2:{weights[2]:.3f}}}")
+        elif cfg.use_competence_curriculum:
+            comp = curriculum_scheduler.competence(epoch)
+            max_tier = curriculum_scheduler.max_allowed_tier(epoch)
+            sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage,
+                              competence_tier=max_tier)
+            print(f"[{cfg.name}] [curriculum] epoch {epoch}: c={comp:.3f} max_tier={max_tier}")
+        elif cfg.use_soft_curriculum:
+            tier_mix = curriculum_scheduler.tier_mix(epoch)
+            sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage, tier_mix=tier_mix)
             mix_str = " ".join(f"t{t}={r:.0%}" for t, r in tier_mix.items())
             print(f"[{cfg.name}] [curriculum] epoch {epoch}: stage={stage} tier_mix=[{mix_str}]")
         else:
+            sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage)
             allowed = sampler._allowed_tiers()
             pool_counts = {t: sum(1 for r in records if r["tier"] == t and t in allowed)
                            for t in range(3)}
@@ -705,6 +732,9 @@ def main() -> None:
         if ss:
             print(f"[{cfg.name}] [sampler] sampled: {ss['tier_hist']} total={ss['total']}"
                   f" spalling_ratio={ss['has_spalling_ratio']:.2%}")
+            if 'unique_hist' in ss:
+                print(f"[{cfg.name}] [sampler] unique: {ss['unique_hist']} "
+                      f"unique_total={ss['unique_total']} dup_ratio={ss['dup_ratio']:.2f}x")
 
         # 4. Epoch-level z-score normalize + rescore (before val)
         if cfg.use_dynamic_difficulty:

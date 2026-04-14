@@ -92,6 +92,15 @@ class RunCfg:
     # No-curriculum mode: fully uniform sampling over all samples
     no_curriculum: bool = False
 
+    # Competence-based curriculum (Platanios et al. 2019)
+    use_competence_curriculum: bool = False       # C1: hard unlock
+    use_competence_soft_mixing: bool = False      # C2: soft weight mixing
+    competence_c0: float = 0.333                  # initial competence
+    competence_duration: int = 70                 # epochs to reach c=1.0
+    competence_floor_easy: float = 0.05           # C2: Easy replay floor
+    competence_floor_medium: float = 0.02         # C2: Medium replay floor
+    competence_floor_hard: float = 0.00           # C2: Hard replay floor (0 = no early replay)
+
 
 # ---------------------------------------------------------------------------
 # Ablation presets
@@ -178,6 +187,29 @@ ABLATION_PRESETS = {
            "use_cldice_loss": True, "cldice_weight": 0.05,
            "cldice_start_epoch": 60, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
+
+    # Set C: competence-based curriculum (Algorithm V3)
+    "C1": {"name": "competence_hard_C1",
+           "no_curriculum": False,
+           "use_competence_curriculum": True,
+           "competence_c0": 0.333, "competence_duration": 70,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_soft_boundary_schedule": False},
+    "C2": {"name": "competence_soft_C2",
+           "no_curriculum": False,
+           "use_competence_soft_mixing": True,
+           "competence_c0": 0.333, "competence_duration": 70,
+           "competence_floor_easy": 0.05,
+           "competence_floor_medium": 0.02,
+           "competence_floor_hard": 0.00,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_soft_boundary_schedule": False},
 
     # Set P: 2x2 experiment matrix (Algorithm V2 main line)
     "P0": {"name": "plain_segformer_P0",

@@ -40,16 +40,22 @@ class TierAwareDynamicSampler(Sampler[int]):
         self._epoch_ratio = 0.0
         self._use_dynamic = False
         self._tier_mix: Optional[Dict[int, float]] = None
+        self._competence_tier: Optional[int] = None
+        self._competence_tier_weights: Optional[Dict[int, float]] = None
         self._last_sampled_indices: List[int] = []
 
     def set_epoch(self, epoch: int, total_epochs: int,
                   warmup_epochs: int, stage: int,
-                  tier_mix: Optional[Dict[int, float]] = None) -> None:
+                  tier_mix: Optional[Dict[int, float]] = None,
+                  competence_tier: Optional[int] = None,
+                  competence_tier_weights: Optional[Dict[int, float]] = None) -> None:
         """Update state for the new epoch. Stage is computed externally."""
         self._stage = stage
         self._epoch_ratio = epoch / total_epochs
         self._use_dynamic = self._enable_dynamic and (epoch > warmup_epochs)
         self._tier_mix = tier_mix
+        self._competence_tier = competence_tier
+        self._competence_tier_weights = competence_tier_weights
 
     def _allowed_tiers(self) -> Set[int]:
         if self._stage == 0:
@@ -62,6 +68,48 @@ class TierAwareDynamicSampler(Sampler[int]):
         # No-curriculum mode: all samples, uniform shuffle
         if self._no_curriculum:
             indices = list(range(len(self.records)))
+            random.shuffle(indices)
+            self._last_sampled_indices = indices
+            yield from indices
+            return
+
+        # C2: competence soft mixing -- fixed epoch size with per-tier replacement
+        if self._competence_tier_weights is not None:
+            by_tier: Dict[int, List[int]] = {0: [], 1: [], 2: []}
+            for i, r in enumerate(self.records):
+                by_tier[r["tier"]].append(i)
+            total_n = len(self.records)  # 1200
+
+            # Largest-remainder quota allocation (guarantees sum = total_n)
+            tiers = sorted(self._competence_tier_weights.keys())
+            float_quotas = {k: self._competence_tier_weights[k] * total_n for k in tiers}
+            int_quotas = {k: int(float_quotas[k]) for k in tiers}
+            remainders = {k: float_quotas[k] - int_quotas[k] for k in tiers}
+            leftover = total_n - sum(int_quotas.values())
+            for k in sorted(tiers, key=lambda k: remainders[k], reverse=True):
+                if leftover <= 0:
+                    break
+                int_quotas[k] += 1
+                leftover -= 1
+
+            indices: List[int] = []
+            for tier in tiers:
+                pool = by_tier.get(tier, [])
+                n = int_quotas[tier]
+                if n > 0 and pool:
+                    if n <= len(pool):
+                        indices.extend(random.sample(pool, n))
+                    else:
+                        indices.extend(random.choices(pool, k=n))
+            random.shuffle(indices)
+            self._last_sampled_indices = indices
+            yield from indices
+            return
+
+        # C1: competence hard unlock (uniform within accessible tiers, no replacement)
+        if self._competence_tier is not None:
+            indices = [i for i, r in enumerate(self.records)
+                       if r["tier"] <= self._competence_tier]
             random.shuffle(indices)
             self._last_sampled_indices = indices
             yield from indices
@@ -131,14 +179,27 @@ class TierAwareDynamicSampler(Sampler[int]):
             if r["has_spalling"]:
                 sp_count += 1
         total = len(self._last_sampled_indices)
+        # Unique sample tracking (useful for C2 oversampling)
+        unique_per_tier: Dict[int, set] = {0: set(), 1: set(), 2: set()}
+        for idx in self._last_sampled_indices:
+            unique_per_tier[self.records[idx]["tier"]].add(idx)
+        unique_hist = {k: len(v) for k, v in unique_per_tier.items()}
+        unique_total = sum(unique_hist.values())
         return {
             "tier_hist": tier_hist,
+            "unique_hist": unique_hist,
+            "unique_total": unique_total,
+            "dup_ratio": total / max(unique_total, 1),
             "has_spalling_ratio": sp_count / max(total, 1),
             "total": total,
         }
 
     def __len__(self) -> int:
-        if self._no_curriculum or self._tier_mix is not None:
+        if self._no_curriculum or self._competence_tier_weights is not None:
+            return len(self.records)  # always 1200 for C2 and no_curriculum
+        if self._competence_tier is not None:
+            return sum(1 for r in self.records if r["tier"] <= self._competence_tier)
+        if self._tier_mix is not None:
             return len(self.records)
         allowed = self._allowed_tiers()
         return sum(1 for r in self.records if r["tier"] in allowed)
