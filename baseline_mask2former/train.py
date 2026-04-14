@@ -1,10 +1,13 @@
-"""Mask2Former Swin-Small semantic segmentation — M0 plain / M1 soft curriculum.
+"""Mask2Former Swin-Small semantic segmentation — M0-M5 ablation presets.
 
 Usage:
     python -m baseline_mask2former.train --ablation M0 --dry-run
     python -m baseline_mask2former.train --ablation M1 --dry-run
+    python -m baseline_mask2former.train --ablation M2 --dry-run
+    python -m baseline_mask2former.train --ablation M3 --dry-run
+    python -m baseline_mask2former.train --ablation M4 --dry-run
+    python -m baseline_mask2former.train --ablation M5 --dry-run
     python -m baseline_mask2former.train --ablation M0
-    python -m baseline_mask2former.train --ablation M1
     python -m baseline_mask2former.train --resume runs/mask2former_plain_M0/last.pt
 """
 from __future__ import annotations
@@ -45,7 +48,8 @@ from shared_eval.metrics_full import SegMetricsFull
 from full_method.dataset import build_records
 from full_method.sampler import TierAwareDynamicSampler
 from full_method.scheduler import CurriculumScheduler
-from full_method.difficulty import SampleState
+from full_method.difficulty import SampleState, DifficultyEstimator
+from full_method.losses import soft_cldice_loss
 
 from baseline_mask2former import config as C
 
@@ -260,15 +264,55 @@ def oom_probe(model: nn.Module, processor, cfg: C.RunCfg, device: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
+# Soft semantic prediction extraction (for auxiliary losses)
+# ---------------------------------------------------------------------------
+
+def mask2former_soft_semantic(outputs, target_size: tuple) -> torch.Tensor:
+    """Extract differentiable (B, C, H, W) semantic probability maps from Mask2Former outputs.
+
+    Uses mask queries and class logits to build per-class soft predictions.
+    """
+    import torch.nn.functional as F
+
+    mask_logits = outputs.masks_queries_logits          # (B, Q, h, w)
+    class_logits = outputs.class_queries_logits         # (B, Q, K+1)  K classes + no-object
+
+    mask_probs = mask_logits.sigmoid()                  # (B, Q, h, w)
+    class_probs = class_logits.softmax(-1)[..., :-1]    # (B, Q, C) drop no-object class
+
+    # einsum: per-class probability = sum over queries of (mask_prob * class_prob)
+    sem_probs = torch.einsum("bqhw,bqc->bchw", mask_probs, class_probs)  # (B, C, H, W)
+
+    # Upsample to target size
+    if sem_probs.shape[-2:] != target_size:
+        sem_probs = F.interpolate(sem_probs, size=target_size,
+                                  mode="bilinear", align_corners=False)
+
+    sem_probs = sem_probs.clamp(0, 1)
+    return sem_probs
+
+
+# ---------------------------------------------------------------------------
 # Train / eval
 # ---------------------------------------------------------------------------
 
 def train_one_epoch(model, loader, optimizer, device: str,
                     grad_accum: int,
-                    epoch: int = 0, total_epochs: int = 0) -> Dict[str, float]:
-    """Train one epoch. Returns only loss (no per-batch IoU/BF1 — post-process is expensive)."""
+                    epoch: int = 0, total_epochs: int = 0,
+                    cfg: C.RunCfg = None,
+                    sample_bank: Dict = None,
+                    estimator: DifficultyEstimator = None) -> Dict[str, float]:
+    """Train one epoch. Returns loss + auxiliary loss components."""
+    import torch.nn.functional as F
+
+    use_diff = cfg is not None and cfg.use_difficulty_weighting
+    use_cldice = cfg is not None and cfg.use_cldice_loss
+    need_sem = use_diff or use_cldice
+
     model.train()
     loss_sum = 0.0
+    aux_ce_sum = 0.0
+    cldice_sum = 0.0
     n_batches = 0
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)
@@ -279,10 +323,73 @@ def train_one_epoch(model, loader, optimizer, device: str,
         pv = batch["pixel_values"].to(device, non_blocking=True)
         ml = [x.to(device) for x in batch["mask_labels"]]
         cl = [x.to(device) for x in batch["class_labels"]]
+        gt = batch["gt_masks"].to(device, non_blocking=True)  # (B, H, W)
+        rels = batch["rels"]
 
         outputs = model(pixel_values=pv, mask_labels=ml, class_labels=cl)
         loss = outputs.loss
-        (loss / grad_accum).backward()
+        aux_loss = torch.zeros((), device=device)
+
+        if need_sem:
+            target_size = (gt.shape[-2], gt.shape[-1])
+            sem_probs = mask2former_soft_semantic(outputs, target_size)  # (B, C, H, W)
+
+        # --- Difficulty-aware auxiliary CE loss (M2/M4/M5) ---
+        if use_diff:
+            # Compute per-sample CE from sem_probs using log-softmax style
+            # sem_probs may not sum to 1, so use logsumexp normalization
+            log_probs = sem_probs.log().clamp(min=-100)
+            log_norm = torch.logsumexp(log_probs, dim=1, keepdim=True)
+            log_probs_normed = log_probs - log_norm  # (B, C, H, W)
+
+            # Gather per-pixel log-prob at GT class
+            gt_expanded = gt.unsqueeze(1).long()  # (B, 1, H, W)
+            per_pixel_nll = -torch.gather(log_probs_normed, 1, gt_expanded).squeeze(1)  # (B, H, W)
+            per_sample_ce = per_pixel_nll.mean(dim=(1, 2))  # (B,)
+
+            # Per-sample entropy for difficulty update
+            prob_normed = log_probs_normed.exp()
+            per_pixel_ent = -(prob_normed * log_probs_normed).sum(dim=1)  # (B, H, W)
+            per_sample_ent = per_pixel_ent.mean(dim=(1, 2))  # (B,)
+
+            # Compute sample weights from difficulty bank
+            B = gt.shape[0]
+            diff_scores = torch.zeros(B, device=device)
+            for i, rel in enumerate(rels):
+                if rel in sample_bank:
+                    diff_scores[i] = sample_bank[rel].difficulty
+            # Normalize: w_i = 1 + lambda * (d_i - d_min) / (d_max - d_min + eps)
+            d_min, d_max = diff_scores.min(), diff_scores.max()
+            norm_diff = (diff_scores - d_min) / (d_max - d_min + 1e-8)
+            sample_weights = 1.0 + cfg.loss_reweight_lambda * norm_diff
+
+            weighted_ce = (per_sample_ce * sample_weights).mean()
+            aux_loss = aux_loss + cfg.aux_ce_weight * weighted_ce
+            aux_ce_sum += float(weighted_ce.detach())
+
+            # Update difficulty estimator (detached, no gradient)
+            with torch.no_grad():
+                gt_np = gt.cpu().numpy()
+                for i, rel in enumerate(rels):
+                    if rel not in sample_bank:
+                        sample_bank[rel] = SampleState()
+                    estimator.update(
+                        sample_bank[rel],
+                        float(per_sample_ce[i]),
+                        float(per_sample_ent[i]),
+                        gt_np[i],
+                    )
+
+        # --- clDice auxiliary loss (M3/M4/M5) ---
+        if use_cldice and epoch >= cfg.cldice_start_epoch:
+            crack_prob = sem_probs[:, 1:2]                    # (B, 1, H, W)
+            crack_gt = (gt == 1).float().unsqueeze(1)          # (B, 1, H, W)
+            loss_cldice = soft_cldice_loss(crack_prob, crack_gt, iters=cfg.cldice_iters)
+            aux_loss = aux_loss + cfg.cldice_weight * loss_cldice
+            cldice_sum += float(loss_cldice.detach())
+
+        total_loss = loss + aux_loss
+        (total_loss / grad_accum).backward()
 
         if (step + 1) % grad_accum == 0:
             optimizer.step()
@@ -295,8 +402,14 @@ def train_one_epoch(model, loader, optimizer, device: str,
         if done % log_every == 0 or done == total_steps:
             elapsed = time.time() - t_start
             eta = elapsed / done * (total_steps - done)
+            aux_str = ""
+            if use_diff:
+                aux_str += f" aux_ce={aux_ce_sum/n_batches:.4f}"
+            if use_cldice:
+                aux_str += f" cldice={cldice_sum/n_batches:.4f}"
             print(f"  [epoch {epoch}/{total_epochs}] batch {done}/{total_steps}"
                   f" ({done*100//total_steps}%) loss={loss_sum/n_batches:.4f}"
+                  f"{aux_str}"
                   f" elapsed={elapsed:.0f}s eta={eta:.0f}s", flush=True)
 
     # Flush tail micro-batches
@@ -304,7 +417,11 @@ def train_one_epoch(model, loader, optimizer, device: str,
         optimizer.step()
         optimizer.zero_grad(set_to_none=True)
 
-    return {"loss": loss_sum / max(n_batches, 1)}
+    return {
+        "loss": loss_sum / max(n_batches, 1),
+        "loss_aux_ce": aux_ce_sum / max(n_batches, 1) if use_diff else 0.0,
+        "loss_cldice": cldice_sum / max(n_batches, 1) if use_cldice else 0.0,
+    }
 
 
 @torch.no_grad()
@@ -350,6 +467,7 @@ METRIC_KEYS: List[str] = [
     "mIoU_fg", "mIoU_all", "pixel_acc",
     "BF1_crack", "BF1_spalling", "BF1_fg_mean",
     "sampled_t0", "sampled_t1", "sampled_t2",
+    "loss_aux_ce", "loss_cldice",
 ]
 
 
@@ -480,7 +598,7 @@ def main() -> None:
                         help="custom train split file (e.g. splits/train_20.txt)")
     parser.add_argument("--ablation", type=str, default=None,
                         choices=list(C.ABLATION_PRESETS.keys()),
-                        help="ablation preset: M0 (plain) or M1 (soft curriculum)")
+                        help="ablation preset: M0-M5")
     parser.add_argument("--name", type=str, default=None,
                         help="override run name")
     args = parser.parse_args()
@@ -495,6 +613,7 @@ def main() -> None:
     total_epochs = args.epochs if args.epochs is not None else cfg.epochs
 
     use_sampler = not cfg.no_curriculum
+    need_records = use_sampler or cfg.use_difficulty_weighting
 
     set_seed(C.SEED)
     device = pick_device(C.DEVICE)
@@ -512,6 +631,8 @@ def main() -> None:
     print(f"[train] curriculum: no_curriculum={cfg.no_curriculum}"
           f" use_soft_curriculum={cfg.use_soft_curriculum}"
           f" use_sampler={use_sampler}")
+    print(f"[train] contributions: difficulty_weighting={cfg.use_difficulty_weighting}"
+          f" cldice_loss={cfg.use_cldice_loss}")
 
     rdir = C.run_dir(cfg)
     samples_dir = rdir / "samples"
@@ -558,14 +679,24 @@ def main() -> None:
     scheduler = SequentialLR(optimizer, [warmup, cosine],
                              milestones=[cfg.warmup_epochs])
 
-    # ----- curriculum setup -----
+    # ----- curriculum + difficulty setup -----
     train_records = None
     sampler = None
     curriculum_scheduler = None
-    if use_sampler:
-        print("[train] building records for curriculum sampler ...")
+    sample_bank = None
+    estimator = None
+
+    if need_records:
+        print("[train] building records ...")
         train_records = build_records(train_files, C.DATA_ROOT)
-        sample_bank = {r["id"]: SampleState() for r in train_records}
+        # sample_bank keyed by rel path (matches batch["rels"])
+        sample_bank = {r["rel"]: SampleState() for r in train_records}
+        tier_hist = {0: 0, 1: 0, 2: 0}
+        for r in train_records:
+            tier_hist[r["tier"]] += 1
+        print(f"[train] records: {len(train_records)} total, tier distribution: {tier_hist}")
+
+    if use_sampler:
         sampler = TierAwareDynamicSampler(
             train_records, sample_bank,
             use_soft_curriculum=cfg.use_soft_curriculum,
@@ -573,10 +704,18 @@ def main() -> None:
             enable_dynamic=False,
         )
         curriculum_scheduler = CurriculumScheduler(total_epochs)
-        tier_hist = {0: 0, 1: 0, 2: 0}
-        for r in train_records:
-            tier_hist[r["tier"]] += 1
-        print(f"[train] records: {len(train_records)} total, tier distribution: {tier_hist}")
+
+    if cfg.use_difficulty_weighting:
+        estimator = DifficultyEstimator(
+            alpha=cfg.diff_alpha, beta=cfg.diff_beta,
+            gamma=cfg.diff_gamma, delta=cfg.diff_delta,
+            ema_decay=cfg.diff_ema,
+        )
+        if sample_bank is None:
+            sample_bank = {}
+        print(f"[train] difficulty estimator: alpha={cfg.diff_alpha} beta={cfg.diff_beta}"
+              f" gamma={cfg.diff_gamma} delta={cfg.diff_delta} ema={cfg.diff_ema}"
+              f" lambda={cfg.loss_reweight_lambda} aux_ce_w={cfg.aux_ce_weight}")
 
     # ----- data loaders -----
     train_loader = build_loader(train_files, cfg, device, train=True, processor=processor,
@@ -636,8 +775,52 @@ def main() -> None:
         pv = batch["pixel_values"].to(device)
         ml = [x.to(device) for x in batch["mask_labels"]]
         cl = [x.to(device) for x in batch["class_labels"]]
+        gt = batch["gt_masks"].to(device)
+        rels = batch["rels"]
         outputs = model(pixel_values=pv, mask_labels=ml, class_labels=cl)
         loss = outputs.loss
+
+        # Test soft semantic extraction
+        if cfg.use_difficulty_weighting or cfg.use_cldice_loss:
+            target_size = (gt.shape[-2], gt.shape[-1])
+            sem_probs = mask2former_soft_semantic(outputs, target_size)
+            print(f"[train] dry-run sem_probs shape={sem_probs.shape}"
+                  f" min={sem_probs.min():.4f} max={sem_probs.max():.4f}")
+
+        # Test difficulty weighting path
+        if cfg.use_difficulty_weighting:
+            import torch.nn.functional as F
+            log_probs = sem_probs.log().clamp(min=-100)
+            log_norm = torch.logsumexp(log_probs, dim=1, keepdim=True)
+            log_probs_normed = log_probs - log_norm
+            gt_exp = gt.unsqueeze(1).long()
+            per_pixel_nll = -torch.gather(log_probs_normed, 1, gt_exp).squeeze(1)
+            per_sample_ce = per_pixel_nll.mean(dim=(1, 2))
+            print(f"[train] dry-run per_sample_ce shape={per_sample_ce.shape}"
+                  f" values={per_sample_ce.detach().cpu().tolist()}")
+            # Populate sample bank
+            gt_np = gt.cpu().numpy()
+            for i, rel in enumerate(rels):
+                if rel not in sample_bank:
+                    sample_bank[rel] = SampleState()
+                prob_normed = log_probs_normed.exp()
+                per_pixel_ent = -(prob_normed * log_probs_normed).sum(dim=1)
+                per_sample_ent = per_pixel_ent.mean(dim=(1, 2))
+                estimator.update(sample_bank[rel],
+                                 float(per_sample_ce[i].detach()),
+                                 float(per_sample_ent[i].detach()),
+                                 gt_np[i])
+            estimator.normalize_and_score(sample_bank)
+            diffs = [sample_bank[rel].difficulty for rel in rels if rel in sample_bank]
+            print(f"[train] dry-run difficulty scores={diffs}")
+
+        # Test clDice path
+        if cfg.use_cldice_loss:
+            crack_prob = sem_probs[:, 1:2]
+            crack_gt = (gt == 1).float().unsqueeze(1)
+            loss_cl = soft_cldice_loss(crack_prob, crack_gt, iters=cfg.cldice_iters)
+            print(f"[train] dry-run soft_cldice_loss={float(loss_cl):.4f}")
+
         loss.backward()
         optimizer.step()
         print(f"[train] dry-run train loss = {float(loss):.4f}")
@@ -733,7 +916,12 @@ def main() -> None:
                 print(f"  [curriculum] epoch={epoch} stage={stage} tier_mix={tier_mix}")
 
         tr = train_one_epoch(model, train_loader, optimizer, device,
-                             cfg.grad_accum, epoch=epoch, total_epochs=total_epochs)
+                             cfg.grad_accum, epoch=epoch, total_epochs=total_epochs,
+                             cfg=cfg, sample_bank=sample_bank, estimator=estimator)
+
+        # Epoch-level difficulty normalization
+        if estimator is not None and sample_bank:
+            estimator.normalize_and_score(sample_bank)
 
         # Sampler stats
         if use_sampler:
@@ -764,7 +952,12 @@ def main() -> None:
 
         print(f"[epoch {epoch:03d}/{total_epochs}] lr={optimizer.param_groups[0]['lr']:.6f}"
               f"  dt={dt:.1f}s")
-        print(f"  train loss={tr['loss']:.4f}")
+        aux_parts = f"  train loss={tr['loss']:.4f}"
+        if tr.get("loss_aux_ce", 0) > 0:
+            aux_parts += f"  aux_ce={tr['loss_aux_ce']:.4f}"
+        if tr.get("loss_cldice", 0) > 0:
+            aux_parts += f"  cldice={tr['loss_cldice']:.4f}"
+        print(aux_parts)
 
         if va is not None:
             print(f"  val   loss={va['loss']:.4f}")
@@ -786,6 +979,8 @@ def main() -> None:
                 "BF1_spalling": va["BF1_spalling"],
                 "BF1_fg_mean": va["BF1_fg_mean"],
                 **sampler_row,
+                "loss_aux_ce": tr.get("loss_aux_ce", ""),
+                "loss_cldice": tr.get("loss_cldice", ""),
             }
             write_metrics_row(csv_path, row)
 
@@ -834,6 +1029,17 @@ def main() -> None:
                 f"warmup: {cfg.warmup_epochs}\n")
         f.write(f"curriculum: no_curriculum={cfg.no_curriculum}"
                 f" use_soft_curriculum={cfg.use_soft_curriculum}\n")
+        f.write(f"contributions: difficulty_weighting={cfg.use_difficulty_weighting}"
+                f" cldice_loss={cfg.use_cldice_loss}\n")
+        if cfg.use_difficulty_weighting:
+            f.write(f"  diff params: alpha={cfg.diff_alpha} beta={cfg.diff_beta}"
+                    f" gamma={cfg.diff_gamma} delta={cfg.diff_delta}"
+                    f" ema={cfg.diff_ema} lambda={cfg.loss_reweight_lambda}"
+                    f" aux_ce_w={cfg.aux_ce_weight}\n")
+        if cfg.use_cldice_loss:
+            f.write(f"  cldice params: weight={cfg.cldice_weight}"
+                    f" start_epoch={cfg.cldice_start_epoch}"
+                    f" iters={cfg.cldice_iters}\n")
         if accum_notice:
             f.write(f"note: {accum_notice}\n")
         if best_pt.exists():
