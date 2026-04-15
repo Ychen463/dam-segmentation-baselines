@@ -228,6 +228,43 @@ ABLATION_PRESETS = {
            "use_cldice_loss": True, "cldice_weight": 0.05,
            "cldice_start_epoch": 60, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
+
+    # Set D: difficulty weighting ablation (matches Mask2Former M2/M4)
+    "D0": {"name": "difficulty_only_D0",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+           "loss_reweight_lambda": 0.5,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_soft_boundary_schedule": False},
+    "D1": {"name": "difficulty_cldice_D1",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+           "loss_reweight_lambda": 0.5,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+
+    # Set F: full method (C2 curriculum + difficulty + clDice)
+    "F1": {"name": "full_method_F1",
+           "no_curriculum": False,
+           "use_competence_soft_mixing": True,
+           "competence_c0": 0.333, "competence_duration": 70,
+           "competence_floor_easy": 0.05,
+           "competence_floor_medium": 0.02,
+           "competence_floor_hard": 0.00,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+           "loss_reweight_lambda": 0.5,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
 }
 
 
