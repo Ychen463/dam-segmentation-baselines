@@ -65,10 +65,21 @@ class TierAwareDynamicSampler(Sampler[int]):
         return {0, 1, 2}
 
     def __iter__(self) -> Iterator[int]:
-        # No-curriculum mode: all samples, uniform shuffle
+        # No-curriculum mode
         if self._no_curriculum:
-            indices = list(range(len(self.records)))
-            random.shuffle(indices)
+            if self._use_dynamic and self._use_softmax_sampling:
+                # Difficulty-biased sampling over all samples
+                scores = torch.tensor([
+                    self.sample_bank.get(r["id"], SampleState()).difficulty
+                    for r in self.records
+                ], dtype=torch.float32)
+                probs = torch.softmax(scores / self.tau, dim=0)
+                sampled = torch.multinomial(probs, num_samples=len(self.records),
+                                            replacement=False)
+                indices = sampled.tolist()
+            else:
+                indices = list(range(len(self.records)))
+                random.shuffle(indices)
             self._last_sampled_indices = indices
             yield from indices
             return
@@ -97,10 +108,30 @@ class TierAwareDynamicSampler(Sampler[int]):
                 pool = by_tier.get(tier, [])
                 n = int_quotas[tier]
                 if n > 0 and pool:
-                    if n <= len(pool):
-                        indices.extend(random.sample(pool, n))
+                    if (self._use_dynamic and self._use_softmax_sampling
+                            and len(pool) > 1):
+                        # Difficulty-weighted sampling within tier
+                        scores = torch.tensor([
+                            self.sample_bank.get(self.records[i]["id"],
+                                                 SampleState()).difficulty
+                            for i in pool
+                        ], dtype=torch.float32)
+                        probs = torch.softmax(scores / self.tau, dim=0)
+                        sampled = torch.multinomial(
+                            probs, num_samples=min(n, len(pool)),
+                            replacement=False)
+                        picked = [pool[k] for k in sampled.tolist()]
+                        if n > len(pool):
+                            extra = torch.multinomial(
+                                probs, num_samples=n - len(pool),
+                                replacement=True)
+                            picked += [pool[k] for k in extra.tolist()]
+                        indices.extend(picked)
                     else:
-                        indices.extend(random.choices(pool, k=n))
+                        if n <= len(pool):
+                            indices.extend(random.sample(pool, n))
+                        else:
+                            indices.extend(random.choices(pool, k=n))
             random.shuffle(indices)
             self._last_sampled_indices = indices
             yield from indices

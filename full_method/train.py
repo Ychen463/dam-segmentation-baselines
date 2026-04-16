@@ -173,8 +173,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
             if cfg is not None and cfg.use_dynamic_loss_reweight:
                 diffs = torch.tensor([sample_bank.get(sid, SampleState()).difficulty
                                       for sid in sample_ids], device=device)
-                d_min, d_max = diffs.min(), diffs.max()
-                d_norm = (diffs - d_min) / (d_max - d_min + 1e-8)
+                d_norm = torch.sigmoid(diffs)  # z-scored → [0,1], batch-invariant
                 sample_weights = 1.0 + cfg.loss_reweight_lambda * d_norm
                 sample_weights = sample_weights / sample_weights.mean()
             else:
