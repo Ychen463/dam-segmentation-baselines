@@ -44,7 +44,7 @@ from baseline_deeplab.metrics import SegMetricsBF1, format_metrics
 from full_method import config as C
 from full_method.config import ABLATION_PRESETS, apply_preset
 from full_method.dataset import FullMethodDataset, build_records, dict_collate
-from full_method.model import SegFormerWithBoundary, _PreviewWrapper
+from full_method.model import SegFormerWithBoundary, DSCformerDam, _PreviewWrapper
 from full_method.losses import CompositeLoss
 from full_method.difficulty import DifficultyEstimator, SampleState
 from full_method.sampler import TierAwareDynamicSampler
@@ -459,6 +459,8 @@ def main() -> None:
           f" iters={cfg.cldice_iters}")
     print(f"[train] srl: use={cfg.use_srl_loss}"
           f" weight={cfg.cldice_weight} start_epoch={cfg.cldice_start_epoch}")
+    print(f"[train] model_type={cfg.model_type}"
+          f" snake_channels={cfg.snake_channels} snake_kernel={cfg.snake_kernel_size}")
     print(f"[train] no_curriculum={cfg.no_curriculum}")
     print(f"[train] competence: hard={cfg.use_competence_curriculum}"
           f" soft={cfg.use_competence_soft_mixing}"
@@ -519,7 +521,10 @@ def main() -> None:
     test_loader = build_val_loader(test_files, cfg, device)
 
     # ----- model -----
-    model = SegFormerWithBoundary(cfg.pretrained).to(device)
+    if cfg.model_type == "dscformer":
+        model = DSCformerDam(cfg.pretrained, cfg=cfg).to(device)
+    else:
+        model = SegFormerWithBoundary(cfg.pretrained).to(device)
     preview_model = _PreviewWrapper(model)
     criterion = CompositeLoss(ce_weight=w, cfg=cfg).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr,
@@ -551,7 +556,10 @@ def main() -> None:
             del model, optimizer, lr_scheduler, preview_model
             if device == "mps" and hasattr(torch.mps, "empty_cache"):
                 torch.mps.empty_cache()
-            model = SegFormerWithBoundary(cfg.pretrained).to(device)
+            if cfg.model_type == "dscformer":
+                model = DSCformerDam(cfg.pretrained, cfg=cfg).to(device)
+            else:
+                model = SegFormerWithBoundary(cfg.pretrained).to(device)
             preview_model = _PreviewWrapper(model)
             criterion = CompositeLoss(ce_weight=w, cfg=cfg).to(device)
             optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr,

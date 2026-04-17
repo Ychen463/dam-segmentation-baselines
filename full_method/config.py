@@ -94,6 +94,11 @@ class RunCfg:
     # Shares cldice_weight and cldice_start_epoch for scheduling.
     use_srl_loss: bool = False
 
+    # Model architecture
+    model_type: str = "segformer"            # "segformer" or "dscformer"
+    snake_channels: int = 64                 # crack branch hidden dim
+    snake_kernel_size: int = 9               # DSConv kernel size
+
     # No-curriculum mode: fully uniform sampling over all samples
     no_curriculum: bool = False
 
@@ -336,6 +341,45 @@ ABLATION_PRESETS = {
              "use_srl_loss": True, "cldice_weight": 0.05,
              "cldice_start_epoch": 60, "cldice_iters": 7,
              "use_soft_boundary_schedule": False},
+
+    # Set G: DSCformerDam (SegFormer + Dynamic Snake Conv crack branch)
+    "G0": {"name": "dscformer_plain_G0",
+           "model_type": "dscformer",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_srl_loss": False,
+           "use_soft_boundary_schedule": False},
+    "G1": {"name": "dscformer_srl_G1",
+           "model_type": "dscformer",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+    "G2": {"name": "dscformer_full_G2",
+           "model_type": "dscformer",
+           "no_curriculum": False,
+           "use_competence_soft_mixing": True,
+           "competence_c0": 0.333, "competence_duration": 70,
+           "competence_floor_easy": 0.05,
+           "competence_floor_medium": 0.02,
+           "competence_floor_hard": 0.00,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+           "loss_reweight_lambda": 0.5,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
 
     # Set F: full method (C2 curriculum + difficulty + clDice)
     "F1": {"name": "full_method_F1",
