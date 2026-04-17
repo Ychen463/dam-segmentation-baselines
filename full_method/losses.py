@@ -107,6 +107,33 @@ def soft_cldice_loss(prob, target, iters=7, eps=1e-6):
 
 
 # ---------------------------------------------------------------------------
+# Skeleton Recall Loss (SRL) — Kirchhoff et al., ECCV 2024
+# ---------------------------------------------------------------------------
+
+def skeleton_recall_loss(pred_prob, skel_gt, eps=1e-6):
+    """Skeleton Recall Loss: mean predicted probability at GT skeleton pixels.
+
+    Much lighter than soft-clDice (no online skeletonization needed).
+    GT skeletons are precomputed offline in the dataset.
+
+    Args:
+        pred_prob: (B,1,H,W) soft probabilities for the target class.
+        skel_gt:   (B,1,H,W) binary skeleton of GT mask (precomputed).
+
+    Returns:
+        Scalar loss = 1 - mean(pred_prob at skeleton pixels).
+        Returns 0 for samples with empty skeletons (no crack present).
+    """
+    numer = (pred_prob * skel_gt).sum(dim=(1, 2, 3))
+    denom = skel_gt.sum(dim=(1, 2, 3))                # (B,)
+    has_skel = denom > 0                               # mask out empty skeletons
+    if not has_skel.any():
+        return pred_prob.new_zeros(())
+    skel_recall = numer[has_skel] / (denom[has_skel] + eps)
+    return 1.0 - skel_recall.mean()
+
+
+# ---------------------------------------------------------------------------
 # Foreground Dice loss (reusable, matches baseline_unet.losses logic)
 # ---------------------------------------------------------------------------
 
@@ -145,7 +172,8 @@ class CompositeLoss(nn.Module):
 
     def forward(self, outputs: dict, targets: torch.Tensor,
                 scheduler, epoch: int,
-                sample_weights: torch.Tensor = None) -> tuple:
+                sample_weights: torch.Tensor = None,
+                crack_skel: torch.Tensor = None) -> tuple:
         seg_logits = F.interpolate(outputs["seg_logits"], targets.shape[-2:],
                                    mode="bilinear", align_corners=False)
         bd_logits = F.interpolate(outputs["boundary_logits"], targets.shape[-2:],
@@ -177,15 +205,20 @@ class CompositeLoss(nn.Module):
         else:
             loss_bd = seg_logits.new_zeros(())
 
-        # Crack-only soft-clDice loss
-        if self.cfg.use_cldice_loss and epoch >= self.cfg.cldice_start_epoch:
+        # Topology loss: SRL (preferred) or soft-clDice
+        loss_topo = seg_logits.new_zeros(())
+        topo_active = epoch >= self.cfg.cldice_start_epoch
+        if self.cfg.use_srl_loss and topo_active:
+            probs = seg_logits.softmax(dim=1)
+            p_crack = probs[:, 1:2, :, :]                       # (B,1,H,W)
+            if crack_skel is not None and crack_skel.any():
+                loss_topo = skeleton_recall_loss(p_crack, crack_skel)
+        elif self.cfg.use_cldice_loss and topo_active:
             probs = seg_logits.softmax(dim=1)
             p_crack = probs[:, 1:2, :, :]                       # (B,1,H,W)
             y_crack = (targets == 1).float().unsqueeze(1)        # (B,1,H,W)
-            loss_cldice = soft_cldice_loss(p_crack, y_crack,
-                                           iters=self.cfg.cldice_iters)
-        else:
-            loss_cldice = seg_logits.new_zeros(())
+            loss_topo = soft_cldice_loss(p_crack, y_crack,
+                                         iters=self.cfg.cldice_iters)
 
         # Loss weights: scheduled vs constant
         if self.cfg.use_class_loss_schedule:
@@ -199,7 +232,7 @@ class CompositeLoss(nn.Module):
                  + self.cfg.loss_dice_w * loss_dice
                  + lam_crack * loss_tversky
                  + lam_bd * loss_bd
-                 + self.cfg.cldice_weight * loss_cldice)
+                 + self.cfg.cldice_weight * loss_topo)
 
         # Per-sample signals for difficulty estimation (detach!)
         ps_ce = per_sample_ce(seg_logits, targets, self.ce_weight).detach()
@@ -210,7 +243,7 @@ class CompositeLoss(nn.Module):
             "loss_dice": loss_dice.item(),
             "loss_tversky": loss_tversky.item(),
             "loss_bd": loss_bd.item(),
-            "loss_cldice": loss_cldice.item(),
+            "loss_cldice": loss_topo.item(),
             "per_sample_ce": ps_ce.cpu(),
             "per_sample_ent": ps_ent.cpu(),
         }

@@ -78,7 +78,8 @@ def pick_device(pref: str) -> str:
 def build_train_loader(records: List[Dict], sampler: TierAwareDynamicSampler,
                        cfg: C.RunCfg, device: str) -> DataLoader:
     ds = FullMethodDataset(C.DATA_ROOT, records,
-                           build_transforms(cfg.img_size, train=True))
+                           build_transforms(cfg.img_size, train=True),
+                           compute_skel=cfg.use_srl_loss)
     pin = (device == "cuda")
     return DataLoader(ds, batch_size=cfg.batch_size, sampler=sampler,
                       num_workers=4, pin_memory=pin, drop_last=False,
@@ -166,6 +167,11 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
         masks = batch["mask"].to(device, non_blocking=True).long()
         sample_ids = batch["sample_id"]
 
+        # Crack skeleton for SRL (if available)
+        crack_skel = batch.get("crack_skel")
+        if crack_skel is not None:
+            crack_skel = crack_skel.to(device, non_blocking=True).float()
+
         with torch.amp.autocast("cuda", enabled=use_amp):
             outputs = model(imgs)
 
@@ -180,7 +186,8 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                 sample_weights = None
 
             total_loss, info = criterion(outputs, masks, curriculum_scheduler, epoch,
-                                         sample_weights=sample_weights)
+                                         sample_weights=sample_weights,
+                                         crack_skel=crack_skel)
             total_loss = total_loss / grad_accum
 
         if use_amp:
@@ -450,6 +457,8 @@ def main() -> None:
     print(f"[train] cldice: use={cfg.use_cldice_loss}"
           f" weight={cfg.cldice_weight} start_epoch={cfg.cldice_start_epoch}"
           f" iters={cfg.cldice_iters}")
+    print(f"[train] srl: use={cfg.use_srl_loss}"
+          f" weight={cfg.cldice_weight} start_epoch={cfg.cldice_start_epoch}")
     print(f"[train] no_curriculum={cfg.no_curriculum}")
     print(f"[train] competence: hard={cfg.use_competence_curriculum}"
           f" soft={cfg.use_competence_soft_mixing}"
@@ -876,6 +885,7 @@ def main() -> None:
         f.write(f"cldice: use={cfg.use_cldice_loss}"
                 f" weight={cfg.cldice_weight} start_epoch={cfg.cldice_start_epoch}"
                 f" iters={cfg.cldice_iters}\n")
+        f.write(f"srl: use={cfg.use_srl_loss}\n")
         f.write(f"loss: ce_w={cfg.loss_ce_w} dice_w={cfg.loss_dice_w}"
                 f" tversky_alpha={cfg.loss_tversky_alpha}"
                 f" tversky_beta={cfg.loss_tversky_beta}\n")

@@ -53,12 +53,23 @@ def build_records(train_files: List[str], root: Path) -> List[Dict]:
 # ---------------------------------------------------------------------------
 
 class FullMethodDataset(Dataset):
-    """Dataset returning dict with image, mask, sample_id, tier, has_spalling."""
+    """Dataset returning dict with image, mask, sample_id, tier, has_spalling.
 
-    def __init__(self, root: Path, records: List[Dict], transform=None):
+    When ``compute_skel=True``, also returns a precomputed crack skeleton
+    for Skeleton Recall Loss (SRL).
+    """
+
+    _skeletonize = None  # lazy import
+
+    def __init__(self, root: Path, records: List[Dict], transform=None,
+                 compute_skel: bool = False):
         self.root = Path(root)
         self.records = records
         self.transform = transform
+        self.compute_skel = compute_skel
+        if compute_skel and FullMethodDataset._skeletonize is None:
+            from skimage.morphology import skeletonize
+            FullMethodDataset._skeletonize = staticmethod(skeletonize)
 
     def __len__(self) -> int:
         return len(self.records)
@@ -85,7 +96,7 @@ class FullMethodDataset(Dataset):
             image_t = img
             mask_t = label
 
-        return {
+        result = {
             "image": image_t,
             "mask": mask_t,
             "sample_id": rec["id"],
@@ -93,6 +104,19 @@ class FullMethodDataset(Dataset):
             "has_spalling": rec["has_spalling"],
             "rel": rec["rel"],
         }
+
+        # Compute crack skeleton from the augmented mask for SRL.
+        # Done post-augmentation so it matches the actual training mask.
+        if self.compute_skel:
+            mask_np = mask_t.numpy() if torch.is_tensor(mask_t) else mask_t
+            crack_mask = (mask_np == 1)
+            if crack_mask.any():
+                skel = self._skeletonize(crack_mask).astype(np.float32)
+            else:
+                skel = np.zeros(mask_np.shape, dtype=np.float32)
+            result["crack_skel"] = torch.from_numpy(skel).unsqueeze(0)  # (1,H,W)
+
+        return result
 
 
 # ---------------------------------------------------------------------------
@@ -103,7 +127,7 @@ def dict_collate(batch: List[Dict]) -> Dict:
     """Stack image/mask tensors, collect other fields as lists."""
     images = torch.stack([b["image"] for b in batch])
     masks = torch.stack([b["mask"] for b in batch])
-    return {
+    result = {
         "image": images,
         "mask": masks,
         "sample_id": [b["sample_id"] for b in batch],
@@ -111,3 +135,6 @@ def dict_collate(batch: List[Dict]) -> Dict:
         "has_spalling": [b["has_spalling"] for b in batch],
         "rel": [b["rel"] for b in batch],
     }
+    if "crack_skel" in batch[0]:
+        result["crack_skel"] = torch.stack([b["crack_skel"] for b in batch])
+    return result

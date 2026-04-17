@@ -89,6 +89,11 @@ class RunCfg:
     cldice_start_epoch: int = 40
     cldice_iters: int = 7
 
+    # Skeleton Recall Loss (SRL) — Kirchhoff et al., ECCV 2024
+    # Lighter alternative to clDice: only GT skeleton recall, no online skeletonization.
+    # Shares cldice_weight and cldice_start_epoch for scheduling.
+    use_srl_loss: bool = False
+
     # No-curriculum mode: fully uniform sampling over all samples
     no_curriculum: bool = False
 
@@ -286,6 +291,49 @@ ABLATION_PRESETS = {
              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
              "use_boundary_loss": False, "use_tversky_loss": False,
              "use_cldice_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+
+    # Set D v3: difficulty + SRL (replacing clDice with Skeleton Recall Loss)
+    "D1v3": {"name": "difficulty_srl_D1v3",
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+             "loss_reweight_lambda": 0.5,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+
+    # Set P v3: plain + SRL
+    "P1v3": {"name": "plain_srl_P1v3",
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+
+    # Set F v3: full method with SRL instead of clDice
+    "F1v3": {"name": "full_method_srl_F1v3",
+             "no_curriculum": False,
+             "use_competence_soft_mixing": True,
+             "competence_c0": 0.333, "competence_duration": 70,
+             "competence_floor_easy": 0.05,
+             "competence_floor_medium": 0.02,
+             "competence_floor_hard": 0.00,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+             "loss_reweight_lambda": 0.5,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
              "cldice_start_epoch": 60, "cldice_iters": 7,
              "use_soft_boundary_schedule": False},
 
