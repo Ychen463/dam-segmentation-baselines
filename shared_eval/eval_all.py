@@ -76,6 +76,51 @@ def _evaluate(model, loader: DataLoader, device: str) -> Dict[str, float]:
     return metrics.compute()
 
 
+def _forward_maybe_tta(model, images: torch.Tensor, use_tta: bool) -> torch.Tensor:
+    """Forward pass with optional test-time augmentation (4x flip ensemble)."""
+    logits = model(images)
+    if not use_tta:
+        return logits
+    logits = logits + model(images.flip(-1)).flip(-1)
+    logits = logits + model(images.flip(-2)).flip(-2)
+    logits = logits + model(images.flip(-1, -2)).flip(-1, -2)
+    return logits / 4.0
+
+
+@torch.no_grad()
+def _evaluate_tta(model, loader: DataLoader, device: str) -> Dict[str, float]:
+    """Evaluate with test-time augmentation (4x flip)."""
+    metrics = SegMetricsFull(C.NUM_CLASSES, BF1_TOLERANCE_PX)
+    metrics.reset()
+    for images, masks, _rels in loader:
+        images = images.to(device, non_blocking=True)
+        masks = masks.to(device, non_blocking=True)
+        logits = _forward_maybe_tta(model, images, use_tta=True)
+        metrics.update(logits, masks)
+    return metrics.compute()
+
+
+@torch.no_grad()
+def _evaluate_ensemble(
+    model_names: List[str], loader: DataLoader, device: str,
+    use_tta: bool = False,
+) -> Dict[str, float]:
+    """Evaluate an ensemble of models (average logits)."""
+    models = [load_model(n, device=device) for n in model_names]
+    metrics = SegMetricsFull(C.NUM_CLASSES, BF1_TOLERANCE_PX)
+    metrics.reset()
+    for images, masks, _rels in loader:
+        images = images.to(device, non_blocking=True)
+        masks = masks.to(device, non_blocking=True)
+        logits_sum = None
+        for m in models:
+            logits = _forward_maybe_tta(m, images, use_tta)
+            logits_sum = logits if logits_sum is None else logits_sum + logits
+        logits_sum = logits_sum / len(models)
+        metrics.update(logits_sum, masks)
+    return metrics.compute()
+
+
 # ---------------------------------------------------------------------------
 # Per-image evaluation (for statistical testing)
 # ---------------------------------------------------------------------------
@@ -122,13 +167,14 @@ def _per_image_metrics(pred: np.ndarray, gt: np.ndarray) -> Dict[str, float]:
 @torch.no_grad()
 def _evaluate_per_image(
     model, loader: DataLoader, device: str, file_list: List[str],
+    use_tta: bool = False,
 ) -> List[Dict[str, object]]:
     """Return a list of dicts, one per image, with per-image metrics + metadata."""
     rows: List[Dict[str, object]] = []
     idx = 0
     for images, masks, rels in loader:
         images = images.to(device, non_blocking=True)
-        logits = model(images)
+        logits = _forward_maybe_tta(model, images, use_tta)
         pred_batch = logits.argmax(dim=1).detach().cpu().numpy()
         gt_batch = masks.numpy()
         for b in range(pred_batch.shape[0]):
@@ -148,6 +194,7 @@ def _evaluate_per_image(
 
 def _run_eval(
     model_name: str, split: str, per_tier: bool, device: str,
+    use_tta: bool = False,
 ) -> Dict[str, Dict[str, float]]:
     """Run evaluation, return dict with 'overall' and optionally tier keys."""
     entry = get_entry(model_name)
@@ -157,11 +204,13 @@ def _run_eval(
     model = load_model(model_name, device=device)
 
     transform = build_transforms(img_size, train=False)
+    eval_fn = _evaluate_tta if use_tta else _evaluate
 
     # Read split files
     split_path = SPLIT_FILES[split]
     all_files = read_split_file(split_path)
-    print(f"[eval] Split '{split}': {len(all_files)} images")
+    print(f"[eval] Split '{split}': {len(all_files)} images"
+          f"{' (TTA)' if use_tta else ''}")
 
     results: Dict[str, Dict[str, float]] = {}
 
@@ -170,7 +219,7 @@ def _run_eval(
     loader = DataLoader(ds, batch_size=BATCH_SIZE, shuffle=False,
                         num_workers=NUM_WORKERS, pin_memory=(device == "cuda"))
     print(f"[eval] Running overall evaluation ...")
-    results["overall"] = _evaluate(model, loader, device)
+    results["overall"] = eval_fn(model, loader, device)
 
     # Per-tier
     if per_tier:
@@ -184,13 +233,14 @@ def _run_eval(
             loader_t = DataLoader(ds_t, batch_size=BATCH_SIZE, shuffle=False,
                                   num_workers=NUM_WORKERS,
                                   pin_memory=(device == "cuda"))
-            results[tier] = _evaluate(model, loader_t, device)
+            results[tier] = eval_fn(model, loader_t, device)
 
     return results
 
 
 def _run_eval_per_image(
     model_name: str, split: str, device: str,
+    use_tta: bool = False,
 ) -> List[Dict[str, object]]:
     """Run per-image evaluation, return list of per-image metric dicts."""
     entry = get_entry(model_name)
@@ -207,7 +257,7 @@ def _run_eval_per_image(
     ds = DamSegmentDataset(C.DATA_ROOT, all_files, transform=transform)
     loader = DataLoader(ds, batch_size=BATCH_SIZE, shuffle=False,
                         num_workers=NUM_WORKERS, pin_memory=(device == "cuda"))
-    return _evaluate_per_image(model, loader, device, all_files)
+    return _evaluate_per_image(model, loader, device, all_files, use_tta=use_tta)
 
 
 def _format_results(results: Dict[str, Dict[str, float]]) -> str:
@@ -250,12 +300,16 @@ def main():
     group.add_argument("--model", type=str, help="Model name from registry")
     group.add_argument("--all-models", action="store_true",
                        help="Evaluate all registered models")
+    group.add_argument("--ensemble", type=str, default=None,
+                       help="Comma-separated model names for ensemble evaluation")
     parser.add_argument("--split", type=str, default="test",
                         choices=["val", "test"])
     parser.add_argument("--per-tier", action="store_true",
                         help="Also report per-difficulty-tier metrics")
     parser.add_argument("--per-image", action="store_true",
                         help="Save per-image metrics CSV (for statistical tests)")
+    parser.add_argument("--tta", action="store_true",
+                        help="Enable test-time augmentation (4x flip)")
     parser.add_argument("--output-dir", type=str, default="results",
                         help="Directory for JSON/CSV output (default: results/)")
     parser.add_argument("--device", type=str, default=None,
@@ -268,6 +322,35 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Ensemble mode
+    if args.ensemble:
+        model_names = [n.strip() for n in args.ensemble.split(",")]
+        ensemble_tag = "+".join(model_names)
+        print(f"\n{'='*60}")
+        print(f"  Ensemble: {ensemble_tag}")
+        print(f"{'='*60}")
+
+        # Build loader from first model's img_size
+        entry = get_entry(model_names[0])
+        transform = build_transforms(entry.img_size, train=False)
+        split_path = SPLIT_FILES[args.split]
+        all_files = read_split_file(split_path)
+        ds = DamSegmentDataset(C.DATA_ROOT, all_files, transform=transform)
+        loader = DataLoader(ds, batch_size=BATCH_SIZE, shuffle=False,
+                            num_workers=NUM_WORKERS, pin_memory=(device == "cuda"))
+        print(f"[eval] Split '{args.split}': {len(all_files)} images"
+              f"{' (TTA)' if args.tta else ''}")
+
+        results = {"overall": _evaluate_ensemble(model_names, loader, device,
+                                                  use_tta=args.tta)}
+        print(_format_results(results))
+        suffix = "_tta" if args.tta else ""
+        out_path = output_dir / f"ensemble_{ensemble_tag}_{args.split}{suffix}.json"
+        with open(out_path, "w") as f:
+            json.dump(results, f, indent=2)
+        print(f"\n[eval] Saved: {out_path}")
+        return
+
     models = list_models() if args.all_models else [args.model]
 
     for model_name in models:
@@ -276,17 +359,20 @@ def main():
         print(f"{'='*60}")
 
         # Aggregated metrics (always)
-        results = _run_eval(model_name, args.split, args.per_tier, device)
+        results = _run_eval(model_name, args.split, args.per_tier, device,
+                            use_tta=args.tta)
         print(_format_results(results))
-        out_path = output_dir / f"{model_name}_{args.split}.json"
+        suffix = "_tta" if args.tta else ""
+        out_path = output_dir / f"{model_name}_{args.split}{suffix}.json"
         with open(out_path, "w") as f:
             json.dump(results, f, indent=2)
         print(f"\n[eval] Saved: {out_path}")
 
         # Per-image CSV (optional)
         if args.per_image:
-            rows = _run_eval_per_image(model_name, args.split, device)
-            csv_path = output_dir / f"{model_name}_{args.split}_per_image.csv"
+            rows = _run_eval_per_image(model_name, args.split, device,
+                                       use_tta=args.tta)
+            csv_path = output_dir / f"{model_name}_{args.split}{suffix}_per_image.csv"
             if rows:
                 fieldnames = ["file", "tier"] + [
                     k for k in rows[0] if k not in ("file", "tier")

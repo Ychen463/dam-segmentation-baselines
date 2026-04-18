@@ -134,6 +134,33 @@ def skeleton_recall_loss(pred_prob, skel_gt, eps=1e-6):
 
 
 # ---------------------------------------------------------------------------
+# Snake branch auxiliary loss (crack-only focal BCE + Dice)
+# ---------------------------------------------------------------------------
+
+def snake_aux_loss(crack_enhance: torch.Tensor, targets: torch.Tensor,
+                   alpha: float = 0.75, gamma: float = 2.0,
+                   eps: float = 1e-6) -> torch.Tensor:
+    """Auxiliary loss on the snake branch crack enhancement logits.
+
+    Focal BCE + Dice, both applied to the binary crack mask.
+    """
+    crack_gt = (targets == 1).float().unsqueeze(1)  # (B,1,H,W)
+    logits = F.interpolate(crack_enhance, size=targets.shape[-2:],
+                           mode="bilinear", align_corners=False)
+    # Focal BCE
+    p = torch.sigmoid(logits)
+    bce = F.binary_cross_entropy_with_logits(logits, crack_gt, reduction='none')
+    pt = crack_gt * p + (1 - crack_gt) * (1 - p)
+    alpha_t = crack_gt * alpha + (1 - crack_gt) * (1 - alpha)
+    focal = (alpha_t * (1 - pt) ** gamma * bce).mean()
+    # Dice
+    inter = (p * crack_gt).sum()
+    card = p.sum() + crack_gt.sum()
+    dice = 1.0 - (2.0 * inter + eps) / (card + eps)
+    return 0.5 * focal + 0.5 * dice
+
+
+# ---------------------------------------------------------------------------
 # Foreground Dice loss (reusable, matches baseline_unet.losses logic)
 # ---------------------------------------------------------------------------
 
@@ -228,11 +255,17 @@ class CompositeLoss(nn.Module):
             lam_crack = 1.0
             lam_bd = 1.0
 
+        # Snake branch auxiliary loss
+        loss_snake = seg_logits.new_zeros(())
+        if self.cfg.use_snake_aux_loss and "crack_enhance" in outputs:
+            loss_snake = snake_aux_loss(outputs["crack_enhance"], targets)
+
         total = (self.cfg.loss_ce_w * loss_ce
                  + self.cfg.loss_dice_w * loss_dice
                  + lam_crack * loss_tversky
                  + lam_bd * loss_bd
-                 + self.cfg.cldice_weight * loss_topo)
+                 + self.cfg.cldice_weight * loss_topo
+                 + self.cfg.snake_aux_weight * loss_snake)
 
         # Per-sample signals for difficulty estimation (detach!)
         ps_ce = per_sample_ce(seg_logits, targets, self.ce_weight).detach()
@@ -244,6 +277,7 @@ class CompositeLoss(nn.Module):
             "loss_tversky": loss_tversky.item(),
             "loss_bd": loss_bd.item(),
             "loss_cldice": loss_topo.item(),
+            "loss_snake": loss_snake.item(),
             "per_sample_ce": ps_ce.cpu(),
             "per_sample_ent": ps_ent.cpu(),
         }

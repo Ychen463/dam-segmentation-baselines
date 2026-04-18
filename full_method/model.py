@@ -268,6 +268,7 @@ class DSCformerDam(nn.Module):
         return {
             "seg_logits": seg_logits,
             "boundary_logits": boundary_logits,
+            "crack_enhance": crack_enhance,
         }
 
 

@@ -97,11 +97,15 @@ def _build_mask2former():
     return build_model_and_processor(cfg)
 
 
-def _build_full_method() -> nn.Module:
-    from full_method.model import SegFormerWithBoundary
+def _build_full_method(model_type: str = "segformer") -> nn.Module:
     from full_method import config as fm_C
     cfg = fm_C.RunCfg()
-    return SegFormerWithBoundary(cfg.pretrained, fm_C.NUM_CLASSES)
+    if model_type == "dscformer":
+        from full_method.model import DSCformerDam
+        return DSCformerDam(cfg.pretrained, fm_C.NUM_CLASSES, cfg=cfg)
+    else:
+        from full_method.model import SegFormerWithBoundary
+        return SegFormerWithBoundary(cfg.pretrained, fm_C.NUM_CLASSES)
 
 
 # ---------------------------------------------------------------------------
@@ -278,10 +282,11 @@ register(ModelEntry(
 from full_method.config import ABLATION_PRESETS as _ABLATION_PRESETS  # noqa: E402
 for _preset_id, _preset_cfg in _ABLATION_PRESETS.items():
     _abl_name = _preset_cfg["name"]
+    _model_type = _preset_cfg.get("model_type", "segformer")
     register(ModelEntry(
         name=_abl_name,
         checkpoint=_CODES / "full_method" / "runs" / _abl_name / "best.pt",
         img_size=512,
-        build_fn=_build_full_method,
+        build_fn=functools.partial(_build_full_method, model_type=_model_type),
         inference_wrapper=FullMethodLogitsWrapper,
     ))

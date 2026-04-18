@@ -134,7 +134,7 @@ def oom_probe(model: nn.Module, cfg: C.RunCfg, device: str) -> bool:
 
 METRIC_KEYS: List[str] = [
     "epoch", "split", "train_loss", "val_loss",
-    "loss_ce", "loss_dice", "loss_tversky", "loss_bd", "loss_cldice",
+    "loss_ce", "loss_dice", "loss_tversky", "loss_bd", "loss_cldice", "loss_snake",
     "IoU_background", "IoU_crack", "IoU_spalling",
     "Dice_background", "Dice_crack", "Dice_spalling",
     "mIoU_fg", "mIoU_all", "pixel_acc",
@@ -154,7 +154,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
     model.train()
     metrics.reset()
     loss_sum = 0.0
-    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0}
+    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0}
     n_batches = 0
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)
@@ -459,6 +459,8 @@ def main() -> None:
           f" iters={cfg.cldice_iters}")
     print(f"[train] srl: use={cfg.use_srl_loss}"
           f" weight={cfg.cldice_weight} start_epoch={cfg.cldice_start_epoch}")
+    print(f"[train] snake_aux: use={cfg.use_snake_aux_loss}"
+          f" weight={cfg.snake_aux_weight}")
     print(f"[train] model_type={cfg.model_type}"
           f" snake_channels={cfg.snake_channels} snake_kernel={cfg.snake_kernel_size}")
     print(f"[train] no_curriculum={cfg.no_curriculum}")
@@ -621,7 +623,7 @@ def main() -> None:
         print(f"  train loss = {float(total_loss):.4f}")
         print(f"  loss_ce={info['loss_ce']:.4f} loss_dice={info['loss_dice']:.4f}"
               f" loss_tversky={info['loss_tversky']:.4f} loss_bd={info['loss_bd']:.4f}"
-              f" loss_cldice={info['loss_cldice']:.4f}")
+              f" loss_cldice={info['loss_cldice']:.4f} loss_snake={info['loss_snake']:.4f}")
         print(f"  per_sample_ce shape: {info['per_sample_ce'].shape}")
 
         # Check sampler warmup bypass
@@ -779,7 +781,7 @@ def main() -> None:
         print(f"  train loss={tr['loss']:.4f}"
               f"  ce={tr.get('loss_ce', 0):.4f} dice={tr.get('loss_dice', 0):.4f}"
               f"  tversky={tr.get('loss_tversky', 0):.4f} bd={tr.get('loss_bd', 0):.4f}"
-              f"  cldice={tr.get('loss_cldice', 0):.4f}")
+              f"  cldice={tr.get('loss_cldice', 0):.4f} snake={tr.get('loss_snake', 0):.4f}")
         if do_val:
             print("  val   loss={:.4f}".format(va['loss']))
             print("  " + format_metrics(va).replace("\n", "\n  "))
@@ -796,6 +798,7 @@ def main() -> None:
                 "loss_tversky": tr.get("loss_tversky", ""),
                 "loss_bd": tr.get("loss_bd", ""),
                 "loss_cldice": tr.get("loss_cldice", ""),
+                "loss_snake": tr.get("loss_snake", ""),
                 "IoU_background": va["IoU_background"],
                 "IoU_crack": va["IoU_crack"],
                 "IoU_spalling": va["IoU_spalling"],
