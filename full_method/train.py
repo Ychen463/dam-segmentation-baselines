@@ -48,7 +48,7 @@ from full_method.model import SegFormerWithBoundary, DSCformerDam, _PreviewWrapp
 from full_method.losses import CompositeLoss
 from full_method.difficulty import DifficultyEstimator, SampleState
 from full_method.sampler import TierAwareDynamicSampler
-from full_method.scheduler import CurriculumScheduler
+from full_method.scheduler import CurriculumScheduler, AdaptivePacer, ClassLossScheduler
 
 
 # ---------------------------------------------------------------------------
@@ -78,7 +78,8 @@ def pick_device(pref: str) -> str:
 def build_train_loader(records: List[Dict], sampler: TierAwareDynamicSampler,
                        cfg: C.RunCfg, device: str) -> DataLoader:
     ds = FullMethodDataset(C.DATA_ROOT, records,
-                           build_transforms(cfg.img_size, train=True),
+                           build_transforms(cfg.img_size, train=True,
+                                          aug_level=getattr(cfg, 'aug_level', 'basic')),
                            compute_skel=cfg.use_srl_loss)
     pin = (device == "cuda")
     return DataLoader(ds, batch_size=cfg.batch_size, sampler=sampler,
@@ -150,7 +151,9 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     curriculum_scheduler: CurriculumScheduler,
                     epoch: int, total_epochs: int,
                     cfg: C.RunCfg = None,
-                    scaler: torch.amp.GradScaler = None) -> Dict[str, float]:
+                    scaler: torch.amp.GradScaler = None,
+                    mac_ce_multipliers: tuple = None,
+                    mac_topo_multiplier: float = 1.0) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
@@ -187,7 +190,9 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
 
             total_loss, info = criterion(outputs, masks, curriculum_scheduler, epoch,
                                          sample_weights=sample_weights,
-                                         crack_skel=crack_skel)
+                                         crack_skel=crack_skel,
+                                         mac_ce_multipliers=mac_ce_multipliers,
+                                         mac_topo_multiplier=mac_topo_multiplier)
             total_loss = total_loss / grad_accum
 
         if use_amp:
@@ -228,6 +233,13 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     float(ps_ent[b_idx]),
                     masks_np[b_idx],
                 )
+                # MAC: update per-class EMA losses
+                if cfg is not None and cfg.use_mac and "per_sample_ce_crack" in info:
+                    estimator.update_class_loss(
+                        sample_bank[sid],
+                        float(info["per_sample_ce_crack"][b_idx]),
+                        float(info["per_sample_ce_spalling"][b_idx]),
+                    )
 
         done = step + 1
         if done % log_every == 0 or done == total_steps:
@@ -468,6 +480,12 @@ def main() -> None:
           f" soft={cfg.use_competence_soft_mixing}"
           f" c0={cfg.competence_c0} duration={cfg.competence_duration}"
           f" floors=[{cfg.competence_floor_easy},{cfg.competence_floor_medium},{cfg.competence_floor_hard}]")
+    print(f"[train] MAC: use={cfg.use_mac} morph_diff={cfg.use_mac_morph_difficulty}"
+          f" adaptive_pacing={cfg.use_mac_adaptive_pacing}"
+          f" class_loss={cfg.use_mac_class_loss}"
+          f" diff_gamma={cfg.mac_diff_gamma}"
+          f" weights=[{cfg.mac_morph_width_w},{cfg.mac_morph_topo_w},"
+          f"{cfg.mac_morph_prox_w},{cfg.mac_morph_sparse_w}]")
 
     rdir = C.run_dir(cfg)
     samples_dir = rdir / "samples"
@@ -502,6 +520,8 @@ def main() -> None:
         alpha=cfg.diff_alpha, beta=cfg.diff_beta,
         gamma=cfg.diff_gamma, delta=cfg.diff_delta,
         ema_decay=cfg.diff_ema,
+        use_mac_morph_difficulty=cfg.use_mac_morph_difficulty,
+        mac_diff_gamma=cfg.mac_diff_gamma,
     )
 
     curriculum_scheduler = CurriculumScheduler(total_epochs, cfg=cfg)
@@ -516,6 +536,51 @@ def main() -> None:
         use_softmax_sampling=cfg.use_softmax_sampling,
         no_curriculum=cfg.no_curriculum,
     )
+
+    # ----- MAC: morph cache + adaptive pacer + class loss scheduler -----
+    mac_pacer = None
+    mac_class_sched = None
+    if cfg.use_mac:
+        from full_method.morphology import precompute_morph_cache, MorphFeatures
+        morph_cache_path = C.DATA_ROOT / ".morph_cache.pkl"
+        morph_cache = precompute_morph_cache(records, C.DATA_ROOT, morph_cache_path)
+
+        # Compute per-sample morph_difficulty from features
+        w1 = cfg.mac_morph_width_w
+        w2 = cfg.mac_morph_topo_w
+        w3 = cfg.mac_morph_prox_w
+        w4 = cfg.mac_morph_sparse_w
+        # Collect raw feature vectors for z-score normalization
+        sids = [r["id"] for r in records]
+        raw_inv_width = np.array([1.0 / (morph_cache[s].crack_mean_width + 1e-6)
+                                  if morph_cache[s].has_crack else 0.0 for s in sids])
+        raw_junc = np.array([morph_cache[s].junction_density for s in sids])
+        raw_prox = np.array([morph_cache[s].crack_spalling_proximity for s in sids])
+        raw_comp = np.array([np.log(morph_cache[s].crack_components + 1) for s in sids])
+
+        def _zscore(arr):
+            return (arr - arr.mean()) / (arr.std() + 1e-6)
+
+        z_iw = _zscore(raw_inv_width)
+        z_junc = _zscore(raw_junc)
+        z_prox = _zscore(raw_prox)
+        z_comp = _zscore(raw_comp)
+
+        for i, sid in enumerate(sids):
+            morph_d = float(w1 * z_iw[i] + w2 * z_junc[i] + w3 * z_prox[i] + w4 * z_comp[i])
+            estimator.init_morph(sample_bank[sid], morph_d)
+
+        print(f"[MAC] morph difficulty initialized for {len(sids)} samples")
+        morph_ds = [sample_bank[s].morph_difficulty for s in sids]
+        print(f"[MAC] morph_d stats: mean={np.mean(morph_ds):.3f} std={np.std(morph_ds):.3f}"
+              f" min={np.min(morph_ds):.3f} max={np.max(morph_ds):.3f}")
+
+        if cfg.use_mac_adaptive_pacing:
+            mac_pacer = AdaptivePacer(cfg)
+            print("[MAC] adaptive pacer enabled")
+        if cfg.use_mac_class_loss:
+            mac_class_sched = ClassLossScheduler(cfg)
+            print("[MAC] class loss scheduler enabled")
 
     # ----- build loaders -----
     train_loader = build_train_loader(records, sampler, cfg, device)
@@ -681,7 +746,10 @@ def main() -> None:
         if "sample_bank" in state:
             for sid, sdata in state["sample_bank"].items():
                 if sid in sample_bank:
-                    sample_bank[sid] = SampleState(**sdata)
+                    # Filter to valid SampleState fields for backward compat
+                    valid_keys = {f.name for f in SampleState.__dataclass_fields__.values()}
+                    filtered = {k: v for k, v in sdata.items() if k in valid_keys}
+                    sample_bank[sid] = SampleState(**filtered)
             print(f"[train] restored sample_bank ({len(state['sample_bank'])} entries)")
         start_epoch = int(state.get("epoch", 0)) + 1
         best_miou = float(state.get("best_miou_fg", state.get("mIoU_fg", -1.0) or -1.0))
@@ -711,7 +779,14 @@ def main() -> None:
         # 1. Stage + sampler update
         stage = curriculum_scheduler.stage(epoch)
 
-        if cfg.use_competence_soft_mixing:
+        if mac_pacer is not None:
+            # MAC adaptive pacing: use pacer's tier weights
+            weights = mac_pacer.tier_weights()
+            sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage,
+                              competence_tier_weights=weights)
+            print(f"[{cfg.name}] [MAC pacer] epoch {epoch}: stage={mac_pacer.stage} "
+                  f"tier_weights={{0:{weights[0]:.3f}, 1:{weights[1]:.3f}, 2:{weights[2]:.3f}}}")
+        elif cfg.use_competence_soft_mixing:
             comp = curriculum_scheduler.competence(epoch)
             weights = curriculum_scheduler.competence_tier_weights(epoch)
             sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage,
@@ -737,13 +812,20 @@ def main() -> None:
             print(f"[{cfg.name}] [curriculum] epoch {epoch}: stage={stage} tiers={sorted(allowed)}"
                   f" pool={pool_counts}")
 
-        # 2. Train
+        # 2. Train (with MAC CE/topo multipliers if active)
+        _mac_ce_mults = None
+        _mac_topo_mult = 1.0
+        if mac_class_sched is not None:
+            _mac_ce_mults = mac_class_sched.get_ce_weight_multipliers()
+            _mac_topo_mult = mac_class_sched.get_topo_multiplier()
         t0 = time.time()
         tr = train_one_epoch(model, train_loader, optimizer, criterion, device,
                              train_metrics, cfg.grad_accum,
                              sample_bank, estimator,
                              curriculum_scheduler, epoch, total_epochs,
-                             cfg=cfg, scaler=scaler)
+                             cfg=cfg, scaler=scaler,
+                             mac_ce_multipliers=_mac_ce_mults,
+                             mac_topo_multiplier=_mac_topo_mult)
 
         # 3. Print sampler stats
         ss = sampler.get_sampling_stats()
@@ -763,10 +845,30 @@ def main() -> None:
             print(f"  difficulty: mean={np.mean(diffs):.3f} std={np.std(diffs):.3f}")
 
         # 6. Val (every 5 epochs, or every epoch in last 10, or epoch 1)
+        #    MAC adaptive pacing: validate every epoch for responsive stage transitions
         do_val = (epoch % 5 == 0) or (epoch > total_epochs - 10) or (epoch == 1)
+        if mac_pacer is not None:
+            do_val = True  # per-epoch val for adaptive pacing
         if do_val:
             va = evaluate(model, val_loader, criterion, device, eval_metrics,
                           curriculum_scheduler, epoch, use_amp=use_amp)
+            # MAC: update pacer and class loss scheduler after validation
+            if mac_pacer is not None:
+                old_stage = mac_pacer.stage
+                new_stage = mac_pacer.update(va, epoch)
+                if new_stage != old_stage:
+                    # Re-set sampler with new tier weights from pacer
+                    pacer_weights = mac_pacer.tier_weights()
+                    sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage,
+                                      competence_tier_weights=pacer_weights)
+                    print(f"[MAC] pacer stage {old_stage}→{new_stage}, "
+                          f"new tier_weights={pacer_weights}")
+            if mac_class_sched is not None:
+                mac_class_sched.update(va)
+                cm, sm = mac_class_sched.get_ce_weight_multipliers()
+                tm = mac_class_sched.get_topo_multiplier()
+                print(f"[MAC] class_loss: crack_mult={cm:.3f} spalling_mult={sm:.3f}"
+                      f" topo_mult={tm:.3f}")
         lr_scheduler.step()
         dt = time.time() - t0
         epochs_done += 1
@@ -821,7 +923,10 @@ def main() -> None:
         bank_serializable = {
             sid: {"ema_loss": s.ema_loss, "ema_uncertainty": s.ema_uncertainty,
                   "boundary_complexity": s.boundary_complexity, "sparsity": s.sparsity,
-                  "difficulty": s.difficulty}
+                  "difficulty": s.difficulty,
+                  "ema_loss_crack": s.ema_loss_crack,
+                  "ema_loss_spalling": s.ema_loss_spalling,
+                  "morph_difficulty": s.morph_difficulty}
             for sid, s in sample_bank.items()
         }
         torch.save(

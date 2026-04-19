@@ -3,6 +3,9 @@
 Each training sample has a SampleState tracking EMA loss, uncertainty,
 boundary complexity, and sparsity. After each epoch, all scores are
 z-normalized and combined into a single difficulty score.
+
+MAC extension: morphology-aware difficulty scoring using precomputed
+crack geometry features (width, junctions, proximity, components).
 """
 from __future__ import annotations
 
@@ -21,6 +24,10 @@ class SampleState:
     boundary_complexity: float = 0.0
     sparsity: float = 0.0
     difficulty: float = 0.0
+    # --- MAC fields ---
+    ema_loss_crack: float = 0.0
+    ema_loss_spalling: float = 0.0
+    morph_difficulty: float = 0.0      # static morphology-based difficulty
 
 
 class DifficultyEstimator:
@@ -28,12 +35,20 @@ class DifficultyEstimator:
 
     def __init__(self, alpha: float = 1.0, beta: float = 0.5,
                  gamma: float = 0.3, delta: float = 0.3,
-                 ema_decay: float = 0.9):
+                 ema_decay: float = 0.9,
+                 use_mac_morph_difficulty: bool = False,
+                 mac_diff_gamma: float = 0.5):
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
         self.delta = delta
         self.ema_decay = ema_decay
+        self.use_mac_morph_difficulty = use_mac_morph_difficulty
+        self.mac_diff_gamma = mac_diff_gamma
+
+    def init_morph(self, state: SampleState, morph_difficulty: float) -> None:
+        """Set the static morphology difficulty from precomputed features."""
+        state.morph_difficulty = morph_difficulty
 
     def update(self, state: SampleState, loss_val: float, uncert_val: float,
                mask: np.ndarray) -> None:
@@ -43,6 +58,14 @@ class DifficultyEstimator:
                                  + (1 - self.ema_decay) * uncert_val)
         state.boundary_complexity = self._compute_boundary_complexity(mask)
         state.sparsity = self._compute_sparsity(mask)
+
+    def update_class_loss(self, state: SampleState,
+                          loss_crack: float, loss_spalling: float) -> None:
+        """Update per-class EMA losses (MAC)."""
+        state.ema_loss_crack = (self.ema_decay * state.ema_loss_crack
+                                + (1 - self.ema_decay) * loss_crack)
+        state.ema_loss_spalling = (self.ema_decay * state.ema_loss_spalling
+                                   + (1 - self.ema_decay) * loss_spalling)
 
     @staticmethod
     def _compute_boundary_complexity(mask: np.ndarray) -> float:
@@ -71,21 +94,33 @@ class DifficultyEstimator:
         ids = list(sample_bank.keys())
         losses = np.array([sample_bank[k].ema_loss for k in ids])
         uncerts = np.array([sample_bank[k].ema_uncertainty for k in ids])
-        bds = np.array([sample_bank[k].boundary_complexity for k in ids])
-        spars = np.array([sample_bank[k].sparsity for k in ids])
 
         def zscore(arr: np.ndarray) -> np.ndarray:
             return (arr - arr.mean()) / (arr.std() + 1e-6)
 
         z_loss = zscore(losses)
         z_uncert = zscore(uncerts)
-        z_bd = zscore(bds)
-        z_spar = zscore(spars)
 
-        for i, k in enumerate(ids):
-            sample_bank[k].difficulty = float(
-                self.alpha * z_loss[i]
-                + self.beta * z_uncert[i]
-                + self.gamma * z_bd[i]
-                + self.delta * z_spar[i]
-            )
+        if self.use_mac_morph_difficulty:
+            # MAC mode: replace boundary_complexity + sparsity with morph_difficulty
+            morphs = np.array([sample_bank[k].morph_difficulty for k in ids])
+            z_morph = zscore(morphs)
+            for i, k in enumerate(ids):
+                sample_bank[k].difficulty = float(
+                    self.alpha * z_loss[i]
+                    + self.beta * z_uncert[i]
+                    + self.mac_diff_gamma * z_morph[i]
+                )
+        else:
+            # Legacy mode: boundary_complexity + sparsity
+            bds = np.array([sample_bank[k].boundary_complexity for k in ids])
+            spars = np.array([sample_bank[k].sparsity for k in ids])
+            z_bd = zscore(bds)
+            z_spar = zscore(spars)
+            for i, k in enumerate(ids):
+                sample_bank[k].difficulty = float(
+                    self.alpha * z_loss[i]
+                    + self.beta * z_uncert[i]
+                    + self.gamma * z_bd[i]
+                    + self.delta * z_spar[i]
+                )

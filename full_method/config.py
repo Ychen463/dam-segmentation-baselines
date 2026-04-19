@@ -103,6 +103,9 @@ class RunCfg:
     snake_channels: int = 64                 # crack branch hidden dim
     snake_kernel_size: int = 9               # DSConv kernel size
 
+    # Augmentation level ("basic" or "strong")
+    aug_level: str = "basic"
+
     # No-curriculum mode: fully uniform sampling over all samples
     no_curriculum: bool = False
 
@@ -114,6 +117,21 @@ class RunCfg:
     competence_floor_easy: float = 0.05           # C2: Easy replay floor
     competence_floor_medium: float = 0.02         # C2: Medium replay floor
     competence_floor_hard: float = 0.00           # C2: Hard replay floor (0 = no early replay)
+
+    # Morphology-Aware Curriculum (MAC)
+    use_mac: bool = False                         # master MAC switch
+    use_mac_morph_difficulty: bool = False         # replace generic difficulty with morph features
+    use_mac_adaptive_pacing: bool = False          # validation-driven stage transitions
+    use_mac_class_loss: bool = False               # per-class IoU gap → CE weight adjustment
+    mac_morph_width_w: float = 0.4                # weight for 1/width in morph difficulty
+    mac_morph_topo_w: float = 0.3                 # weight for junction_density
+    mac_morph_prox_w: float = 0.2                 # weight for crack_spalling_proximity
+    mac_morph_sparse_w: float = 0.1               # weight for log(components+1)
+    mac_diff_gamma: float = 0.5                   # weight for morph_difficulty in final score
+    mac_adaptive_patience: int = 3                # stagnation count before forced promotion
+    mac_adaptive_min_epochs: int = 10             # minimum epochs per stage
+    mac_class_loss_max_boost: float = 2.0         # maximum CE weight multiplier
+    mac_class_loss_ema: float = 0.8               # EMA smoothing for class loss scheduler
 
 
 # ---------------------------------------------------------------------------
@@ -426,6 +444,171 @@ ABLATION_PRESETS = {
            "use_srl_loss": True, "cldice_weight": 0.05,
            "cldice_start_epoch": 60, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
+
+    # Set M: Morphology-Aware Curriculum (MAC) ablation on DSCformer + SRL base
+    # Base: DSCformer + SRL (G1), no old curriculum, dynamic difficulty ON
+    "M0": {"name": "mac_morph_M0",
+           "model_type": "dscformer",
+           "use_mac": True,
+           "use_mac_morph_difficulty": True,
+           "use_mac_adaptive_pacing": False,
+           "use_mac_class_loss": False,
+           "no_curriculum": False,
+           "use_competence_soft_mixing": True,
+           "competence_c0": 0.333, "competence_duration": 70,
+           "competence_floor_easy": 0.05,
+           "competence_floor_medium": 0.02,
+           "competence_floor_hard": 0.00,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+           "loss_reweight_lambda": 0.5,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+    "M1": {"name": "mac_morph_pacing_M1",
+           "model_type": "dscformer",
+           "use_mac": True,
+           "use_mac_morph_difficulty": True,
+           "use_mac_adaptive_pacing": True,
+           "use_mac_class_loss": False,
+           "no_curriculum": False,
+           "use_competence_soft_mixing": True,
+           "competence_c0": 0.333, "competence_duration": 70,
+           "competence_floor_easy": 0.05,
+           "competence_floor_medium": 0.02,
+           "competence_floor_hard": 0.00,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+           "loss_reweight_lambda": 0.5,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+    "M2": {"name": "mac_morph_classloss_M2",
+           "model_type": "dscformer",
+           "use_mac": True,
+           "use_mac_morph_difficulty": True,
+           "use_mac_adaptive_pacing": False,
+           "use_mac_class_loss": True,
+           "no_curriculum": False,
+           "use_competence_soft_mixing": True,
+           "competence_c0": 0.333, "competence_duration": 70,
+           "competence_floor_easy": 0.05,
+           "competence_floor_medium": 0.02,
+           "competence_floor_hard": 0.00,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+           "loss_reweight_lambda": 0.5,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+    "M3": {"name": "mac_full_M3",
+           "model_type": "dscformer",
+           "use_mac": True,
+           "use_mac_morph_difficulty": True,
+           "use_mac_adaptive_pacing": True,
+           "use_mac_class_loss": True,
+           "no_curriculum": False,
+           "use_competence_soft_mixing": True,
+           "competence_c0": 0.333, "competence_duration": 70,
+           "competence_floor_easy": 0.05,
+           "competence_floor_medium": 0.02,
+           "competence_floor_hard": 0.00,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+           "loss_reweight_lambda": 0.5,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+
+    # Set N: data-driven optimizations (orthogonal to curriculum, based on G1)
+    # N0 = G1 reproduction (sanity check)
+    "N0": {"name": "dataopt_baseline_N0",
+           "model_type": "dscformer",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+    # N1 = G1 + strong augmentation
+    "N1": {"name": "dataopt_strongaug_N1",
+           "model_type": "dscformer",
+           "aug_level": "strong",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+    # N2 = N1 + SRL starts at epoch 30
+    "N2": {"name": "dataopt_earlysrl_N2",
+           "model_type": "dscformer",
+           "aug_level": "strong",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 30, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+    # N3 = N2 + SRL weight 0.10 + Tversky loss
+    "N3": {"name": "dataopt_full_N3",
+           "model_type": "dscformer",
+           "aug_level": "strong",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False,
+           "use_tversky_loss": True, "loss_tversky_alpha": 0.3, "loss_tversky_beta": 0.7,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.10,
+           "cldice_start_epoch": 30, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+    # MN3 = M3 (full MAC) + N3 data optimizations
+    "MN3": {"name": "mac_dataopt_MN3",
+            "model_type": "dscformer",
+            "aug_level": "strong",
+            "use_mac": True,
+            "use_mac_morph_difficulty": True,
+            "use_mac_adaptive_pacing": True,
+            "use_mac_class_loss": True,
+            "no_curriculum": False,
+            "use_competence_soft_mixing": True,
+            "competence_c0": 0.333, "competence_duration": 70,
+            "competence_floor_easy": 0.05,
+            "competence_floor_medium": 0.02,
+            "competence_floor_hard": 0.00,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+            "loss_reweight_lambda": 0.5,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False,
+            "use_tversky_loss": True, "loss_tversky_alpha": 0.3, "loss_tversky_beta": 0.7,
+            "use_cldice_loss": False,
+            "use_srl_loss": True, "cldice_weight": 0.10,
+            "cldice_start_epoch": 30, "cldice_iters": 7,
+            "use_soft_boundary_schedule": False},
 
     # Set F: full method (C2 curriculum + difficulty + clDice)
     "F1": {"name": "full_method_F1",

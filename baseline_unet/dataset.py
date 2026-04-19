@@ -85,20 +85,41 @@ IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
 
 
-def build_transforms(img_size: int, train: bool):
+def build_transforms(img_size: int, train: bool, aug_level: str = "basic"):
     if A is None:
         raise RuntimeError("albumentations is required but not installed")
     if train:
-        return A.Compose([
+        aug_list = [
             A.Resize(img_size, img_size,
                      interpolation=cv2.INTER_LINEAR,
                      mask_interpolation=cv2.INTER_NEAREST),
             A.HorizontalFlip(p=0.5),
             A.VerticalFlip(p=0.5),
+        ]
+        if aug_level == "strong":
+            aug_list += [
+                A.RandomRotate90(p=0.5),
+                A.ShiftScaleRotate(
+                    shift_limit=0.05, scale_limit=0.15, rotate_limit=30,
+                    border_mode=cv2.BORDER_REFLECT_101,
+                    interpolation=cv2.INTER_LINEAR,
+                    mask_interpolation=cv2.INTER_NEAREST,
+                    p=0.5,
+                ),
+                A.ElasticTransform(
+                    alpha=80, sigma=10,
+                    border_mode=cv2.BORDER_REFLECT_101,
+                    interpolation=cv2.INTER_LINEAR,
+                    mask_interpolation=cv2.INTER_NEAREST,
+                    p=0.2,
+                ),
+            ]
+        aug_list += [
             A.RandomBrightnessContrast(p=0.3),
             A.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
             ToTensorV2(),
-        ])
+        ]
+        return A.Compose(aug_list)
     return A.Compose([
         A.Resize(img_size, img_size,
                  interpolation=cv2.INTER_LINEAR,

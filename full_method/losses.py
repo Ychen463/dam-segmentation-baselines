@@ -33,6 +33,14 @@ def per_sample_entropy(logits: torch.Tensor) -> torch.Tensor:
     return ent.mean(dim=(1, 2))  # (B,)
 
 
+def per_sample_class_ce(logits: torch.Tensor, targets: torch.Tensor,
+                        class_idx: int) -> torch.Tensor:
+    """Per-sample mean CE on pixels of a specific class. Returns (B,) tensor."""
+    mask = (targets == class_idx).float()                    # (B, H, W)
+    ce = F.cross_entropy(logits, targets, reduction='none')  # (B, H, W)
+    return (ce * mask).sum(dim=(1, 2)) / (mask.sum(dim=(1, 2)) + 1e-6)
+
+
 # ---------------------------------------------------------------------------
 # Tversky loss (crack-specific)
 # ---------------------------------------------------------------------------
@@ -200,20 +208,30 @@ class CompositeLoss(nn.Module):
     def forward(self, outputs: dict, targets: torch.Tensor,
                 scheduler, epoch: int,
                 sample_weights: torch.Tensor = None,
-                crack_skel: torch.Tensor = None) -> tuple:
+                crack_skel: torch.Tensor = None,
+                mac_ce_multipliers: tuple = None,
+                mac_topo_multiplier: float = 1.0) -> tuple:
         seg_logits = F.interpolate(outputs["seg_logits"], targets.shape[-2:],
                                    mode="bilinear", align_corners=False)
         bd_logits = F.interpolate(outputs["boundary_logits"], targets.shape[-2:],
                                   mode="bilinear", align_corners=False)
 
+        # CE weight: apply MAC class-conditional multipliers if provided
+        ce_w = self.ce_weight
+        if mac_ce_multipliers is not None:
+            crack_mult, spalling_mult = mac_ce_multipliers
+            ce_w = self.ce_weight.clone()
+            ce_w[1] = ce_w[1] * crack_mult
+            ce_w[2] = ce_w[2] * spalling_mult
+
         # CE loss: per-sample weighted when sample_weights provided
         if sample_weights is not None:
-            ce_unreduced = F.cross_entropy(seg_logits, targets, weight=self.ce_weight,
+            ce_unreduced = F.cross_entropy(seg_logits, targets, weight=ce_w,
                                            reduction='none')  # (B,H,W)
             ce_per_sample = ce_unreduced.mean(dim=(1, 2))  # (B,)
             loss_ce = (ce_per_sample * sample_weights).mean()
         else:
-            loss_ce = F.cross_entropy(seg_logits, targets, weight=self.ce_weight)
+            loss_ce = F.cross_entropy(seg_logits, targets, weight=ce_w)
 
         loss_dice = fg_dice_loss(seg_logits, targets)
 
@@ -264,14 +282,14 @@ class CompositeLoss(nn.Module):
                  + self.cfg.loss_dice_w * loss_dice
                  + lam_crack * loss_tversky
                  + lam_bd * loss_bd
-                 + self.cfg.cldice_weight * loss_topo
+                 + self.cfg.cldice_weight * mac_topo_multiplier * loss_topo
                  + self.cfg.snake_aux_weight * loss_snake)
 
         # Per-sample signals for difficulty estimation (detach!)
         ps_ce = per_sample_ce(seg_logits, targets, self.ce_weight).detach()
         ps_ent = per_sample_entropy(seg_logits).detach()
 
-        return total, {
+        info = {
             "loss_ce": loss_ce.item(),
             "loss_dice": loss_dice.item(),
             "loss_tversky": loss_tversky.item(),
@@ -281,6 +299,15 @@ class CompositeLoss(nn.Module):
             "per_sample_ce": ps_ce.cpu(),
             "per_sample_ent": ps_ent.cpu(),
         }
+
+        # MAC: per-class CE for class-specific difficulty tracking
+        if self.cfg.use_mac:
+            info["per_sample_ce_crack"] = per_sample_class_ce(
+                seg_logits, targets, 1).detach().cpu()
+            info["per_sample_ce_spalling"] = per_sample_class_ce(
+                seg_logits, targets, 2).detach().cpu()
+
+        return total, info
 
     def _tversky_weighted(self, logits: torch.Tensor, targets: torch.Tensor,
                           sample_weights: torch.Tensor) -> torch.Tensor:

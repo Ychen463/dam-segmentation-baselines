@@ -48,6 +48,53 @@ NUM_WORKERS = 2
 
 
 # ---------------------------------------------------------------------------
+# Morphological post-processing (N4)
+# ---------------------------------------------------------------------------
+
+def postprocess_prediction(pred: np.ndarray,
+                           min_crack_area: int = 50,
+                           min_spalling_area: int = 200,
+                           crack_close_kernel: int = 5) -> np.ndarray:
+    """Morphological cleanup of argmax prediction (H, W) with classes 0/1/2.
+
+    Steps:
+      1. Close small gaps in crack (bridge fractures) with elliptical kernel.
+      2. Remove small crack connected components (< min_crack_area px).
+      3. Remove small spalling connected components (< min_spalling_area px).
+      4. Reassemble: crack (1) takes priority over spalling (2) at overlaps.
+    """
+    import cv2 as _cv2
+
+    crack_mask = (pred == 1).astype(np.uint8)
+    spalling_mask = (pred == 2).astype(np.uint8)
+
+    # 1. Morphological closing on crack to bridge fractures
+    kernel = _cv2.getStructuringElement(
+        _cv2.MORPH_ELLIPSE, (crack_close_kernel, crack_close_kernel))
+    crack_mask = _cv2.morphologyEx(crack_mask, _cv2.MORPH_CLOSE, kernel)
+
+    # 2. Remove small crack components
+    n_labels, labels, stats, _ = _cv2.connectedComponentsWithStats(
+        crack_mask, connectivity=8)
+    for i in range(1, n_labels):
+        if stats[i, _cv2.CC_STAT_AREA] < min_crack_area:
+            crack_mask[labels == i] = 0
+
+    # 3. Remove small spalling components
+    n_labels, labels, stats, _ = _cv2.connectedComponentsWithStats(
+        spalling_mask, connectivity=8)
+    for i in range(1, n_labels):
+        if stats[i, _cv2.CC_STAT_AREA] < min_spalling_area:
+            spalling_mask[labels == i] = 0
+
+    # 4. Reassemble: background default, spalling first, then crack overrides
+    out = np.zeros_like(pred)
+    out[spalling_mask > 0] = 2
+    out[crack_mask > 0] = 1
+    return out
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
@@ -65,14 +112,25 @@ def _filter_by_tier(files: List[str], tier: str) -> List[str]:
 
 
 @torch.no_grad()
-def _evaluate(model, loader: DataLoader, device: str) -> Dict[str, float]:
+def _evaluate(model, loader: DataLoader, device: str,
+              postprocess: bool = False) -> Dict[str, float]:
     metrics = SegMetricsFull(C.NUM_CLASSES, BF1_TOLERANCE_PX)
     metrics.reset()
     for images, masks, _rels in loader:
         images = images.to(device, non_blocking=True)
         masks = masks.to(device, non_blocking=True)
         logits = model(images)
-        metrics.update(logits, masks)
+        if postprocess:
+            pred_np = logits.argmax(dim=1).cpu().numpy()
+            for i in range(pred_np.shape[0]):
+                pred_np[i] = postprocess_prediction(pred_np[i])
+            pred_t = torch.from_numpy(pred_np).to(device)
+            # Convert back to one-hot-like logits for metrics.update
+            fake_logits = torch.zeros_like(logits)
+            fake_logits.scatter_(1, pred_t.unsqueeze(1), 10.0)
+            metrics.update(fake_logits, masks)
+        else:
+            metrics.update(logits, masks)
     return metrics.compute()
 
 
@@ -88,7 +146,8 @@ def _forward_maybe_tta(model, images: torch.Tensor, use_tta: bool) -> torch.Tens
 
 
 @torch.no_grad()
-def _evaluate_tta(model, loader: DataLoader, device: str) -> Dict[str, float]:
+def _evaluate_tta(model, loader: DataLoader, device: str,
+                  postprocess: bool = False) -> Dict[str, float]:
     """Evaluate with test-time augmentation (4x flip)."""
     metrics = SegMetricsFull(C.NUM_CLASSES, BF1_TOLERANCE_PX)
     metrics.reset()
@@ -96,7 +155,16 @@ def _evaluate_tta(model, loader: DataLoader, device: str) -> Dict[str, float]:
         images = images.to(device, non_blocking=True)
         masks = masks.to(device, non_blocking=True)
         logits = _forward_maybe_tta(model, images, use_tta=True)
-        metrics.update(logits, masks)
+        if postprocess:
+            pred_np = logits.argmax(dim=1).cpu().numpy()
+            for i in range(pred_np.shape[0]):
+                pred_np[i] = postprocess_prediction(pred_np[i])
+            pred_t = torch.from_numpy(pred_np).to(device)
+            fake_logits = torch.zeros_like(logits)
+            fake_logits.scatter_(1, pred_t.unsqueeze(1), 10.0)
+            metrics.update(fake_logits, masks)
+        else:
+            metrics.update(logits, masks)
     return metrics.compute()
 
 
@@ -167,7 +235,7 @@ def _per_image_metrics(pred: np.ndarray, gt: np.ndarray) -> Dict[str, float]:
 @torch.no_grad()
 def _evaluate_per_image(
     model, loader: DataLoader, device: str, file_list: List[str],
-    use_tta: bool = False,
+    use_tta: bool = False, postprocess: bool = False,
 ) -> List[Dict[str, object]]:
     """Return a list of dicts, one per image, with per-image metrics + metadata."""
     rows: List[Dict[str, object]] = []
@@ -178,9 +246,12 @@ def _evaluate_per_image(
         pred_batch = logits.argmax(dim=1).detach().cpu().numpy()
         gt_batch = masks.numpy()
         for b in range(pred_batch.shape[0]):
+            pred_img = pred_batch[b]
+            if postprocess:
+                pred_img = postprocess_prediction(pred_img)
             fname = rels[b] if isinstance(rels, list) else rels[b]
             tier = fname.split("/")[0] if "/" in fname else "unknown"
-            row = _per_image_metrics(pred_batch[b], gt_batch[b])
+            row = _per_image_metrics(pred_img, gt_batch[b])
             row["file"] = fname
             row["tier"] = tier
             rows.append(row)
@@ -194,7 +265,7 @@ def _evaluate_per_image(
 
 def _run_eval(
     model_name: str, split: str, per_tier: bool, device: str,
-    use_tta: bool = False,
+    use_tta: bool = False, postprocess: bool = False,
 ) -> Dict[str, Dict[str, float]]:
     """Run evaluation, return dict with 'overall' and optionally tier keys."""
     entry = get_entry(model_name)
@@ -209,8 +280,9 @@ def _run_eval(
     # Read split files
     split_path = SPLIT_FILES[split]
     all_files = read_split_file(split_path)
+    pp_tag = " (PP)" if postprocess else ""
     print(f"[eval] Split '{split}': {len(all_files)} images"
-          f"{' (TTA)' if use_tta else ''}")
+          f"{' (TTA)' if use_tta else ''}{pp_tag}")
 
     results: Dict[str, Dict[str, float]] = {}
 
@@ -219,7 +291,7 @@ def _run_eval(
     loader = DataLoader(ds, batch_size=BATCH_SIZE, shuffle=False,
                         num_workers=NUM_WORKERS, pin_memory=(device == "cuda"))
     print(f"[eval] Running overall evaluation ...")
-    results["overall"] = eval_fn(model, loader, device)
+    results["overall"] = eval_fn(model, loader, device, postprocess=postprocess)
 
     # Per-tier
     if per_tier:
@@ -233,14 +305,15 @@ def _run_eval(
             loader_t = DataLoader(ds_t, batch_size=BATCH_SIZE, shuffle=False,
                                   num_workers=NUM_WORKERS,
                                   pin_memory=(device == "cuda"))
-            results[tier] = eval_fn(model, loader_t, device)
+            results[tier] = eval_fn(model, loader_t, device,
+                                    postprocess=postprocess)
 
     return results
 
 
 def _run_eval_per_image(
     model_name: str, split: str, device: str,
-    use_tta: bool = False,
+    use_tta: bool = False, postprocess: bool = False,
 ) -> List[Dict[str, object]]:
     """Run per-image evaluation, return list of per-image metric dicts."""
     entry = get_entry(model_name)
@@ -257,7 +330,8 @@ def _run_eval_per_image(
     ds = DamSegmentDataset(C.DATA_ROOT, all_files, transform=transform)
     loader = DataLoader(ds, batch_size=BATCH_SIZE, shuffle=False,
                         num_workers=NUM_WORKERS, pin_memory=(device == "cuda"))
-    return _evaluate_per_image(model, loader, device, all_files, use_tta=use_tta)
+    return _evaluate_per_image(model, loader, device, all_files,
+                               use_tta=use_tta, postprocess=postprocess)
 
 
 def _format_results(results: Dict[str, Dict[str, float]]) -> str:
@@ -310,6 +384,8 @@ def main():
                         help="Save per-image metrics CSV (for statistical tests)")
     parser.add_argument("--tta", action="store_true",
                         help="Enable test-time augmentation (4x flip)")
+    parser.add_argument("--postprocess", action="store_true",
+                        help="Apply morphological post-processing to predictions")
     parser.add_argument("--output-dir", type=str, default="results",
                         help="Directory for JSON/CSV output (default: results/)")
     parser.add_argument("--device", type=str, default=None,
@@ -360,9 +436,11 @@ def main():
 
         # Aggregated metrics (always)
         results = _run_eval(model_name, args.split, args.per_tier, device,
-                            use_tta=args.tta)
+                            use_tta=args.tta, postprocess=args.postprocess)
         print(_format_results(results))
         suffix = "_tta" if args.tta else ""
+        if args.postprocess:
+            suffix += "_pp"
         out_path = output_dir / f"{model_name}_{args.split}{suffix}.json"
         with open(out_path, "w") as f:
             json.dump(results, f, indent=2)
@@ -371,7 +449,8 @@ def main():
         # Per-image CSV (optional)
         if args.per_image:
             rows = _run_eval_per_image(model_name, args.split, device,
-                                       use_tta=args.tta)
+                                       use_tta=args.tta,
+                                       postprocess=args.postprocess)
             csv_path = output_dir / f"{model_name}_{args.split}{suffix}_per_image.csv"
             if rows:
                 fieldnames = ["file", "tier"] + [
