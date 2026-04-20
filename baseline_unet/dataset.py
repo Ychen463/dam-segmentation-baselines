@@ -96,7 +96,18 @@ def build_transforms(img_size: int, train: bool, aug_level: str = "basic"):
             A.HorizontalFlip(p=0.5),
             A.VerticalFlip(p=0.5),
         ]
-        if aug_level == "strong":
+        if aug_level == "moderate":
+            aug_list += [
+                A.RandomRotate90(p=0.5),
+                A.ShiftScaleRotate(
+                    shift_limit=0.03, scale_limit=0.10, rotate_limit=15,
+                    border_mode=cv2.BORDER_REFLECT_101,
+                    interpolation=cv2.INTER_LINEAR,
+                    mask_interpolation=cv2.INTER_NEAREST,
+                    p=0.3,
+                ),
+            ]
+        elif aug_level == "strong":
             aug_list += [
                 A.RandomRotate90(p=0.5),
                 A.ShiftScaleRotate(
