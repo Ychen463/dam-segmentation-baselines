@@ -10,15 +10,23 @@ python -m shared_eval.eval_all --model dataopt_baseline_N0 --split test --tta
 python -m shared_eval.eval_all --model dataopt_baseline_N0 --split test --tta --postprocess
 
 # --- Training + Evaluation ---
+declare -A MODEL_NAMES=(
+    [N1m]="dataopt_modaug_N1m"
+    [N2a]="dataopt_earlysrl_N2a"
+    [N3a]="dataopt_lossopts_N3a"
+    [N4a]="dataopt_combined_N4a"
+)
+
 for preset in N1m N2a N3a N4a; do
+    model="${MODEL_NAMES[$preset]}"
     echo "=== Train ${preset} ==="
     python -m full_method.train --ablation "${preset}" --epochs 100
 
     echo "=== Eval ${preset} ==="
-    python -m shared_eval.eval_all --model "dataopt_*_${preset}" --split test --per-tier
-    python -m shared_eval.eval_all --model "dataopt_*_${preset}" --split test --postprocess
-    python -m shared_eval.eval_all --model "dataopt_*_${preset}" --split test --tta
-    python -m shared_eval.eval_all --model "dataopt_*_${preset}" --split test --tta --postprocess
+    python -m shared_eval.eval_all --model "${model}" --split test --per-tier
+    python -m shared_eval.eval_all --model "${model}" --split test --postprocess
+    python -m shared_eval.eval_all --model "${model}" --split test --tta
+    python -m shared_eval.eval_all --model "${model}" --split test --tta --postprocess
 done
 
 # --- MN4: MAC + best data opts (run only if N4a > N0) ---
