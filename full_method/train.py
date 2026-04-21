@@ -753,6 +753,9 @@ def main() -> None:
             print(f"[train] restored sample_bank ({len(state['sample_bank'])} entries)")
         start_epoch = int(state.get("epoch", 0)) + 1
         best_miou = float(state.get("best_miou_fg", state.get("mIoU_fg", -1.0) or -1.0))
+        if ema_model is not None and "ema_model" in state:
+            ema_model.load_state_dict(state["ema_model"])
+            print(f"[train] restored EMA model from checkpoint")
         print(f"[train] resumed at epoch={start_epoch} best_miou_fg={best_miou:.4f}")
 
     # ----- file outputs -----
@@ -771,6 +774,16 @@ def main() -> None:
     if args.resume is None:
         save_preview(preview_model, viz_files, C.DATA_ROOT,
                      samples_dir / "epoch_000_init.png", device, cfg.img_size)
+
+    # ----- EMA setup -----
+    ema_model = None
+    if cfg.use_ema:
+        import copy
+        ema_model = copy.deepcopy(model)
+        ema_model.eval()
+        for p in ema_model.parameters():
+            p.requires_grad_(False)
+        print(f"[train] EMA enabled: decay={cfg.ema_decay} start_epoch={cfg.ema_start_epoch}")
 
     # ----- training loop -----
     run_t0 = time.time()
@@ -827,6 +840,15 @@ def main() -> None:
                              mac_ce_multipliers=_mac_ce_mults,
                              mac_topo_multiplier=_mac_topo_mult)
 
+        # 2b. Update EMA model
+        if ema_model is not None and epoch >= cfg.ema_start_epoch:
+            decay = cfg.ema_decay
+            with torch.no_grad():
+                for ep, mp in zip(ema_model.parameters(), model.parameters()):
+                    ep.mul_(decay).add_(mp, alpha=1 - decay)
+                for eb, mb in zip(ema_model.buffers(), model.buffers()):
+                    eb.copy_(mb)
+
         # 3. Print sampler stats
         ss = sampler.get_sampling_stats()
         if ss:
@@ -849,9 +871,16 @@ def main() -> None:
         do_val = (epoch % 5 == 0) or (epoch > total_epochs - 10) or (epoch == 1)
         if mac_pacer is not None:
             do_val = True  # per-epoch val for adaptive pacing
+        va_ema = None
         if do_val:
             va = evaluate(model, val_loader, criterion, device, eval_metrics,
                           curriculum_scheduler, epoch, use_amp=use_amp)
+            # EMA validation
+            if ema_model is not None and epoch >= cfg.ema_start_epoch:
+                va_ema = evaluate(ema_model, val_loader, criterion, device,
+                                  eval_metrics, curriculum_scheduler, epoch,
+                                  use_amp=use_amp)
+                print(f"  [EMA] mIoU_fg={va_ema['mIoU_fg']:.4f} vs base={va['mIoU_fg']:.4f}")
             # MAC: update pacer and class loss scheduler after validation
             if mac_pacer is not None:
                 old_stage = mac_pacer.stage
@@ -929,28 +958,40 @@ def main() -> None:
                   "morph_difficulty": s.morph_difficulty}
             for sid, s in sample_bank.items()
         }
-        torch.save(
-            {"model": model.state_dict(),
-             "optimizer": optimizer.state_dict(),
-             "scheduler": lr_scheduler.state_dict(),
-             "epoch": epoch,
-             "best_miou_fg": best_miou,
-             "sample_bank": bank_serializable},
-            last_pt,
-        )
-        if do_val and va["mIoU_fg"] > best_miou:
-            best_miou = va["mIoU_fg"]
-            torch.save(
-                {"model": model.state_dict(),
-                 "optimizer": optimizer.state_dict(),
-                 "scheduler": lr_scheduler.state_dict(),
-                 "epoch": epoch,
-                 "mIoU_fg": best_miou,
-                 "best_miou_fg": best_miou,
-                 "sample_bank": bank_serializable},
-                best_pt,
-            )
-            print(f"  [{cfg.name}] [best] mIoU_fg={best_miou:.4f}  saved -> {best_pt.name}")
+        ckpt_dict = {"model": model.state_dict(),
+                     "optimizer": optimizer.state_dict(),
+                     "scheduler": lr_scheduler.state_dict(),
+                     "epoch": epoch,
+                     "best_miou_fg": best_miou,
+                     "sample_bank": bank_serializable}
+        if ema_model is not None:
+            ckpt_dict["ema_model"] = ema_model.state_dict()
+        torch.save(ckpt_dict, last_pt)
+
+        if do_val:
+            # Pick best mIoU: compare base and EMA, use the better one
+            cur_miou = va["mIoU_fg"]
+            best_is_ema = False
+            if va_ema is not None and va_ema["mIoU_fg"] > cur_miou:
+                cur_miou = va_ema["mIoU_fg"]
+                best_is_ema = True
+            if cur_miou > best_miou:
+                best_miou = cur_miou
+                best_ckpt = {"model": model.state_dict(),
+                             "optimizer": optimizer.state_dict(),
+                             "scheduler": lr_scheduler.state_dict(),
+                             "epoch": epoch,
+                             "mIoU_fg": best_miou,
+                             "best_miou_fg": best_miou,
+                             "sample_bank": bank_serializable}
+                if ema_model is not None:
+                    best_ckpt["ema_model"] = ema_model.state_dict()
+                # If EMA is better, also save EMA weights as "model" for easy loading
+                if best_is_ema:
+                    best_ckpt["model"] = ema_model.state_dict()
+                torch.save(best_ckpt, best_pt)
+                ema_tag = " (EMA)" if best_is_ema else ""
+                print(f"  [{cfg.name}] [best] mIoU_fg={best_miou:.4f}{ema_tag}  saved -> {best_pt.name}")
 
         if epoch % 5 == 0 or epoch == 1 or epoch == total_epochs:
             save_preview(preview_model, viz_files, C.DATA_ROOT,
@@ -975,6 +1016,15 @@ def main() -> None:
     test_m = evaluate(model, test_loader, criterion, device, test_eval_metrics,
                       curriculum_scheduler, total_epochs, use_amp=use_amp)
     print(format_metrics(test_m))
+
+    # EMA test eval (if EMA was used and checkpoint has separate EMA weights)
+    if ema_model is not None and best_pt.exists() and "ema_model" in state:
+        ema_model.load_state_dict(state["ema_model"])
+        test_m_ema = evaluate(ema_model, test_loader, criterion, device,
+                              test_eval_metrics, curriculum_scheduler,
+                              total_epochs, use_amp=use_amp)
+        print("[EMA test]")
+        print(format_metrics(test_m_ema))
 
     report = rdir / "test_report.txt"
     with open(report, "w") as f:

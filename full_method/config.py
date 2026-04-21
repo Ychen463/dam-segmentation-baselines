@@ -103,6 +103,15 @@ class RunCfg:
     snake_channels: int = 64                 # crack branch hidden dim
     snake_kernel_size: int = 9               # DSConv kernel size
 
+    # EMA model averaging
+    use_ema: bool = False
+    ema_decay: float = 0.999
+    ema_start_epoch: int = 5        # warmup 期间不更新 EMA
+
+    # Lovász-Softmax loss (IoU surrogate, replaces Dice for fg classes)
+    use_lovasz_loss: bool = False
+    lovasz_weight: float = 0.5      # replaces loss_dice_w when active
+
     # Augmentation level ("basic", "moderate", or "strong")
     aug_level: str = "basic"
 
@@ -687,6 +696,48 @@ ABLATION_PRESETS = {
             "use_srl_loss": True, "cldice_weight": 0.10,
             "cldice_start_epoch": 30, "cldice_iters": 7,
             "use_soft_boundary_schedule": False},
+
+    # Set E: Round 14 — EMA + Lovász quick gains (based on N0 = DSCformer + SRL)
+    # E1: N0 + EMA only
+    "E1": {"name": "ema_only_E1",
+           "model_type": "dscformer",
+           "use_ema": True,
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+    # E2: N0 + Lovász only (replaces Dice with Lovász-Softmax)
+    "E2": {"name": "lovasz_only_E2",
+           "model_type": "dscformer",
+           "use_lovasz_loss": True,
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+    # E3: N0 + EMA + Lovász
+    "E3": {"name": "ema_lovasz_E3",
+           "model_type": "dscformer",
+           "use_ema": True,
+           "use_lovasz_loss": True,
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
 
     # Set F: full method (C2 curriculum + difficulty + clDice)
     "F1": {"name": "full_method_F1",

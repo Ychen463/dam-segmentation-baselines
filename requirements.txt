@@ -23,6 +23,9 @@ Pillow==11.3.0
 scipy==1.13.1
 scikit-image>=0.22
 
+# ---- CRF post-processing ----
+pydensecrf @ git+https://github.com/lucasb-eyer/pydensecrf.git@master
+
 # ---- Plotting + progress ----
 matplotlib==3.9.4
 tqdm==4.67.3

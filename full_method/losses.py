@@ -169,6 +169,43 @@ def snake_aux_loss(crack_enhance: torch.Tensor, targets: torch.Tensor,
 
 
 # ---------------------------------------------------------------------------
+# Lovász-Softmax loss (Berman et al., CVPR 2018)
+# ---------------------------------------------------------------------------
+
+def _lovasz_grad(gt_sorted):
+    """Compute gradient of the Lovász extension w.r.t sorted errors."""
+    p = len(gt_sorted)
+    gts = gt_sorted.sum()
+    intersection = gts - gt_sorted.float().cumsum(0)
+    union = gts + (1 - gt_sorted).float().cumsum(0)
+    jaccard = 1.0 - intersection / union
+    if p > 1:
+        jaccard[1:p] = jaccard[1:p] - jaccard[0:-1]
+    return jaccard
+
+
+def lovasz_softmax(probas, labels, classes=(1, 2)):
+    """Lovász-Softmax loss for specified foreground classes.
+
+    Args:
+        probas: (B, C, H, W) class probabilities (after softmax).
+        labels: (B, H, W) integer ground truth.
+        classes: tuple of class indices to compute loss for.
+    """
+    losses = []
+    for c in classes:
+        fg = (labels == c).float()  # (B, H, W)
+        fg_flat = fg.reshape(-1)
+        errors = (fg_flat - probas[:, c].reshape(-1)).abs()
+        errors_sorted, perm = torch.sort(errors, dim=0, descending=True)
+        fg_sorted = fg_flat[perm]
+        grad = _lovasz_grad(fg_sorted)
+        loss_c = torch.dot(F.relu(errors_sorted), grad)
+        losses.append(loss_c)
+    return sum(losses) / len(losses) if losses else probas.new_zeros(())
+
+
+# ---------------------------------------------------------------------------
 # Foreground Dice loss (reusable, matches baseline_unet.losses logic)
 # ---------------------------------------------------------------------------
 
@@ -233,7 +270,12 @@ class CompositeLoss(nn.Module):
         else:
             loss_ce = F.cross_entropy(seg_logits, targets, weight=ce_w)
 
-        loss_dice = fg_dice_loss(seg_logits, targets)
+        # Dice or Lovász loss
+        if self.cfg.use_lovasz_loss:
+            probs_lv = seg_logits.softmax(dim=1)
+            loss_dice = lovasz_softmax(probs_lv, targets, classes=(1, 2))
+        else:
+            loss_dice = fg_dice_loss(seg_logits, targets)
 
         # Tversky loss: only when enabled, with optional per-sample weighting
         if self.cfg.use_tversky_loss:
@@ -278,8 +320,9 @@ class CompositeLoss(nn.Module):
         if self.cfg.use_snake_aux_loss and "crack_enhance" in outputs:
             loss_snake = snake_aux_loss(outputs["crack_enhance"], targets)
 
+        dice_w = self.cfg.lovasz_weight if self.cfg.use_lovasz_loss else self.cfg.loss_dice_w
         total = (self.cfg.loss_ce_w * loss_ce
-                 + self.cfg.loss_dice_w * loss_dice
+                 + dice_w * loss_dice
                  + lam_crack * loss_tversky
                  + lam_bd * loss_bd
                  + self.cfg.cldice_weight * mac_topo_multiplier * loss_topo

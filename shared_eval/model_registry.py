@@ -204,7 +204,11 @@ def load_model(name: str, device: str = "cpu") -> nn.Module:
     model = entry.build_fn()
     if ckpt_path.exists():
         state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
-        model.load_state_dict(state["model"])
+        # Prefer EMA weights if available (typically better generalization)
+        if "ema_model" in state:
+            model.load_state_dict(state["ema_model"])
+        else:
+            model.load_state_dict(state["model"])
 
     if entry.inference_wrapper is not None:
         model = entry.inference_wrapper(model, entry.img_size)

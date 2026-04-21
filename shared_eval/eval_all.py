@@ -111,26 +111,51 @@ def _filter_by_tier(files: List[str], tier: str) -> List[str]:
     return [f for f in files if f.startswith(tier + "/")]
 
 
+def _apply_crf_batch(images: torch.Tensor, logits: torch.Tensor) -> np.ndarray:
+    """Apply CRF refinement to a batch. Returns (B, H, W) int predictions."""
+    from .postprocess import crf_refine_from_logits
+    imgs_np = (images.cpu().numpy().transpose(0, 2, 3, 1) * 255).clip(0, 255).astype(np.uint8)
+    logits_np = logits.cpu().numpy()
+    results = []
+    for i in range(logits_np.shape[0]):
+        refined = crf_refine_from_logits(imgs_np[i], logits_np[i],
+                                         n_classes=C.NUM_CLASSES)
+        results.append(refined)
+    return np.stack(results)
+
+
+def _postprocess_batch(logits: torch.Tensor, images: torch.Tensor,
+                       postprocess: bool, use_crf: bool,
+                       device: str):
+    """Apply optional morphological PP and/or CRF. Returns fake logits tensor or None."""
+    if not postprocess and not use_crf:
+        return None
+    if use_crf:
+        pred_np = _apply_crf_batch(images, logits)
+        if postprocess:
+            for i in range(pred_np.shape[0]):
+                pred_np[i] = postprocess_prediction(pred_np[i])
+    else:
+        pred_np = logits.argmax(dim=1).cpu().numpy()
+        for i in range(pred_np.shape[0]):
+            pred_np[i] = postprocess_prediction(pred_np[i])
+    pred_t = torch.from_numpy(pred_np).to(device)
+    fake_logits = torch.zeros_like(logits)
+    fake_logits.scatter_(1, pred_t.unsqueeze(1), 10.0)
+    return fake_logits
+
+
 @torch.no_grad()
 def _evaluate(model, loader: DataLoader, device: str,
-              postprocess: bool = False) -> Dict[str, float]:
+              postprocess: bool = False, use_crf: bool = False) -> Dict[str, float]:
     metrics = SegMetricsFull(C.NUM_CLASSES, BF1_TOLERANCE_PX)
     metrics.reset()
     for images, masks, _rels in loader:
         images = images.to(device, non_blocking=True)
         masks = masks.to(device, non_blocking=True)
         logits = model(images)
-        if postprocess:
-            pred_np = logits.argmax(dim=1).cpu().numpy()
-            for i in range(pred_np.shape[0]):
-                pred_np[i] = postprocess_prediction(pred_np[i])
-            pred_t = torch.from_numpy(pred_np).to(device)
-            # Convert back to one-hot-like logits for metrics.update
-            fake_logits = torch.zeros_like(logits)
-            fake_logits.scatter_(1, pred_t.unsqueeze(1), 10.0)
-            metrics.update(fake_logits, masks)
-        else:
-            metrics.update(logits, masks)
+        fake = _postprocess_batch(logits, images, postprocess, use_crf, device)
+        metrics.update(fake if fake is not None else logits, masks)
     return metrics.compute()
 
 
@@ -147,7 +172,7 @@ def _forward_maybe_tta(model, images: torch.Tensor, use_tta: bool) -> torch.Tens
 
 @torch.no_grad()
 def _evaluate_tta(model, loader: DataLoader, device: str,
-                  postprocess: bool = False) -> Dict[str, float]:
+                  postprocess: bool = False, use_crf: bool = False) -> Dict[str, float]:
     """Evaluate with test-time augmentation (4x flip)."""
     metrics = SegMetricsFull(C.NUM_CLASSES, BF1_TOLERANCE_PX)
     metrics.reset()
@@ -155,16 +180,8 @@ def _evaluate_tta(model, loader: DataLoader, device: str,
         images = images.to(device, non_blocking=True)
         masks = masks.to(device, non_blocking=True)
         logits = _forward_maybe_tta(model, images, use_tta=True)
-        if postprocess:
-            pred_np = logits.argmax(dim=1).cpu().numpy()
-            for i in range(pred_np.shape[0]):
-                pred_np[i] = postprocess_prediction(pred_np[i])
-            pred_t = torch.from_numpy(pred_np).to(device)
-            fake_logits = torch.zeros_like(logits)
-            fake_logits.scatter_(1, pred_t.unsqueeze(1), 10.0)
-            metrics.update(fake_logits, masks)
-        else:
-            metrics.update(logits, masks)
+        fake = _postprocess_batch(logits, images, postprocess, use_crf, device)
+        metrics.update(fake if fake is not None else logits, masks)
     return metrics.compute()
 
 
@@ -235,7 +252,7 @@ def _per_image_metrics(pred: np.ndarray, gt: np.ndarray) -> Dict[str, float]:
 @torch.no_grad()
 def _evaluate_per_image(
     model, loader: DataLoader, device: str, file_list: List[str],
-    use_tta: bool = False, postprocess: bool = False,
+    use_tta: bool = False, postprocess: bool = False, use_crf: bool = False,
 ) -> List[Dict[str, object]]:
     """Return a list of dicts, one per image, with per-image metrics + metadata."""
     rows: List[Dict[str, object]] = []
@@ -243,11 +260,17 @@ def _evaluate_per_image(
     for images, masks, rels in loader:
         images = images.to(device, non_blocking=True)
         logits = _forward_maybe_tta(model, images, use_tta)
-        pred_batch = logits.argmax(dim=1).detach().cpu().numpy()
+        if use_crf:
+            pred_batch = _apply_crf_batch(images, logits)
+            if postprocess:
+                for i in range(pred_batch.shape[0]):
+                    pred_batch[i] = postprocess_prediction(pred_batch[i])
+        else:
+            pred_batch = logits.argmax(dim=1).detach().cpu().numpy()
         gt_batch = masks.numpy()
         for b in range(pred_batch.shape[0]):
             pred_img = pred_batch[b]
-            if postprocess:
+            if not use_crf and postprocess:
                 pred_img = postprocess_prediction(pred_img)
             fname = rels[b] if isinstance(rels, list) else rels[b]
             tier = fname.split("/")[0] if "/" in fname else "unknown"
@@ -265,7 +288,7 @@ def _evaluate_per_image(
 
 def _run_eval(
     model_name: str, split: str, per_tier: bool, device: str,
-    use_tta: bool = False, postprocess: bool = False,
+    use_tta: bool = False, postprocess: bool = False, use_crf: bool = False,
 ) -> Dict[str, Dict[str, float]]:
     """Run evaluation, return dict with 'overall' and optionally tier keys."""
     entry = get_entry(model_name)
@@ -281,8 +304,9 @@ def _run_eval(
     split_path = SPLIT_FILES[split]
     all_files = read_split_file(split_path)
     pp_tag = " (PP)" if postprocess else ""
+    crf_tag = " (CRF)" if use_crf else ""
     print(f"[eval] Split '{split}': {len(all_files)} images"
-          f"{' (TTA)' if use_tta else ''}{pp_tag}")
+          f"{' (TTA)' if use_tta else ''}{pp_tag}{crf_tag}")
 
     results: Dict[str, Dict[str, float]] = {}
 
@@ -291,7 +315,8 @@ def _run_eval(
     loader = DataLoader(ds, batch_size=BATCH_SIZE, shuffle=False,
                         num_workers=NUM_WORKERS, pin_memory=(device == "cuda"))
     print(f"[eval] Running overall evaluation ...")
-    results["overall"] = eval_fn(model, loader, device, postprocess=postprocess)
+    results["overall"] = eval_fn(model, loader, device,
+                                 postprocess=postprocess, use_crf=use_crf)
 
     # Per-tier
     if per_tier:
@@ -306,14 +331,14 @@ def _run_eval(
                                   num_workers=NUM_WORKERS,
                                   pin_memory=(device == "cuda"))
             results[tier] = eval_fn(model, loader_t, device,
-                                    postprocess=postprocess)
+                                    postprocess=postprocess, use_crf=use_crf)
 
     return results
 
 
 def _run_eval_per_image(
     model_name: str, split: str, device: str,
-    use_tta: bool = False, postprocess: bool = False,
+    use_tta: bool = False, postprocess: bool = False, use_crf: bool = False,
 ) -> List[Dict[str, object]]:
     """Run per-image evaluation, return list of per-image metric dicts."""
     entry = get_entry(model_name)
@@ -331,7 +356,8 @@ def _run_eval_per_image(
     loader = DataLoader(ds, batch_size=BATCH_SIZE, shuffle=False,
                         num_workers=NUM_WORKERS, pin_memory=(device == "cuda"))
     return _evaluate_per_image(model, loader, device, all_files,
-                               use_tta=use_tta, postprocess=postprocess)
+                               use_tta=use_tta, postprocess=postprocess,
+                               use_crf=use_crf)
 
 
 def _format_results(results: Dict[str, Dict[str, float]]) -> str:
@@ -386,6 +412,8 @@ def main():
                         help="Enable test-time augmentation (4x flip)")
     parser.add_argument("--postprocess", action="store_true",
                         help="Apply morphological post-processing to predictions")
+    parser.add_argument("--crf", action="store_true",
+                        help="Apply DenseCRF post-processing (requires pydensecrf)")
     parser.add_argument("--output-dir", type=str, default="results",
                         help="Directory for JSON/CSV output (default: results/)")
     parser.add_argument("--device", type=str, default=None,
@@ -436,9 +464,12 @@ def main():
 
         # Aggregated metrics (always)
         results = _run_eval(model_name, args.split, args.per_tier, device,
-                            use_tta=args.tta, postprocess=args.postprocess)
+                            use_tta=args.tta, postprocess=args.postprocess,
+                            use_crf=args.crf)
         print(_format_results(results))
         suffix = "_tta" if args.tta else ""
+        if args.crf:
+            suffix += "_crf"
         if args.postprocess:
             suffix += "_pp"
         out_path = output_dir / f"{model_name}_{args.split}{suffix}.json"
@@ -450,7 +481,8 @@ def main():
         if args.per_image:
             rows = _run_eval_per_image(model_name, args.split, device,
                                        use_tta=args.tta,
-                                       postprocess=args.postprocess)
+                                       postprocess=args.postprocess,
+                                       use_crf=args.crf)
             csv_path = output_dir / f"{model_name}_{args.split}{suffix}_per_image.csv"
             if rows:
                 fieldnames = ["file", "tier"] + [
