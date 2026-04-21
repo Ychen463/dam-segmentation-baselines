@@ -84,14 +84,13 @@ def crf_refine_from_logits(
         Refined (H, W) argmax prediction.
     """
     import pydensecrf.densecrf as dcrf
-    from pydensecrf.utils import softmax_to_unary
     from scipy.special import softmax as sp_softmax
 
     C, H, W = logits.shape
     # Convert logits to probabilities
     probs = sp_softmax(logits, axis=0).astype(np.float32)
     # Flatten to (C, H*W) and convert to unary
-    unary = softmax_to_unary(probs.reshape(C, -1))
+    unary = np.ascontiguousarray(-np.log(np.clip(probs, 1e-10, 1.0)).reshape(C, -1).astype(np.float32))
 
     d = dcrf.DenseCRF2D(W, H, n_classes)
     d.setUnaryEnergy(unary)
