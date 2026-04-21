@@ -780,6 +780,9 @@ def main() -> None:
     if cfg.use_ema:
         import copy
         ema_model = copy.deepcopy(model)
+        # Re-register forward hooks — deepcopy hooks still reference the original model
+        if hasattr(ema_model, '_register_hooks'):
+            ema_model._register_hooks()
         ema_model.eval()
         for p in ema_model.parameters():
             p.requires_grad_(False)
