@@ -97,9 +97,12 @@ def _build_mask2former():
     return build_model_and_processor(cfg)
 
 
-def _build_full_method(model_type: str = "segformer") -> nn.Module:
+def _build_full_method(model_type: str = "segformer",
+                       pretrained: str = None) -> nn.Module:
     from full_method import config as fm_C
     cfg = fm_C.RunCfg()
+    if pretrained:
+        cfg.pretrained = pretrained
     if model_type == "dscformer":
         from full_method.model import DSCformerDam
         return DSCformerDam(cfg.pretrained, fm_C.NUM_CLASSES, cfg=cfg)
@@ -287,10 +290,13 @@ from full_method.config import ABLATION_PRESETS as _ABLATION_PRESETS  # noqa: E4
 for _preset_id, _preset_cfg in _ABLATION_PRESETS.items():
     _abl_name = _preset_cfg["name"]
     _model_type = _preset_cfg.get("model_type", "segformer")
+    _img_size = _preset_cfg.get("img_size", 512)
+    _pretrained = _preset_cfg.get("pretrained", None)
     register(ModelEntry(
         name=_abl_name,
         checkpoint=_CODES / "full_method" / "runs" / _abl_name / "best.pt",
-        img_size=512,
-        build_fn=functools.partial(_build_full_method, model_type=_model_type),
+        img_size=_img_size,
+        build_fn=functools.partial(_build_full_method, model_type=_model_type,
+                                   pretrained=_pretrained),
         inference_wrapper=FullMethodLogitsWrapper,
     ))

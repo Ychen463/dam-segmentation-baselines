@@ -112,6 +112,10 @@ class RunCfg:
     use_lovasz_loss: bool = False
     lovasz_weight: float = 0.5      # replaces loss_dice_w when active
 
+    # OHEM CE loss (keep only top-k% hardest pixels)
+    use_ohem: bool = False
+    ohem_ratio: float = 0.25        # keep top 25% hardest pixels
+
     # Augmentation level ("basic", "moderate", or "strong")
     aug_level: str = "basic"
 
@@ -738,6 +742,70 @@ ABLATION_PRESETS = {
            "use_srl_loss": True, "cldice_weight": 0.05,
            "cldice_start_epoch": 60, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
+
+    # Set R15: Round 15 — capacity-first improvements (based on N0)
+    # R15a: native resolution 640×640
+    "R15a": {"name": "r15_hires_640",
+             "model_type": "dscformer", "img_size": 640,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+    # R15b: SegFormer-B5 backbone at 512
+    "R15b": {"name": "r15_b5_512",
+             "model_type": "dscformer",
+             "pretrained": "nvidia/segformer-b5-finetuned-ade-640-640",
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+    # R15d: OHEM CE loss (top 25% hardest pixels)
+    "R15d": {"name": "r15_ohem_R15d",
+             "model_type": "dscformer",
+             "use_ohem": True, "ohem_ratio": 0.25,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+    # R15e: lr=3e-5
+    "R15e": {"name": "r15_lr3e5_R15e",
+             "model_type": "dscformer", "lr": 3e-5,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+    # R15f: lr=1e-4
+    "R15f": {"name": "r15_lr1e4_R15f",
+             "model_type": "dscformer", "lr": 1e-4,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
 
     # Set F: full method (C2 curriculum + difficulty + clDice)
     "F1": {"name": "full_method_F1",

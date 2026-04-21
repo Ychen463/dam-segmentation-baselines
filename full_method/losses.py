@@ -184,6 +184,16 @@ def _lovasz_grad(gt_sorted):
     return jaccard
 
 
+def ohem_cross_entropy(logits, targets, weight, ratio=0.25):
+    """Online Hard Example Mining CE: keep only top-k% hardest pixels."""
+    ce = F.cross_entropy(logits, targets, weight=weight, reduction='none')  # (B,H,W)
+    B = ce.shape[0]
+    ce_flat = ce.reshape(B, -1)
+    k = max(1, int(ce_flat.shape[1] * ratio))
+    topk, _ = ce_flat.topk(k, dim=1)
+    return topk.mean()
+
+
 def lovasz_softmax(probas, labels, classes=(1, 2)):
     """Lovász-Softmax loss for specified foreground classes.
 
@@ -261,8 +271,11 @@ class CompositeLoss(nn.Module):
             ce_w[1] = ce_w[1] * crack_mult
             ce_w[2] = ce_w[2] * spalling_mult
 
-        # CE loss: per-sample weighted when sample_weights provided
-        if sample_weights is not None:
+        # CE loss: OHEM, per-sample weighted, or standard
+        if self.cfg.use_ohem:
+            loss_ce = ohem_cross_entropy(seg_logits, targets, ce_w,
+                                         ratio=self.cfg.ohem_ratio)
+        elif sample_weights is not None:
             ce_unreduced = F.cross_entropy(seg_logits, targets, weight=ce_w,
                                            reduction='none')  # (B,H,W)
             ce_per_sample = ce_unreduced.mean(dim=(1, 2))  # (B,)

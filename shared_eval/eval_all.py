@@ -147,20 +147,60 @@ def _postprocess_batch(logits: torch.Tensor, images: torch.Tensor,
 
 @torch.no_grad()
 def _evaluate(model, loader: DataLoader, device: str,
-              postprocess: bool = False, use_crf: bool = False) -> Dict[str, float]:
+              postprocess: bool = False, use_crf: bool = False,
+              use_multiscale: bool = False) -> Dict[str, float]:
     metrics = SegMetricsFull(C.NUM_CLASSES, BF1_TOLERANCE_PX)
     metrics.reset()
     for images, masks, _rels in loader:
         images = images.to(device, non_blocking=True)
         masks = masks.to(device, non_blocking=True)
-        logits = model(images)
+        if use_multiscale:
+            logits = _forward_multiscale(model, images)
+        else:
+            logits = model(images)
         fake = _postprocess_batch(logits, images, postprocess, use_crf, device)
         metrics.update(fake if fake is not None else logits, masks)
     return metrics.compute()
 
 
-def _forward_maybe_tta(model, images: torch.Tensor, use_tta: bool) -> torch.Tensor:
-    """Forward pass with optional test-time augmentation (4x flip ensemble)."""
+def _forward_multiscale(model, images: torch.Tensor,
+                         scales=(0.75, 1.0, 1.25)) -> torch.Tensor:
+    """Multi-scale inference: average logits across multiple resolutions."""
+    import torch.nn.functional as _F
+    B, C, H, W = images.shape
+    logits_sum = None
+    for s in scales:
+        sH, sW = int(H * s), int(W * s)
+        x = _F.interpolate(images, (sH, sW), mode='bilinear', align_corners=False)
+        logits = model(x)
+        logits = _F.interpolate(logits, (H, W), mode='bilinear', align_corners=False)
+        logits_sum = logits if logits_sum is None else logits_sum + logits
+    return logits_sum / len(scales)
+
+
+def _forward_maybe_tta(model, images: torch.Tensor, use_tta: bool,
+                       use_multiscale: bool = False) -> torch.Tensor:
+    """Forward pass with optional TTA (4x flip) and/or multi-scale ensemble."""
+    if use_multiscale:
+        # Multi-scale: run each scale, optionally with flip TTA per scale
+        import torch.nn.functional as _F
+        B, C, H, W = images.shape
+        scales = (0.75, 1.0, 1.25)
+        logits_sum = None
+        for s in scales:
+            sH, sW = int(H * s), int(W * s)
+            x = _F.interpolate(images, (sH, sW), mode='bilinear', align_corners=False)
+            # Per-scale: original + optional flips
+            sl = model(x)
+            if use_tta:
+                sl = sl + model(x.flip(-1)).flip(-1)
+                sl = sl + model(x.flip(-2)).flip(-2)
+                sl = sl + model(x.flip(-1, -2)).flip(-1, -2)
+                sl = sl / 4.0
+            sl = _F.interpolate(sl, (H, W), mode='bilinear', align_corners=False)
+            logits_sum = sl if logits_sum is None else logits_sum + sl
+        return logits_sum / len(scales)
+
     logits = model(images)
     if not use_tta:
         return logits
@@ -172,14 +212,16 @@ def _forward_maybe_tta(model, images: torch.Tensor, use_tta: bool) -> torch.Tens
 
 @torch.no_grad()
 def _evaluate_tta(model, loader: DataLoader, device: str,
-                  postprocess: bool = False, use_crf: bool = False) -> Dict[str, float]:
-    """Evaluate with test-time augmentation (4x flip)."""
+                  postprocess: bool = False, use_crf: bool = False,
+                  use_multiscale: bool = False) -> Dict[str, float]:
+    """Evaluate with test-time augmentation (4x flip) and/or multi-scale."""
     metrics = SegMetricsFull(C.NUM_CLASSES, BF1_TOLERANCE_PX)
     metrics.reset()
     for images, masks, _rels in loader:
         images = images.to(device, non_blocking=True)
         masks = masks.to(device, non_blocking=True)
-        logits = _forward_maybe_tta(model, images, use_tta=True)
+        logits = _forward_maybe_tta(model, images, use_tta=True,
+                                    use_multiscale=use_multiscale)
         fake = _postprocess_batch(logits, images, postprocess, use_crf, device)
         metrics.update(fake if fake is not None else logits, masks)
     return metrics.compute()
@@ -188,7 +230,7 @@ def _evaluate_tta(model, loader: DataLoader, device: str,
 @torch.no_grad()
 def _evaluate_ensemble(
     model_names: List[str], loader: DataLoader, device: str,
-    use_tta: bool = False,
+    use_tta: bool = False, use_multiscale: bool = False,
 ) -> Dict[str, float]:
     """Evaluate an ensemble of models (average logits)."""
     models = [load_model(n, device=device) for n in model_names]
@@ -199,7 +241,8 @@ def _evaluate_ensemble(
         masks = masks.to(device, non_blocking=True)
         logits_sum = None
         for m in models:
-            logits = _forward_maybe_tta(m, images, use_tta)
+            logits = _forward_maybe_tta(m, images, use_tta,
+                                        use_multiscale=use_multiscale)
             logits_sum = logits if logits_sum is None else logits_sum + logits
         logits_sum = logits_sum / len(models)
         metrics.update(logits_sum, masks)
@@ -253,13 +296,15 @@ def _per_image_metrics(pred: np.ndarray, gt: np.ndarray) -> Dict[str, float]:
 def _evaluate_per_image(
     model, loader: DataLoader, device: str, file_list: List[str],
     use_tta: bool = False, postprocess: bool = False, use_crf: bool = False,
+    use_multiscale: bool = False,
 ) -> List[Dict[str, object]]:
     """Return a list of dicts, one per image, with per-image metrics + metadata."""
     rows: List[Dict[str, object]] = []
     idx = 0
     for images, masks, rels in loader:
         images = images.to(device, non_blocking=True)
-        logits = _forward_maybe_tta(model, images, use_tta)
+        logits = _forward_maybe_tta(model, images, use_tta,
+                                    use_multiscale=use_multiscale)
         if use_crf:
             pred_batch = _apply_crf_batch(images, logits)
             if postprocess:
@@ -289,6 +334,7 @@ def _evaluate_per_image(
 def _run_eval(
     model_name: str, split: str, per_tier: bool, device: str,
     use_tta: bool = False, postprocess: bool = False, use_crf: bool = False,
+    use_multiscale: bool = False,
 ) -> Dict[str, Dict[str, float]]:
     """Run evaluation, return dict with 'overall' and optionally tier keys."""
     entry = get_entry(model_name)
@@ -305,8 +351,9 @@ def _run_eval(
     all_files = read_split_file(split_path)
     pp_tag = " (PP)" if postprocess else ""
     crf_tag = " (CRF)" if use_crf else ""
+    ms_tag = " (MS)" if use_multiscale else ""
     print(f"[eval] Split '{split}': {len(all_files)} images"
-          f"{' (TTA)' if use_tta else ''}{pp_tag}{crf_tag}")
+          f"{' (TTA)' if use_tta else ''}{ms_tag}{pp_tag}{crf_tag}")
 
     results: Dict[str, Dict[str, float]] = {}
 
@@ -316,7 +363,8 @@ def _run_eval(
                         num_workers=NUM_WORKERS, pin_memory=(device == "cuda"))
     print(f"[eval] Running overall evaluation ...")
     results["overall"] = eval_fn(model, loader, device,
-                                 postprocess=postprocess, use_crf=use_crf)
+                                 postprocess=postprocess, use_crf=use_crf,
+                                 use_multiscale=use_multiscale)
 
     # Per-tier
     if per_tier:
@@ -331,7 +379,8 @@ def _run_eval(
                                   num_workers=NUM_WORKERS,
                                   pin_memory=(device == "cuda"))
             results[tier] = eval_fn(model, loader_t, device,
-                                    postprocess=postprocess, use_crf=use_crf)
+                                    postprocess=postprocess, use_crf=use_crf,
+                                    use_multiscale=use_multiscale)
 
     return results
 
@@ -339,6 +388,7 @@ def _run_eval(
 def _run_eval_per_image(
     model_name: str, split: str, device: str,
     use_tta: bool = False, postprocess: bool = False, use_crf: bool = False,
+    use_multiscale: bool = False,
 ) -> List[Dict[str, object]]:
     """Run per-image evaluation, return list of per-image metric dicts."""
     entry = get_entry(model_name)
@@ -357,7 +407,7 @@ def _run_eval_per_image(
                         num_workers=NUM_WORKERS, pin_memory=(device == "cuda"))
     return _evaluate_per_image(model, loader, device, all_files,
                                use_tta=use_tta, postprocess=postprocess,
-                               use_crf=use_crf)
+                               use_crf=use_crf, use_multiscale=use_multiscale)
 
 
 def _format_results(results: Dict[str, Dict[str, float]]) -> str:
@@ -412,6 +462,8 @@ def main():
                         help="Enable test-time augmentation (4x flip)")
     parser.add_argument("--postprocess", action="store_true",
                         help="Apply morphological post-processing to predictions")
+    parser.add_argument("--multiscale", action="store_true",
+                        help="Multi-scale inference (0.75x, 1.0x, 1.25x)")
     parser.add_argument("--crf", action="store_true",
                         help="Apply DenseCRF post-processing (requires pydensecrf)")
     parser.add_argument("--output-dir", type=str, default="results",
@@ -443,12 +495,16 @@ def main():
         loader = DataLoader(ds, batch_size=BATCH_SIZE, shuffle=False,
                             num_workers=NUM_WORKERS, pin_memory=(device == "cuda"))
         print(f"[eval] Split '{args.split}': {len(all_files)} images"
-              f"{' (TTA)' if args.tta else ''}")
+              f"{' (TTA)' if args.tta else ''}"
+              f"{' (MS)' if args.multiscale else ''}")
 
         results = {"overall": _evaluate_ensemble(model_names, loader, device,
-                                                  use_tta=args.tta)}
+                                                  use_tta=args.tta,
+                                                  use_multiscale=args.multiscale)}
         print(_format_results(results))
         suffix = "_tta" if args.tta else ""
+        if args.multiscale:
+            suffix += "_ms"
         out_path = output_dir / f"ensemble_{ensemble_tag}_{args.split}{suffix}.json"
         with open(out_path, "w") as f:
             json.dump(results, f, indent=2)
@@ -465,9 +521,11 @@ def main():
         # Aggregated metrics (always)
         results = _run_eval(model_name, args.split, args.per_tier, device,
                             use_tta=args.tta, postprocess=args.postprocess,
-                            use_crf=args.crf)
+                            use_crf=args.crf, use_multiscale=args.multiscale)
         print(_format_results(results))
         suffix = "_tta" if args.tta else ""
+        if args.multiscale:
+            suffix += "_ms"
         if args.crf:
             suffix += "_crf"
         if args.postprocess:
@@ -482,7 +540,8 @@ def main():
             rows = _run_eval_per_image(model_name, args.split, device,
                                        use_tta=args.tta,
                                        postprocess=args.postprocess,
-                                       use_crf=args.crf)
+                                       use_crf=args.crf,
+                                       use_multiscale=args.multiscale)
             csv_path = output_dir / f"{model_name}_{args.split}{suffix}_per_image.csv"
             if rows:
                 fieldnames = ["file", "tier"] + [
