@@ -1,0 +1,22 @@
+{
+  "overall": {
+    "IoU_background": 0.4696636459899027,
+    "Dice_background": 0.6391444018791895,
+    "IoU_crack": 0.036401433588508246,
+    "Dice_crack": 0.07024581867369557,
+    "IoU_spalling": 2.7378258012703512e-05,
+    "Dice_spalling": 5.475501692842607e-05,
+    "mIoU_fg": 0.018214405923260475,
+    "mIoU_all": 0.16869748594547454,
+    "pixel_acc": 0.4754098002115885,
+    "BF1_crack": 0.06670416973358871,
+    "BF1_spalling": 0.008369904263342247,
+    "BF1_fg_mean": 0.03753703699846548,
+    "clDice_crack": 0.07524986492527773,
+    "ConnR_crack": 0.5481133516617606,
+    "clDice_spalling": 0.0,
+    "ConnR_spalling": 0.0,
+    "clDice_fg_mean": 0.037624932462638865,
+    "ConnR_fg_mean": 0.2740566758308803
+  }
+}
