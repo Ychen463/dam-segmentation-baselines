@@ -271,7 +271,7 @@ register(ModelEntry(
 # Mask2Former Swin-Small 512
 register(ModelEntry(
     name="mask2former_swin_small_512",
-    checkpoint=_CODES / "baseline_mask2former" / "runs" / "mask2former_swin_small_512" / "best.pt",
+    checkpoint=_CODES / "baseline_mask2former" / "runs" / "mask2former_plain_M0" / "best.pt",
     img_size=512,
     build_fn=lambda: None,  # handled specially in load_model
 ))
