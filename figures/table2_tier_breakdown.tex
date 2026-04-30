@@ -1,0 +1,29 @@
+% Table 2: Per-difficulty-tier performance breakdown
+\begin{table*}[t]
+\centering
+\caption{Per-difficulty-tier performance on the DamSegment test set.}
+\label{tab:tier_breakdown}
+\begin{tabular}{llccccc}
+\toprule
+Tier & Method & mIoU$_{fg}$ & IoU$_{cr}$ & IoU$_{sp}$ & BF1$_{fg}$ & clDice$_{fg}$ \\
+\midrule
+Easy & U-Net (R34) & 62.1 & 55.8 & 68.4 & 62.4 & 76.5 \\
+ & DeepLabV3+ (R50) & 65.1 & 58.2 & 72.1 & 54.0 & 75.3 \\
+ & Mask2Former (Swin-S) & 71.0 & 64.1 & 78.0 & \textbf{72.1} & \textbf{89.2} \\
+ & SegFormer-B2 & 74.8 & 63.4 & 86.1 & 65.1 & 84.9 \\
+ & Ours & \textbf{76.0} & \textbf{65.2} & \textbf{86.9} & 68.3 & 87.0 \\
+\midrule
+Medium & U-Net (R34) & 62.1 & 55.8 & 68.4 & 67.5 & 72.2 \\
+ & DeepLabV3+ (R50) & 68.6 & 58.0 & 79.2 & 67.0 & 81.1 \\
+ & Mask2Former (Swin-S) & 70.5 & 59.9 & 81.0 & 76.9 & \textbf{89.6} \\
+ & SegFormer-B2 & 71.1 & 60.0 & 82.2 & 66.6 & 77.6 \\
+ & Ours & \textbf{72.7} & \textbf{61.0} & \textbf{84.3} & \textbf{77.9} & 89.6 \\
+\midrule
+Hard & U-Net (R34) & 55.9 & 46.9 & 64.9 & 65.2 & 69.7 \\
+ & DeepLabV3+ (R50) & 61.1 & 48.8 & 73.4 & 61.5 & 71.1 \\
+ & Mask2Former (Swin-S) & 65.8 & 52.9 & 78.6 & 70.7 & 81.5 \\
+ & SegFormer-B2 & 64.4 & 53.0 & 75.8 & 69.4 & 79.4 \\
+ & Ours & \textbf{66.1} & \textbf{53.2} & \textbf{79.0} & \textbf{75.5} & \textbf{84.4} \\
+\bottomrule
+\end{tabular}
+\end{table*}

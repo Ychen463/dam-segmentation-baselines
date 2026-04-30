@@ -1,0 +1,17 @@
+% Table 3: Ablation study
+\begin{table*}[t]
+\centering
+\caption{Ablation study on the DamSegment test set. Each row adds a component to the baseline.}
+\label{tab:ablation}
+\begin{tabular}{lcccccc}
+\toprule
+Configuration & mIoU$_{fg}$ & IoU$_{cr}$ & IoU$_{sp}$ & BF1$_{fg}$ & clDice$_{fg}$ & ConnR$_{fg}$ \\
+\midrule
+SegFormer-B2 (baseline) & 70.4 & 56.9 & 83.8 & 66.8 & 81.4 & 80.9 \\
++ DSConv & 70.4 & 56.9 & 84.0 & 69.4 & 85.5 & \textbf{83.6} \\
++ DSConv + SRL (Ours) & 71.4 & 57.6 & \textbf{85.2} & \textbf{72.1} & 86.2 & 82.3 \\
++ DSConv + Aux Loss & 71.1 & 57.6 & 84.5 & 72.0 & \textbf{87.6} & 80.0 \\
++ Curriculum Learning & \textbf{71.5} & \textbf{57.8} & 85.2 & 71.8 & 85.5 & 81.5 \\
+\bottomrule
+\end{tabular}
+\end{table*}

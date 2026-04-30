@@ -1,0 +1,20 @@
+% Table 1: Main quantitative comparison on DamSegment test set
+\begin{table*}[t]
+\centering
+\caption{Quantitative comparison on the DamSegment test set. Best results in \textbf{bold}. Ours = SegFormer-B2 + DSConv + SRL.}
+\label{tab:main_comparison}
+\begin{tabular}{lcccccc}
+\toprule
+Method & mIoU$_{fg}$ & IoU$_{cr}$ & IoU$_{sp}$ & BF1$_{fg}$ & clDice$_{fg}$ & ConnR$_{fg}$ \\
+\midrule
+U-Net (ResNet-34) & 59.6 & 51.3 & 67.9 & 64.6 & 73.7 & 76.6 \\
+DeepLabV3+ (R34, 320) & 54.7 & 46.1 & 63.2 & 56.2 & 64.6 & 65.2 \\
+DeepLabV3+ (R50, 512) & 63.4 & 53.3 & 73.5 & 59.2 & 75.1 & 74.6 \\
+Mask2Former (Swin-S) & 67.9 & 57.1 & 78.6 & \textbf{72.5} & \textbf{86.6} & 72.6 \\
+SegFormer-B2 & 70.4 & 56.9 & 83.8 & 66.8 & 81.4 & 80.9 \\
+\midrule
+Ours & 71.4 & 57.6 & 85.2 & 72.1 & 86.2 & \textbf{82.3} \\
+Ours + TTA & \textbf{71.8} & \textbf{58.1} & \textbf{85.6} & 71.2 & 86.3 & 81.4 \\
+\bottomrule
+\end{tabular}
+\end{table*}
