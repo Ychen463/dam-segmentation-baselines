@@ -105,6 +105,22 @@ class RunCfg:
     use_multiscale_snake: bool = False       # Multi-Scale DSConv (E1 preset)
     snake_kernel_sizes: tuple = (5, 9, 15)   # kernel sizes for multi-scale branch
 
+    # Skeleton-Distance Weighted Loss (SDWL)
+    use_sdwl: bool = False               # enable skeleton-distance weighted CE
+    sdwl_start_epoch: int = 30           # start SDWL after this epoch
+    sdwl_w_skel: float = 3.0            # weight for skeleton pixels
+    sdwl_w_near: float = 2.0            # weight for near-skeleton pixels
+    sdwl_near_radius: int = 3           # "near skeleton" radius in pixels
+    sdwl_w_bg_near: float = 1.5         # weight for background near crack boundary
+
+    # Progressive Loss Curriculum phases
+    # Phase 1: CE + Dice (basic segmentation)
+    # Phase 2: + SDWL (focus on skeleton topology)
+    # Phase 3: + SRL (fine-tune connectivity)
+    use_progressive_loss: bool = False   # enable progressive loss scheduling
+    progressive_phase2_epoch: int = 30   # start Phase 2 (SDWL)
+    progressive_phase3_epoch: int = 60   # start Phase 3 (SRL)
+
     # Dual-Task Skeleton Consistency (G3/G4 preset — Plan A)
     use_skeleton_head: bool = False           # add skeleton prediction branch
     skeleton_head_hidden: int = 128           # hidden dim for skeleton head
@@ -569,6 +585,57 @@ ABLATION_PRESETS = {
             "use_srl_loss": True, "cldice_weight": 0.05,
             "cldice_start_epoch": 60, "cldice_iters": 7,
             "use_soft_boundary_schedule": False},
+
+    # Set PL: Progressive Loss + SDWL experiments
+    # PL1: DSCformer + SDWL only (no SRL) — test SDWL in isolation
+    "PL1": {"name": "dscformer_sdwl_PL1",
+            "model_type": "dscformer",
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_sdwl": True,
+            "sdwl_start_epoch": 30,
+            "sdwl_w_skel": 3.0, "sdwl_w_near": 2.0,
+            "sdwl_near_radius": 3, "sdwl_w_bg_near": 1.5},
+    # PL2: DSCformer + Progressive Loss (SDWL phase2 + SRL phase3)
+    "PL2": {"name": "dscformer_progressive_PL2",
+            "model_type": "dscformer",
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_sdwl": True,
+            "sdwl_start_epoch": 30,
+            "sdwl_w_skel": 3.0, "sdwl_w_near": 2.0,
+            "sdwl_near_radius": 3, "sdwl_w_bg_near": 1.5,
+            "use_srl_loss": True, "cldice_weight": 0.05,
+            "cldice_start_epoch": 60, "cldice_iters": 7,
+            "use_progressive_loss": True,
+            "progressive_phase2_epoch": 30,
+            "progressive_phase3_epoch": 60},
+    # PL3: DSCformer + SDWL + SRL (both from epoch 30, no progressive)
+    "PL3": {"name": "dscformer_sdwl_srl_PL3",
+            "model_type": "dscformer",
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_sdwl": True,
+            "sdwl_start_epoch": 30,
+            "sdwl_w_skel": 3.0, "sdwl_w_near": 2.0,
+            "sdwl_near_radius": 3, "sdwl_w_bg_near": 1.5,
+            "use_srl_loss": True, "cldice_weight": 0.05,
+            "cldice_start_epoch": 30, "cldice_iters": 7},
 
     # Set M: Morphology-Aware Curriculum (MAC) ablation on DSCformer + SRL base
     # Base: DSCformer + SRL (G1), no old curriculum, dynamic difficulty ON

@@ -118,6 +118,61 @@ def soft_cldice_loss(prob, target, iters=7, eps=1e-6):
 # Skeleton Recall Loss (SRL) — Kirchhoff et al., ECCV 2024
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Skeleton-Distance Weighted Loss (SDWL)
+# ---------------------------------------------------------------------------
+
+def skeleton_distance_weights(targets, crack_skel, w_skel=3.0, w_near=2.0,
+                               near_radius=3, bg_near_crack_w=1.5):
+    """Create per-pixel weight map based on distance from crack skeleton.
+
+    Pixels closer to the skeleton are more important for topology preservation.
+    This creates a spatial importance gradient from skeleton outward:
+      - Skeleton pixels: w_skel (highest)
+      - Within near_radius of skeleton: w_near
+      - Other crack pixels: 1.0
+      - Background near crack boundary: bg_near_crack_w (reduce false negatives)
+      - Other background / spalling: 1.0
+
+    Args:
+        targets: (B, H, W) ground truth masks.
+        crack_skel: (B, 1, H, W) binary GT skeleton.
+        w_skel: weight for skeleton pixels.
+        w_near: weight for pixels near skeleton.
+        near_radius: radius (in pixels) for "near skeleton" zone.
+        bg_near_crack_w: weight for background pixels adjacent to crack.
+
+    Returns:
+        (B, H, W) per-pixel weight map.
+    """
+    B, H, W = targets.shape
+    weights = torch.ones_like(targets, dtype=torch.float32)
+
+    crack_mask = (targets == 1).float()             # (B, H, W)
+    skel_2d = crack_skel[:, 0]                      # (B, H, W)
+
+    # Skeleton pixels get highest weight
+    weights = torch.where(skel_2d > 0.5, w_skel, weights)
+
+    # Near-skeleton zone: dilate skeleton and intersect with crack
+    if near_radius > 0:
+        ks = 2 * near_radius + 1
+        skel_dilated = F.max_pool2d(
+            crack_skel, ks, stride=1, padding=near_radius
+        )[:, 0]  # (B, H, W)
+        near_skel = (skel_dilated > 0.5) & (skel_2d < 0.5) & (crack_mask > 0.5)
+        weights = torch.where(near_skel, w_near, weights)
+
+    # Background pixels near crack boundary: dilate crack, take bg intersection
+    crack_dilated = F.max_pool2d(
+        crack_mask.unsqueeze(1), 5, stride=1, padding=2
+    )[:, 0]  # (B, H, W)
+    bg_near_crack = (crack_dilated > 0.5) & (targets == 0)
+    weights = torch.where(bg_near_crack, bg_near_crack_w, weights)
+
+    return weights
+
+
 def skeleton_recall_loss(pred_prob, skel_gt, eps=1e-6):
     """Skeleton Recall Loss: mean predicted probability at GT skeleton pixels.
 
@@ -444,10 +499,27 @@ class CompositeLoss(nn.Module):
             ce_w[1] = ce_w[1] * crack_mult
             ce_w[2] = ce_w[2] * spalling_mult
 
-        # CE loss: OHEM, per-sample weighted, or standard
+        # CE loss: OHEM, SDWL-weighted, per-sample weighted, or standard
         if self.cfg.use_ohem:
             loss_ce = ohem_cross_entropy(seg_logits, targets, ce_w,
                                          ratio=self.cfg.ohem_ratio)
+        elif self.cfg.use_sdwl and crack_skel is not None and crack_skel.any():
+            # Skeleton-Distance Weighted Loss: per-pixel CE weighted by
+            # proximity to crack skeleton
+            sdwl_active = epoch >= self.cfg.sdwl_start_epoch
+            if sdwl_active:
+                sdw = skeleton_distance_weights(
+                    targets, crack_skel,
+                    w_skel=self.cfg.sdwl_w_skel,
+                    w_near=self.cfg.sdwl_w_near,
+                    near_radius=self.cfg.sdwl_near_radius,
+                    bg_near_crack_w=self.cfg.sdwl_w_bg_near,
+                )  # (B, H, W)
+                ce_unreduced = F.cross_entropy(seg_logits, targets, weight=ce_w,
+                                               reduction='none')  # (B,H,W)
+                loss_ce = (ce_unreduced * sdw).mean()
+            else:
+                loss_ce = F.cross_entropy(seg_logits, targets, weight=ce_w)
         elif sample_weights is not None:
             ce_unreduced = F.cross_entropy(seg_logits, targets, weight=ce_w,
                                            reduction='none')  # (B,H,W)

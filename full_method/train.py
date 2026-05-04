@@ -80,7 +80,7 @@ def build_train_loader(records: List[Dict], sampler: TierAwareDynamicSampler,
     ds = FullMethodDataset(C.DATA_ROOT, records,
                            build_transforms(cfg.img_size, train=True,
                                           aug_level=getattr(cfg, 'aug_level', 'basic')),
-                           compute_skel=cfg.use_srl_loss)
+                           compute_skel=cfg.use_srl_loss or getattr(cfg, 'use_sdwl', False))
     pin = (device == "cuda")
     return DataLoader(ds, batch_size=cfg.batch_size, sampler=sampler,
                       num_workers=4, pin_memory=pin, drop_last=False,
