@@ -190,6 +190,77 @@ class CrackSnakeBranch(nn.Module):
         return self.head(out)
 
 
+class MultiScaleCrackSnakeBranch(nn.Module):
+    """Multi-Scale Dynamic Snake Convolution branch for crack enhancement.
+
+    Uses parallel DSConv paths at multiple kernel sizes (5, 9, 15) to capture
+    cracks of varying widths — from hairline (1-3px) to wide structural (20+px).
+    Each scale has bidirectional (x+y) snake convolutions. Outputs are fused
+    via a learned 1x1 convolution, allowing the model to adaptively weight
+    each scale per spatial location.
+
+    This is the key architectural novelty: standard DSConv uses a single kernel
+    size, which limits its receptive field to one characteristic crack width.
+    Multi-scale DSConv provides scale-adaptive deformable sampling.
+    """
+
+    def __init__(self, s1_ch: int = 128, s2_ch: int = 320,
+                 hidden: int = 64, kernel_sizes: tuple = (5, 9, 15)):
+        super().__init__()
+        self.proj_s1 = nn.Conv2d(s1_ch, hidden, 1)
+        self.proj_s2 = nn.Conv2d(s2_ch, hidden, 1)
+
+        # Multi-scale DSConv paths
+        self.scales = nn.ModuleList()
+        for ks in kernel_sizes:
+            self.scales.append(nn.ModuleDict({
+                'dsconv_x': DSConv(hidden, hidden, ks, morph=0),
+                'dsconv_y': DSConv(hidden, hidden, ks, morph=1),
+            }))
+
+        # Fuse multi-scale outputs: N_scales * hidden → hidden
+        n_scales = len(kernel_sizes)
+        self.fuse = nn.Sequential(
+            nn.Conv2d(hidden * n_scales, hidden, 1),
+            nn.GroupNorm(min(8, hidden), hidden),
+            nn.ReLU(inplace=True),
+        )
+
+        self.head = nn.Sequential(
+            nn.Conv2d(hidden, hidden // 2, 3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden // 2, 1, 1),
+        )
+        # Zero-init output so branch starts as no-op
+        nn.init.zeros_(self.head[-1].weight)
+        nn.init.zeros_(self.head[-1].bias)
+
+    def forward(self, s1: torch.Tensor, s2: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            s1: (B, 128, H/8, W/8) — encoder stage 1
+            s2: (B, 320, H/16, W/16) — encoder stage 2
+        Returns:
+            (B, 1, H/8, W/8) crack enhancement logits
+        """
+        f1 = self.proj_s1(s1)
+        f2 = F.interpolate(self.proj_s2(s2), size=s1.shape[-2:],
+                           mode="bilinear", align_corners=False)
+        fused = f1 + f2  # (B, hidden, H/8, W/8)
+
+        # Parallel multi-scale DSConv
+        scale_outs = []
+        for scale in self.scales:
+            out_s = scale['dsconv_x'](fused) + scale['dsconv_y'](fused)
+            scale_outs.append(out_s)
+
+        # Concatenate and fuse
+        multi = torch.cat(scale_outs, dim=1)  # (B, hidden*N, H/8, W/8)
+        fused_multi = self.fuse(multi)         # (B, hidden, H/8, W/8)
+
+        return self.head(fused_multi)
+
+
 class AttentionGate(nn.Module):
     """Learnable gate for DSConv fusion (Plan B).
 
@@ -287,10 +358,20 @@ class DSCformerDam(nn.Module):
         ks = cfg.snake_kernel_size if cfg is not None else 9
         # SegFormer-B2 encoder dims: [64, 128, 320, 512]
         encoder_dims = self.hf_model.config.hidden_sizes  # [64, 128, 320, 512]
-        self.snake_branch = CrackSnakeBranch(
-            s1_ch=encoder_dims[1], s2_ch=encoder_dims[2],
-            hidden=hidden, kernel_size=ks,
-        )
+
+        # Multi-scale DSConv branch (E1 preset) or single-scale (default)
+        self.use_multiscale_snake = cfg is not None and getattr(cfg, 'use_multiscale_snake', False)
+        if self.use_multiscale_snake:
+            snake_kernel_sizes = getattr(cfg, 'snake_kernel_sizes', (5, 9, 15))
+            self.snake_branch = MultiScaleCrackSnakeBranch(
+                s1_ch=encoder_dims[1], s2_ch=encoder_dims[2],
+                hidden=hidden, kernel_sizes=snake_kernel_sizes,
+            )
+        else:
+            self.snake_branch = CrackSnakeBranch(
+                s1_ch=encoder_dims[1], s2_ch=encoder_dims[2],
+                hidden=hidden, kernel_size=ks,
+            )
 
         # Attention-gated fusion (Plan B, G4 preset)
         self.use_attention_gate = cfg is not None and getattr(cfg, 'use_attention_gate', False)

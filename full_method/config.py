@@ -101,7 +101,9 @@ class RunCfg:
     # Model architecture
     model_type: str = "segformer"            # "segformer" or "dscformer"
     snake_channels: int = 64                 # crack branch hidden dim
-    snake_kernel_size: int = 9               # DSConv kernel size
+    snake_kernel_size: int = 9               # DSConv kernel size (single-scale)
+    use_multiscale_snake: bool = False       # Multi-Scale DSConv (E1 preset)
+    snake_kernel_sizes: tuple = (5, 9, 15)   # kernel sizes for multi-scale branch
 
     # Dual-Task Skeleton Consistency (G3/G4 preset — Plan A)
     use_skeleton_head: bool = False           # add skeleton prediction branch
@@ -550,6 +552,25 @@ ABLATION_PRESETS = {
            "use_srl_loss": True, "cldice_weight": 0.05,
            "cldice_start_epoch": 60, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
+
+    # Set E: Multi-Scale DSConv experiments
+    # E1: Multi-Scale DSConv (kernel 5/9/15) + SRL — architectural novelty
+    "E1": {"name": "dscformer_multiscale_E1",
+           "model_type": "dscformer",
+           "use_multiscale_snake": True,
+           "snake_kernel_sizes": (5, 9, 15),
+           "snake_channels": 64,
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False},
+    # E2: Multi-Scale DSConv + SRL + boundary-distance weighted CE (future)
+    # E3: Multi-Scale DSConv + skeleton-guided post-processing (future)
 
     # Set M: Morphology-Aware Curriculum (MAC) ablation on DSCformer + SRL base
     # Base: DSCformer + SRL (G1), no old curriculum, dynamic difficulty ON
