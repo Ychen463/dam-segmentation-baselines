@@ -729,6 +729,7 @@ def main() -> None:
     # ----- resume -----
     start_epoch = 1
     best_miou = -1.0
+    ema_model = None  # initialized properly later; needed here for resume block
     if args.resume is not None:
         resume_path = Path(args.resume)
         if not resume_path.is_absolute():
