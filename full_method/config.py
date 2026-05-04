@@ -553,24 +553,22 @@ ABLATION_PRESETS = {
            "cldice_start_epoch": 60, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
 
-    # Set E: Multi-Scale DSConv experiments
-    # E1: Multi-Scale DSConv (kernel 5/9/15) + SRL — architectural novelty
-    "E1": {"name": "dscformer_multiscale_E1",
-           "model_type": "dscformer",
-           "use_multiscale_snake": True,
-           "snake_kernel_sizes": (5, 9, 15),
-           "snake_channels": 64,
-           "no_curriculum": True,
-           "use_soft_curriculum": False, "use_softmax_sampling": False,
-           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
-           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
-           "use_boundary_loss": False, "use_tversky_loss": False,
-           "use_cldice_loss": False,
-           "use_srl_loss": True, "cldice_weight": 0.05,
-           "cldice_start_epoch": 60, "cldice_iters": 7,
-           "use_soft_boundary_schedule": False},
-    # E2: Multi-Scale DSConv + SRL + boundary-distance weighted CE (future)
-    # E3: Multi-Scale DSConv + skeleton-guided post-processing (future)
+    # Set MS: Multi-Scale DSConv experiments
+    # MS1: Multi-Scale DSConv (kernel 5/9/15) + SRL — architectural novelty
+    "MS1": {"name": "dscformer_multiscale_MS1",
+            "model_type": "dscformer",
+            "use_multiscale_snake": True,
+            "snake_kernel_sizes": (5, 9, 15),
+            "snake_channels": 64,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False,
+            "use_srl_loss": True, "cldice_weight": 0.05,
+            "cldice_start_epoch": 60, "cldice_iters": 7,
+            "use_soft_boundary_schedule": False},
 
     # Set M: Morphology-Aware Curriculum (MAC) ablation on DSCformer + SRL base
     # Base: DSCformer + SRL (G1), no old curriculum, dynamic difficulty ON
