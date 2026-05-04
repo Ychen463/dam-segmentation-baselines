@@ -295,7 +295,7 @@ def skeleton_contrastive_loss(contrast_feat, targets, crack_skel,
 
         # Mask out self-similarity
         self_mask = torch.eye(n_s, device=feat.device, dtype=torch.bool)
-        pos_sim = pos_sim.masked_fill(self_mask, -1e9)
+        pos_sim = pos_sim.masked_fill(self_mask, torch.finfo(pos_sim.dtype).min)
 
         # InfoNCE per anchor: -log(exp(pos) / (exp(pos) + sum(exp(neg))))
         # Use mean positive as the positive logit
