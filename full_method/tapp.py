@@ -58,20 +58,19 @@ def morphological_shape_filter(
 
     remove_labels = set()
     for prop in props:
-        # Small isolated blobs
+        # Small isolated blobs — always remove
         if prop.area < min_area:
             remove_labels.add(prop.label)
             continue
 
-        # Round components (not crack-like)
-        if prop.eccentricity < min_eccentricity:
-            remove_labels.add(prop.label)
-            continue
-
-        # Too compact/solid (crack should be thin with lots of convex hull gaps)
-        if prop.solidity > max_solidity and prop.area < 500:
-            remove_labels.add(prop.label)
-            continue
+        # For medium-sized components, require crack-like shape.
+        # Large components (>= 500 px) are kept regardless of shape,
+        # since they likely represent real defects even if not perfectly elongated.
+        if prop.area < 500:
+            # Round AND compact — not crack-like
+            if prop.eccentricity < min_eccentricity and prop.solidity > max_solidity:
+                remove_labels.add(prop.label)
+                continue
 
     if not remove_labels:
         return mask
@@ -173,8 +172,8 @@ def _draw_line(mask: np.ndarray, y0: int, x0: int, y1: int, x1: int,
 def skeleton_guided_gap_filling(
     mask: np.ndarray,
     crack_class: int = 1,
-    max_gap: int = 15,
-    max_angle_deg: float = 45.0,
+    max_gap: int = 25,
+    max_angle_deg: float = 60.0,
     dilate_radius: int = 2,
 ) -> np.ndarray:
     """Reconnect broken crack segments by bridging nearby skeleton endpoints.

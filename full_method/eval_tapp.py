@@ -140,8 +140,8 @@ def main():
     parser.add_argument("--msf-min-ecc", type=float, default=0.85)
     parser.add_argument("--msf-max-sol", type=float, default=0.85)
     # SGF parameters
-    parser.add_argument("--sgf-max-gap", type=int, default=15)
-    parser.add_argument("--sgf-max-angle", type=float, default=45.0)
+    parser.add_argument("--sgf-max-gap", type=int, default=25)
+    parser.add_argument("--sgf-max-angle", type=float, default=60.0)
     parser.add_argument("--sgf-dilate", type=int, default=2)
     # Full ablation mode
     parser.add_argument("--ablation", action="store_true",
