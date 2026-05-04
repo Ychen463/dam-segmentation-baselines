@@ -1,0 +1,25 @@
+run: dscformer_srl_G1
+tta: scales=[0.75, 1.0, 1.25] flip=True n_views=9
+test set metrics (TTA):
+  IoU_background: 0.977550764436468
+  IoU_crack: 0.5897075304369338
+  IoU_spalling: 0.8557723920499182
+  Dice_background: 0.9886479599071485
+  Dice_crack: 0.7419069472167018
+  Dice_spalling: 0.9222816286264688
+  mIoU_fg: 0.722739961243426
+  mIoU_all: 0.8076768956411068
+  pixel_acc: 0.978347905476888
+  BF1_crack: 0.7654929281193174
+  BF1_spalling: 0.6923076858404705
+  BF1_fg_mean: 0.7289003069798939
+  clDice_crack: 0.8384920354399609
+  clDice_spalling: 0.8890067193786788
+  clDice_fg_mean: 0.8637493774093199
+  ConnR_crack: 0.8122864307045686
+  ConnR_spalling: 0.7837837837837838
+  ConnR_fg_mean: 0.7980351072441763
+confusion matrix (rows=gt, cols=pred):
+[[36864847   487714    27907]
+ [  280331  1110802     2277]
+ [   50641     2525   494556]]
