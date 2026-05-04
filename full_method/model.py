@@ -190,11 +190,38 @@ class CrackSnakeBranch(nn.Module):
         return self.head(out)
 
 
+class SkeletonPredictionHead(nn.Module):
+    """Lightweight head that predicts crack skeleton from decoder features.
+
+    Used in the Dual-Task Skeleton Consistency framework (G3 preset):
+    the model must simultaneously predict segmentation AND skeleton,
+    with a consistency loss enforcing that the predicted skeleton matches
+    the skeleton of the predicted segmentation.
+    """
+
+    def __init__(self, feat_dim: int = 768, hidden: int = 128):
+        super().__init__()
+        self.head = nn.Sequential(
+            nn.Conv2d(feat_dim, hidden, 3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden, hidden // 2, 3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden // 2, 1, 1),
+        )
+
+    def forward(self, fuse_feat: torch.Tensor) -> torch.Tensor:
+        """Returns (B, 1, H/4, W/4) skeleton logits."""
+        return self.head(fuse_feat)
+
+
 class DSCformerDam(nn.Module):
     """SegFormer-B2 + Dynamic Snake Convolution crack branch + boundary head.
 
     Identical to SegFormerWithBoundary at initialization (zero-init snake branch).
     The snake branch gradually learns to enhance the crack channel.
+
+    When cfg.use_skeleton_head=True, adds a SkeletonPredictionHead for
+    dual-task skeleton consistency learning.
     """
 
     def __init__(self, pretrained: str, num_classes: int = C.NUM_CLASSES,
@@ -227,6 +254,14 @@ class DSCformerDam(nn.Module):
             s1_ch=encoder_dims[1], s2_ch=encoder_dims[2],
             hidden=hidden, kernel_size=ks,
         )
+
+        # Skeleton prediction head (dual-task, G3 preset)
+        self.use_skeleton_head = cfg is not None and getattr(cfg, 'use_skeleton_head', False)
+        if self.use_skeleton_head:
+            self.skeleton_head = SkeletonPredictionHead(
+                feat_dim=feat_dim,
+                hidden=getattr(cfg, 'skeleton_head_hidden', 128),
+            )
 
         self._fuse_feat = None
         self._register_hooks()
@@ -265,11 +300,17 @@ class DSCformerDam(nn.Module):
         seg_logits = seg_logits.clone()
         seg_logits[:, 1:2] = seg_logits[:, 1:2] + crack_enhance
 
-        return {
+        result = {
             "seg_logits": seg_logits,
             "boundary_logits": boundary_logits,
             "crack_enhance": crack_enhance,
         }
+
+        # Skeleton prediction (dual-task)
+        if self.use_skeleton_head:
+            result["skel_logits"] = self.skeleton_head(self._fuse_feat)
+
+        return result
 
 
 class _PreviewWrapper(nn.Module):

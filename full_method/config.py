@@ -103,6 +103,13 @@ class RunCfg:
     snake_channels: int = 64                 # crack branch hidden dim
     snake_kernel_size: int = 9               # DSConv kernel size
 
+    # Dual-Task Skeleton Consistency (G3 preset)
+    use_skeleton_head: bool = False           # add skeleton prediction branch
+    skeleton_head_hidden: int = 128           # hidden dim for skeleton head
+    skel_pred_weight: float = 0.10           # weight for skeleton prediction loss
+    skel_consist_weight: float = 0.05        # weight for skeleton consistency loss
+    skel_consist_start_epoch: int = 40       # start consistency loss after this epoch
+
     # EMA model averaging
     use_ema: bool = False
     ema_decay: float = 0.999
@@ -415,6 +422,25 @@ ABLATION_PRESETS = {
            "use_srl_loss": True, "cldice_weight": 0.05,
            "cldice_start_epoch": 60, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
+
+    # G3: DSCformerDam + SRL + Dual-Task Skeleton Consistency
+    # Adds a skeleton prediction head + consistency loss for novelty
+    "G3": {"name": "dscformer_skelconsist_G3",
+           "model_type": "dscformer",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False,
+           "use_skeleton_head": True,
+           "skeleton_head_hidden": 128,
+           "skel_pred_weight": 0.10,
+           "skel_consist_weight": 0.05,
+           "skel_consist_start_epoch": 40},
 
     # Set H: DSCformerDam + snake aux loss (vs G series)
     "H0": {"name": "dscformer_aux_H0",

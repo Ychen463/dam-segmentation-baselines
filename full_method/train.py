@@ -136,6 +136,7 @@ def oom_probe(model: nn.Module, cfg: C.RunCfg, device: str) -> bool:
 METRIC_KEYS: List[str] = [
     "epoch", "split", "train_loss", "val_loss",
     "loss_ce", "loss_dice", "loss_tversky", "loss_bd", "loss_cldice", "loss_snake",
+    "loss_skel_pred", "loss_skel_consist",
     "IoU_background", "IoU_crack", "IoU_spalling",
     "Dice_background", "Dice_crack", "Dice_spalling",
     "mIoU_fg", "mIoU_all", "pixel_acc",
@@ -157,7 +158,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
     model.train()
     metrics.reset()
     loss_sum = 0.0
-    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0}
+    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0, "loss_skel_pred": 0.0, "loss_skel_consist": 0.0}
     n_batches = 0
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)

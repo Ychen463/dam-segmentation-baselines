@@ -142,6 +142,77 @@ def skeleton_recall_loss(pred_prob, skel_gt, eps=1e-6):
 
 
 # ---------------------------------------------------------------------------
+# Skeleton Prediction Loss + Consistency Loss (Dual-Task, G3 preset)
+# ---------------------------------------------------------------------------
+
+def skeleton_prediction_loss(skel_logits, skel_gt, eps=1e-6):
+    """BCE + Dice loss for skeleton prediction head.
+
+    Args:
+        skel_logits: (B, 1, H, W) raw logits from skeleton head.
+        skel_gt: (B, 1, H, W) binary GT skeleton.
+
+    Returns:
+        Scalar loss combining BCE and Dice for skeleton prediction.
+    """
+    # Resize if needed
+    if skel_logits.shape[-2:] != skel_gt.shape[-2:]:
+        skel_logits = F.interpolate(skel_logits, size=skel_gt.shape[-2:],
+                                    mode="bilinear", align_corners=False)
+    # BCE
+    bce = F.binary_cross_entropy_with_logits(skel_logits, skel_gt, reduction='mean')
+    # Dice
+    p = torch.sigmoid(skel_logits)
+    inter = (p * skel_gt).sum()
+    card = p.sum() + skel_gt.sum()
+    dice = 1.0 - (2.0 * inter + eps) / (card + eps)
+    return 0.5 * bce + 0.5 * dice
+
+
+def skeleton_consistency_loss(seg_logits, skel_logits, targets, eps=1e-6):
+    """Topology consistency loss: predicted skeleton should match skeleton of
+    predicted segmentation.
+
+    The idea: if the model predicts a crack region, the skeleton of that region
+    should match what the skeleton head predicts. This enforces structural
+    coherence between the two tasks.
+
+    Implementation: soft Dice between (skeleton_head output) and
+    (soft morphological skeleton of predicted crack probability).
+
+    Args:
+        seg_logits: (B, C, H, W) segmentation logits.
+        skel_logits: (B, 1, H, W) skeleton prediction logits.
+        targets: (B, H, W) ground truth masks (for size reference).
+
+    Returns:
+        Scalar consistency loss.
+    """
+    H, W = targets.shape[-2:]
+    # Get predicted crack probability
+    seg_up = F.interpolate(seg_logits, size=(H, W), mode="bilinear", align_corners=False)
+    p_crack = seg_up.softmax(dim=1)[:, 1:2]  # (B, 1, H, W)
+
+    # Compute soft skeleton of predicted crack (lightweight: 5 iterations)
+    pred_skel = soft_skel(p_crack, iters=5)  # (B, 1, H, W)
+
+    # Get skeleton head prediction
+    skel_pred = torch.sigmoid(F.interpolate(skel_logits, size=(H, W),
+                                            mode="bilinear", align_corners=False))
+
+    # Soft Dice between the two skeleton representations
+    inter = (pred_skel * skel_pred).sum(dim=(1, 2, 3))
+    card = pred_skel.sum(dim=(1, 2, 3)) + skel_pred.sum(dim=(1, 2, 3))
+    dice = (2.0 * inter + eps) / (card + eps)
+
+    # Only compute for samples that have crack pixels
+    has_crack = (p_crack.sum(dim=(1, 2, 3)) > 1.0)
+    if has_crack.any():
+        return 1.0 - dice[has_crack].mean()
+    return seg_logits.new_zeros(())
+
+
+# ---------------------------------------------------------------------------
 # Snake branch auxiliary loss (crack-only focal BCE + Dice)
 # ---------------------------------------------------------------------------
 
@@ -333,13 +404,28 @@ class CompositeLoss(nn.Module):
         if self.cfg.use_snake_aux_loss and "crack_enhance" in outputs:
             loss_snake = snake_aux_loss(outputs["crack_enhance"], targets)
 
+        # Dual-task skeleton losses (G3 preset)
+        loss_skel_pred = seg_logits.new_zeros(())
+        loss_skel_consist = seg_logits.new_zeros(())
+        if self.cfg.use_skeleton_head and "skel_logits" in outputs:
+            skel_logits = outputs["skel_logits"]
+            # Skeleton prediction loss (supervised by GT skeleton)
+            if crack_skel is not None and crack_skel.any():
+                loss_skel_pred = skeleton_prediction_loss(skel_logits, crack_skel)
+            # Skeleton consistency loss (active after skel_consist_start_epoch)
+            if epoch >= self.cfg.skel_consist_start_epoch:
+                loss_skel_consist = skeleton_consistency_loss(
+                    seg_logits, skel_logits, targets)
+
         dice_w = self.cfg.lovasz_weight if self.cfg.use_lovasz_loss else self.cfg.loss_dice_w
         total = (self.cfg.loss_ce_w * loss_ce
                  + dice_w * loss_dice
                  + lam_crack * loss_tversky
                  + lam_bd * loss_bd
                  + self.cfg.cldice_weight * mac_topo_multiplier * loss_topo
-                 + self.cfg.snake_aux_weight * loss_snake)
+                 + self.cfg.snake_aux_weight * loss_snake
+                 + self.cfg.skel_pred_weight * loss_skel_pred
+                 + self.cfg.skel_consist_weight * loss_skel_consist)
 
         # Per-sample signals for difficulty estimation (detach!)
         ps_ce = per_sample_ce(seg_logits, targets, self.ce_weight).detach()
@@ -352,6 +438,8 @@ class CompositeLoss(nn.Module):
             "loss_bd": loss_bd.item(),
             "loss_cldice": loss_topo.item(),
             "loss_snake": loss_snake.item(),
+            "loss_skel_pred": loss_skel_pred.item(),
+            "loss_skel_consist": loss_skel_consist.item(),
             "per_sample_ce": ps_ce.cpu(),
             "per_sample_ent": ps_ent.cpu(),
         }
