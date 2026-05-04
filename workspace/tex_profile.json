@@ -1,0 +1,18 @@
+{
+  "pdflatex": false,
+  "latexmk": false,
+  "bibtex": false,
+  "available_packages": [
+    "amsmath",
+    "amssymb",
+    "graphicx",
+    "booktabs",
+    "hyperref",
+    "xcolor",
+    "multirow",
+    "times"
+  ],
+  "use_cref": false,
+  "use_microtype": false,
+  "notes": "Manually generated profile; TeX not fully verified on this system"
+}

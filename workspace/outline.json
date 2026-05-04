@@ -1,0 +1,341 @@
+{
+  "plotting_plan": [
+    {
+      "figure_id": "fig_framework_overview",
+      "title": "Overview of the Proposed DSCFormer Architecture",
+      "plot_type": "diagram",
+      "data_source": "idea.md",
+      "objective": "Illustrate the full architecture: SegFormer-B2 encoder → MLP decoder → segmentation head, with the DSConv branch consuming stages 1-2 and additively enhancing crack logits, plus the SRL loss path from GT skeletons.",
+      "aspect_ratio": "16:9"
+    },
+    {
+      "figure_id": "fig_dataset_overview",
+      "title": "DamSegment Dataset Samples Across Difficulty Tiers",
+      "plot_type": "plot",
+      "data_source": "experimental_log.md",
+      "objective": "Show representative image-mask pairs from Easy, Medium, and Hard tiers to illustrate the difficulty variance and annotation quality of the DamSegment dataset.",
+      "aspect_ratio": "16:9"
+    },
+    {
+      "figure_id": "fig_main_comparison_bar",
+      "title": "Main Quantitative Comparison: mIoU, BF1, and clDice",
+      "plot_type": "plot",
+      "data_source": "experimental_log.md",
+      "objective": "Grouped bar chart comparing all 5 baselines and our method on the three most important metrics (mIoU_fg, BF1_fg, clDice_fg), visually highlighting our gains in BF1 and clDice.",
+      "aspect_ratio": "3:2"
+    },
+    {
+      "figure_id": "fig_ablation_component_contribution",
+      "title": "Ablation Study: Component Contributions",
+      "plot_type": "plot",
+      "data_source": "experimental_log.md",
+      "objective": "Bar or waterfall chart showing incremental gains from baseline → +DSConv → +DSConv+SRL across mIoU, BF1, and clDice, demonstrating complementarity of the two components.",
+      "aspect_ratio": "4:3"
+    },
+    {
+      "figure_id": "fig_training_dynamics",
+      "title": "Training Curves: Validation mIoU and Loss Over Epochs",
+      "plot_type": "plot",
+      "data_source": "experimental_log.md",
+      "objective": "Line plots of val mIoU_fg and training loss for the baseline and proposed method, annotating the SRL activation point at epoch 60.",
+      "aspect_ratio": "16:9"
+    },
+    {
+      "figure_id": "fig_qualitative_comparison",
+      "title": "Qualitative Segmentation Results",
+      "plot_type": "plot",
+      "data_source": "both",
+      "objective": "Grid of input images, GT masks, and predictions from SegFormer-B2 baseline vs Ours, focusing on cases where our method preserves crack connectivity (visible in clDice improvement).",
+      "aspect_ratio": "3:2"
+    },
+    {
+      "figure_id": "fig_per_tier_radar",
+      "title": "Per-Tier Performance Radar Chart",
+      "plot_type": "plot",
+      "data_source": "experimental_log.md",
+      "objective": "Radar chart showing performance of SegFormer-B2 vs Ours across 5 metrics for each difficulty tier, demonstrating robustness across Easy/Medium/Hard.",
+      "aspect_ratio": "1:1"
+    }
+  ],
+  "intro_related_work_plan": {
+    "introduction_strategy": {
+      "hook_hypothesis": "Concrete dams are critical infrastructure requiring regular surface inspection; automated crack and spalling segmentation can replace costly manual inspection but current methods fail to preserve the topological connectivity of thin crack structures.",
+      "problem_gap_hypothesis": "Existing semantic segmentation methods optimize pixel-level metrics (IoU) but do not explicitly enforce topological correctness — leading to fragmented crack predictions that are unreliable for structural safety assessment.",
+      "search_directions": [
+        "Find highly cited papers on automated concrete defect detection and structural health monitoring",
+        "Search for surveys on crack detection in civil infrastructure using deep learning",
+        "Identify foundational papers on topology-preserving segmentation losses (clDice, persistent homology)",
+        "Find papers on deformable convolutions and their application to elongated structures",
+        "Search for benchmark datasets in concrete crack segmentation and structural defect analysis",
+        "Identify papers discussing the gap between pixel-level metrics and topological correctness in segmentation"
+      ]
+    },
+    "related_work_strategy": {
+      "overview": "Investigate three paradigms to establish the necessity of our DSConv + SRL approach: (1) concrete defect segmentation methods and their limitations in topology preservation, (2) topology-aware losses and their computational costs, (3) deformable/snake convolutions for tubular structures.",
+      "subsections": [
+        {
+          "subsection_title": "2.1 Concrete Defect Segmentation",
+          "methodology_cluster": "CNN and Transformer models for crack/spalling detection",
+          "sota_investigation_mission": "Identify the current SOTA methods for concrete crack and spalling segmentation (2020-2025). Determine which metrics they report and whether they evaluate topological correctness.",
+          "limitation_hypothesis": "Most methods only report pixel-level IoU/Dice and do not evaluate boundary precision or topological connectivity, making it unclear whether predictions are usable for structural assessment.",
+          "limitation_search_queries": [
+            "deep learning concrete crack segmentation benchmark comparison",
+            "spalling detection semantic segmentation neural network",
+            "concrete dam surface defect deep learning",
+            "CrackNet DeepCrack pixel-wise crack detection"
+          ],
+          "bridge_to_our_method": "Our DamSegment benchmark fills this gap by evaluating with BF1, clDice, and ConnR alongside IoU, and our method is specifically designed to optimize these topology metrics."
+        },
+        {
+          "subsection_title": "2.2 Topology-Aware Segmentation",
+          "methodology_cluster": "Topology-preserving losses and constraints (clDice, persistent homology, skeleton-based)",
+          "sota_investigation_mission": "Find papers proposing topology-aware losses for segmentation, including clDice (soft-clDice), persistent homology losses, and skeleton-based approaches. Determine their computational overhead and applicability to multi-class segmentation.",
+          "limitation_hypothesis": "Existing topology losses (soft-clDice, persistent homology) require expensive online computation (differentiable skeletonization or topological feature extraction) that increases training time and can cause gradient instability.",
+          "limitation_search_queries": [
+            "clDice topology-preserving loss segmentation",
+            "soft skeleton dice loss tubular structure",
+            "persistent homology loss image segmentation",
+            "topology-aware training curvilinear structure segmentation"
+          ],
+          "bridge_to_our_method": "Our Skeleton Recall Loss achieves similar topological improvements using cheap precomputed GT skeletons, avoiding online skeletonization overhead and enabling a simple delayed-start strategy for stability."
+        },
+        {
+          "subsection_title": "2.3 Deformable and Dynamic Convolutions for Elongated Structures",
+          "methodology_cluster": "Deformable convolutions, dynamic snake convolution, and shape-adaptive feature extraction",
+          "sota_investigation_mission": "Find papers on deformable convolutions (DCN, DCNv2) and Dynamic Snake Convolution for tubular/curvilinear structure segmentation. Identify their application domains (medical imaging, road extraction) and whether they have been applied to crack detection.",
+          "limitation_hypothesis": "Dynamic Snake Convolution has been proposed for medical tubular structures but has not been adapted for multi-class structural defect segmentation where only one class (crack) is elongated while another (spalling) is region-based.",
+          "limitation_search_queries": [
+            "dynamic snake convolution tubular structure segmentation",
+            "deformable convolution crack detection",
+            "DSConv curvilinear structure feature extraction",
+            "deformable convolution network DCN semantic segmentation"
+          ],
+          "bridge_to_our_method": "We propose a class-selective DSConv branch that only enhances crack logits (not spalling), using zero-initialization to start as a no-op and learn crack-specific deformations without disrupting the backbone's spalling predictions."
+        }
+      ]
+    }
+  },
+  "section_plan": [
+    {
+      "section_title": "Abstract",
+      "subsections": [
+        {
+          "subsection_title": "Abstract Content",
+          "content_bullets": [
+            "State the problem: automated crack and spalling segmentation in concrete dams requires topological correctness, not just pixel accuracy.",
+            "Introduce DSCFormer: SegFormer-B2 augmented with a Dynamic Snake Convolution branch for crack geometry and Skeleton Recall Loss for topology preservation.",
+            "Highlight key results: +5.3 BF1 and +4.8 clDice over SegFormer-B2 baseline on the DamSegment benchmark (1500 images, 3 difficulty tiers).",
+            "Note the DamSegment benchmark contribution with comprehensive topology-aware evaluation."
+          ],
+          "citation_hints": []
+        }
+      ]
+    },
+    {
+      "section_title": "1. Introduction",
+      "subsections": [
+        {
+          "subsection_title": "1.1 Motivation and Problem",
+          "content_bullets": [
+            "Concrete dams are critical infrastructure requiring regular inspection for cracks and spalling. Manual inspection is costly and subjective.",
+            "Cracks are thin (1-5px) elongated structures whose topological connectivity is essential for structural safety assessment — a fragmented prediction is worse than an imprecise one.",
+            "Standard segmentation models optimize IoU but produce topologically broken crack predictions. We need metrics and methods that explicitly enforce connectivity.",
+            "Three challenges: thin crack topology, class imbalance (crack pixels < 5%), difficulty variance across inspection conditions."
+          ],
+          "citation_hints": [
+            "research paper or technical report introducing 'concrete dam inspection automation'",
+            "research paper or technical report introducing 'structural health monitoring deep learning'"
+          ]
+        },
+        {
+          "subsection_title": "1.2 Contributions",
+          "content_bullets": [
+            "Contribution 1: A lightweight DSConv branch for crack-specific topology-aware feature extraction, achieving +5.3 BF1 and +4.8 clDice.",
+            "Contribution 2: Skeleton Recall Loss — a simple, efficient topology-preserving loss using precomputed GT skeletons with delayed activation.",
+            "Contribution 3: DamSegment benchmark — 1500 images with 3 difficulty tiers and comprehensive evaluation (6 metrics × 3 tiers × 5 baselines)."
+          ],
+          "citation_hints": []
+        }
+      ]
+    },
+    {
+      "section_title": "3. Method",
+      "subsections": [
+        {
+          "subsection_title": "3.1 Overview",
+          "content_bullets": [
+            "Present the overall architecture diagram (reference fig_framework_overview).",
+            "Explain the design philosophy: topology-aware enhancements at both the feature extraction level (DSConv) and training objective level (SRL)."
+          ],
+          "citation_hints": []
+        },
+        {
+          "subsection_title": "3.2 SegFormer-B2 Backbone",
+          "content_bullets": [
+            "Describe the SegFormer-B2 hierarchical transformer encoder with 4 stages producing features at H/4, H/8, H/16, H/32.",
+            "Describe the lightweight MLP decoder that fuses multi-scale features.",
+            "Justify choice: strong baseline on ADE20K, efficient, good multi-scale representation."
+          ],
+          "citation_hints": [
+            "Xie et al. (SegFormer: Simple and Efficient Design for Semantic Segmentation with Transformers)",
+            "research paper or technical report introducing 'ADE20K dataset'"
+          ]
+        },
+        {
+          "subsection_title": "3.3 Dynamic Snake Convolution Branch",
+          "content_bullets": [
+            "Define DSConv: deformable sampling along x and y axes with learnable offsets, kernel_size=9, hidden_dim=64.",
+            "Architecture: dual parallel DSConv paths (x-axis and y-axis) consuming encoder stages 1-2 (H/4, H/8 resolution), producing a crack enhancement map.",
+            "Additive enhancement: DSConv output is added only to the crack channel logits, leaving spalling predictions unchanged.",
+            "Zero-initialization strategy: output projection initialized to zero so the branch starts as a no-op and gradually activates during training.",
+            "Intuition: standard convolutions have fixed receptive fields misaligned with crack geometry; DSConv deforms sampling along the crack direction."
+          ],
+          "citation_hints": [
+            "Qi et al. (Dynamic Snake Convolution based on Topological Geometric Constraints for Tubular Structure Segmentation)",
+            "research paper or technical report introducing 'deformable convolutions DCN'",
+            "Dai et al. (Deformable Convolutional Networks)"
+          ]
+        },
+        {
+          "subsection_title": "3.4 Skeleton Recall Loss",
+          "content_bullets": [
+            "Define SRL formula: L_SRL = 1 - (1/|S|) * sum(p_crack(p)) for p in skeleton pixels S.",
+            "GT skeletons are precomputed offline via morphological skeletonization — no runtime overhead unlike soft-clDice.",
+            "Delayed start at epoch 60: prevents early instability when the model has not yet learned basic crack features.",
+            "Weight = 0.05: small relative to CE+Dice to avoid dominating gradient.",
+            "Comparison with soft-clDice: SRL is simpler (no differentiable skeletonization), cheaper, and more stable."
+          ],
+          "citation_hints": [
+            "Shit et al. (clDice - a Novel Topology-Preserving Loss Function for Tubular Structure Segmentation)",
+            "research paper or technical report introducing 'morphological skeletonization'"
+          ]
+        },
+        {
+          "subsection_title": "3.5 Composite Loss Function",
+          "content_bullets": [
+            "Define the full loss: L = 0.5*L_CE + 0.5*L_Dice + 0.05*L_SRL (SRL active after epoch 60).",
+            "Justify weights: CE for pixel-level classification, Dice for class imbalance, SRL for topology.",
+            "Note that SRL's delayed start and small weight make it a gentle topology regularizer, not a dominant training signal."
+          ],
+          "citation_hints": [
+            "research paper or technical report introducing 'Dice loss for segmentation'",
+            "Milletari et al. (V-Net: Fully Convolutional Neural Networks for Volumetric Medical Image Segmentation)"
+          ]
+        }
+      ]
+    },
+    {
+      "section_title": "4. Experiments",
+      "subsections": [
+        {
+          "subsection_title": "4.1 Dataset: DamSegment",
+          "content_bullets": [
+            "1500 concrete dam surface images at 512x512, 3 classes (background, crack, spalling).",
+            "Three difficulty tiers (Easy/Medium/Hard, 500 each) based on defect complexity, lighting, and overlap.",
+            "Train/Val/Test split: 1200/150/150, stratified by tier and spalling presence.",
+            "Reference fig_dataset_overview for representative samples."
+          ],
+          "citation_hints": []
+        },
+        {
+          "subsection_title": "4.2 Implementation Details",
+          "content_bullets": [
+            "Backbone: SegFormer-B2 pretrained on ADE20K-512. Image size: 512. Batch size: 4.",
+            "Optimizer: AdamW, lr=6e-5, weight_decay=1e-4. 5-epoch linear warmup. 100 total epochs.",
+            "DSConv: hidden_dim=64, kernel_size=9. SRL: weight=0.05, start epoch 60.",
+            "All baselines trained with same data augmentation and evaluation protocol for fair comparison."
+          ],
+          "citation_hints": [
+            "research paper or technical report introducing 'AdamW optimizer'",
+            "Loshchilov and Hutter (Decoupled Weight Decay Regularization)",
+            "Paszke et al. (PyTorch: An Imperative Style, High-Performance Deep Learning Library)"
+          ]
+        },
+        {
+          "subsection_title": "4.3 Main Comparison",
+          "content_bullets": [
+            "Compare 5 baselines: U-Net (R34), DeepLabV3+ (R50), Mask2Former (Swin-S), SegFormer-B2, plus our DSCFormer.",
+            "Report 6 metrics: mIoU_fg, IoU_crack, IoU_spalling, BF1_fg, clDice_fg, ConnR_fg.",
+            "Key finding: Ours achieves best BF1 (+5.3 vs SegFormer-B2) and best clDice (+4.8), with modest mIoU gain (+1.0).",
+            "Argue that BF1 and clDice are more relevant than mIoU for structural inspection applications.",
+            "Reference fig_main_comparison_bar and Table 1."
+          ],
+          "citation_hints": [
+            "Ronneberger et al. (U-Net: Convolutional Networks for Biomedical Image Segmentation)",
+            "Chen et al. (Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation)",
+            "Cheng et al. (Masked-attention Mask Transformer for Universal Image Segmentation)",
+            "research paper or technical report introducing 'Boundary F1 score'"
+          ]
+        },
+        {
+          "subsection_title": "4.4 Per-Tier Analysis",
+          "content_bullets": [
+            "Our method achieves best results on ALL three difficulty tiers.",
+            "Largest BF1 and clDice margins on Medium and Hard tiers, demonstrating robustness.",
+            "Reference Table 2 and fig_per_tier_radar."
+          ],
+          "citation_hints": []
+        },
+        {
+          "subsection_title": "4.5 Ablation Study",
+          "content_bullets": [
+            "Ablation chain: SegFormer-B2 → +DSConv (G0) → +DSConv+SRL (G1, Ours).",
+            "DSConv alone: mIoU +0.0, BF1 +2.6, clDice +4.1 — primarily topology/boundary improvement.",
+            "Adding SRL: mIoU +1.0, BF1 +2.7, clDice +0.7 — adds both mIoU and boundary gains.",
+            "The two components are complementary: one improves features, the other improves training signal.",
+            "Reference fig_ablation_component_contribution and Table 3."
+          ],
+          "citation_hints": []
+        },
+        {
+          "subsection_title": "4.6 Qualitative Results",
+          "content_bullets": [
+            "Show prediction visualizations comparing baseline vs Ours on challenging cases.",
+            "Highlight cases where DSConv preserves crack connectivity that the baseline fragments.",
+            "Reference fig_qualitative_comparison."
+          ],
+          "citation_hints": []
+        }
+      ]
+    },
+    {
+      "section_title": "5. Discussion",
+      "subsections": [
+        {
+          "subsection_title": "5.1 Analysis",
+          "content_bullets": [
+            "Why BF1/clDice > mIoU for engineering inspection: topologically correct predictions enable reliable structural assessment.",
+            "DSConv mechanism: deformable sampling aligns receptive field with crack direction, explaining boundary improvement.",
+            "SRL vs soft-clDice: lighter (precomputed skeletons), more stable (delayed start), comparable effectiveness.",
+            "Limitations: mIoU gain is modest (+1.0); crack IoU remains a bottleneck (~57.6%) due to extreme class imbalance."
+          ],
+          "citation_hints": []
+        },
+        {
+          "subsection_title": "5.2 Limitations and Future Work",
+          "content_bullets": [
+            "Crack IoU is still limited by class imbalance — future work on class-balanced sampling or advanced augmentation.",
+            "DSConv branch only enhances crack class — extending to other elongated defect types (e.g., rebar corrosion) is future work.",
+            "Evaluation on additional dam inspection datasets would strengthen generalizability claims."
+          ],
+          "citation_hints": []
+        }
+      ]
+    },
+    {
+      "section_title": "6. Conclusion",
+      "subsections": [
+        {
+          "subsection_title": "Conclusion Content",
+          "content_bullets": [
+            "Summarize: DSCFormer with DSConv branch and Skeleton Recall Loss achieves significant topology improvements for crack segmentation.",
+            "Key numbers: +5.3 BF1, +4.8 clDice over SegFormer-B2 baseline.",
+            "The DamSegment benchmark enables rigorous topology-aware evaluation for structural inspection.",
+            "The approach is lightweight and easy to integrate into existing segmentation pipelines."
+          ],
+          "citation_hints": []
+        }
+      ]
+    }
+  ]
+}

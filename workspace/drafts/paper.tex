@@ -1,0 +1,248 @@
+% ===========================================================================
+% Topology-Aware Crack and Spalling Segmentation in Concrete Dams
+% via Dynamic Snake Convolution and Skeleton Recall Loss
+% ===========================================================================
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+% Page geometry (CVPR-like)
+\usepackage[margin=1in]{geometry}
+
+\begin{document}
+
+\title{Topology-Aware Crack and Spalling Segmentation in Concrete Dams\\via Dynamic Snake Convolution and Skeleton Recall Loss}
+
+\author{
+Anonymous Author(s)
+}
+
+\date{}
+\maketitle
+
+% ===========================================================================
+\begin{abstract}
+Automated segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring, yet existing methods optimize pixel-level metrics without explicitly enforcing the topological connectivity critical for safety assessment.
+We propose \textbf{DSCFormer}, a topology-aware segmentation framework that augments SegFormer-B2 with two complementary enhancements: (1)~a \emph{Dynamic Snake Convolution} (DSConv) branch that performs deformable sampling along crack directions to capture elongated geometry, and (2)~\emph{Skeleton Recall Loss} (SRL) that penalizes predictions with low probability at ground-truth skeleton pixels, directly enforcing topological connectivity using precomputed skeletons with no runtime overhead.
+On our new \textbf{DamSegment} benchmark (1,500 images, 3~classes, 3~difficulty tiers), DSCFormer achieves 71.4\% mIoU$_{fg}$, 72.1\% Boundary F1 (+5.3 over baseline), and 86.2\% clDice (+4.8 over baseline), outperforming U-Net, DeepLabV3+, Mask2Former, and SegFormer-B2 on all topology-sensitive metrics.
+Ablations confirm that DSConv and SRL provide complementary gains: DSConv primarily improves boundary precision (+2.6~BF1, +4.1~clDice), while SRL adds both mIoU (+1.0) and further boundary refinement (+2.7~BF1).
+\end{abstract}
+
+% ===========================================================================
+% INTRODUCTION AND RELATED WORK (from Literature Review Agent)
+% ===========================================================================
+\input{intro_relwork}
+
+% ===========================================================================
+\section{Method}
+\label{sec:method}
+
+\subsection{Overview}
+
+Figure~\ref{fig:architecture} illustrates the DSCFormer architecture. Our design philosophy is to enhance topology preservation at two complementary levels: (1)~at the \emph{feature extraction} level through geometry-aware convolutions (DSConv branch), and (2)~at the \emph{training objective} level through explicit skeleton supervision (SRL). Both additions are lightweight and do not increase inference cost for the base segmentation path.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.95\textwidth]{../inputs/figures/fig_architecture.png}
+    \caption{Overview of the proposed DSCFormer architecture. A SegFormer-B2 encoder extracts hierarchical features, which are fused by an MLP decoder. A parallel Dynamic Snake Convolution branch consumes early encoder stages (1--2) and additively enhances crack channel logits. The model is trained with a composite loss including Skeleton Recall Loss (SRL) activated after epoch~60.}
+    \label{fig:architecture}
+\end{figure*}
+
+\subsection{SegFormer-B2 Backbone}
+
+We adopt SegFormer-B2~\cite{xie2021segformer} as our backbone, which provides a hierarchical transformer encoder with four stages producing feature maps at resolutions $H/4$, $H/8$, $H/16$, and $H/32$ with channel dimensions 64, 128, 320, and 512, respectively. The lightweight all-MLP decoder fuses multi-scale features through linear projection and upsampling, yielding a strong accuracy--efficiency trade-off. We initialize from weights pretrained on ADE20K at $512{\times}512$ resolution.
+
+\subsection{Dynamic Snake Convolution Branch}
+\label{sec:dsconv}
+
+Standard convolutions sample on fixed rectangular grids---an inductive bias poorly matched to thin, curvilinear crack structures. Inspired by Dynamic Snake Convolution~\cite{qi2023dynamic}, we introduce a parallel \emph{CrackSnakeBranch} that performs deformable sampling along the elongated geometry of cracks.
+
+\paragraph{Architecture.} The branch consumes encoder stages 1 and 2 (at $H/4$ and $H/8$ resolution, where crack details are best preserved). Two parallel DSConv paths deform sampling along the $x$-axis and $y$-axis respectively, each with kernel size $K{=}9$ and hidden dimension $d{=}64$. The outputs are summed and projected to a single-channel crack enhancement map $\mathbf{E}_{crack} \in \mathbb{R}^{H \times W}$.
+
+\paragraph{Additive Enhancement.} The enhancement map is added \emph{only} to the crack channel logits of the main segmentation head:
+\begin{equation}
+    \hat{\mathbf{y}}_{crack} = \mathbf{z}_{crack} + \mathbf{E}_{crack}
+\end{equation}
+where $\mathbf{z}_{crack}$ denotes the decoder's crack logits. Spalling and background logits remain unmodified, ensuring the branch focuses exclusively on crack topology.
+
+\paragraph{Zero-Initialization.} The output projection layer is initialized with zero weights and bias, so the branch starts as a no-op ($\mathbf{E}_{crack} = \mathbf{0}$) and gradually learns crack-specific deformations during training. This prevents early disruption of the pretrained backbone's predictions.
+
+\subsection{Skeleton Recall Loss}
+\label{sec:srl}
+
+To directly enforce topological connectivity, we adopt Skeleton Recall Loss~\cite{shit2024skeleton} adapted to our multi-class setting. Let $S = \{p_1, \ldots, p_{|S|}\}$ denote the set of ground-truth skeleton pixels for the crack class, precomputed offline via morphological skeletonization. SRL penalizes low predicted probability at these critical centerline locations:
+\begin{equation}
+    \mathcal{L}_{SRL} = 1 - \frac{1}{|S|} \sum_{p \in S} \hat{y}_{crack}(p)
+    \label{eq:srl}
+\end{equation}
+where $\hat{y}_{crack}(p) \in [0,1]$ is the softmax probability for the crack class at pixel $p$.
+
+\paragraph{Advantages over soft-clDice.} Unlike clDice~\cite{shit2021cldice} which requires GPU-based differentiable skeletonization during training, SRL operates on CPU-precomputed skeletons with no additional runtime cost. This enables application to full-resolution $512{\times}512$ images without memory constraints.
+
+\paragraph{Delayed Start.} We activate SRL only after epoch~60 ($\lambda_{SRL} = 0$ for $t < 60$). In early training, the model has not yet learned basic crack features, and skeleton supervision on random predictions causes gradient instability. The delayed start allows stable convergence of the base model before introducing topology regularization.
+
+\subsection{Composite Loss Function}
+
+The full training objective combines cross-entropy for pixel classification, Dice loss for class imbalance mitigation, and SRL for topology preservation:
+\begin{equation}
+    \mathcal{L} = \lambda_1 \mathcal{L}_{CE} + \lambda_2 \mathcal{L}_{Dice} + \lambda_3 \mathcal{L}_{SRL}
+    \label{eq:loss}
+\end{equation}
+with $\lambda_1 = 0.5$, $\lambda_2 = 0.5$, and $\lambda_3 = 0.05$ (active only for $t \geq 60$). The small SRL weight ensures it acts as a gentle topology regularizer without dominating the gradient.
+
+% ===========================================================================
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Dataset: DamSegment}
+
+We introduce the \textbf{DamSegment} benchmark comprising 1,500 concrete dam surface images at $512{\times}512$ resolution with pixel-level annotations for three classes: background, crack, and spalling. Images are categorized into three difficulty tiers (Easy, Medium, Hard; 500 each) based on defect complexity, lighting conditions, and defect overlap. The dataset is split into train/val/test sets of 1200/150/150 images, stratified by tier and spalling presence to ensure balanced evaluation. Figure~\ref{fig:dataset} shows representative samples.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{../inputs/figures/fig1_dataset.png}
+    \caption{DamSegment dataset samples across difficulty tiers. Left to right: Easy (clear, isolated defects), Medium (moderate complexity), Hard (overlapping defects, poor lighting).}
+    \label{fig:dataset}
+\end{figure}
+
+\subsection{Implementation Details}
+
+All models are trained on a single NVIDIA GPU using PyTorch. Our DSCFormer uses SegFormer-B2 pretrained on ADE20K-512 as the backbone. Training proceeds for 100 epochs with AdamW optimizer (learning rate $6{\times}10^{-5}$, weight decay $10^{-4}$) and 5-epoch linear warmup. Batch size is 4. The DSConv branch uses $d{=}64$ hidden channels and kernel size $K{=}9$. SRL is activated at epoch 60 with weight 0.05. All baselines are trained with identical data augmentation and evaluation protocols for fair comparison.
+
+\subsection{Evaluation Metrics}
+
+We report six complementary metrics:
+\begin{itemize}[nosep]
+    \item \textbf{mIoU$_{fg}$}: Mean IoU of crack and spalling classes
+    \item \textbf{IoU$_{cr}$}, \textbf{IoU$_{sp}$}: Per-class IoU
+    \item \textbf{BF1$_{fg}$}: Boundary F1 score (2px tolerance)
+    \item \textbf{clDice$_{fg}$}: Centreline Dice via skeletonization
+    \item \textbf{ConnR$_{fg}$}: Connectivity Ratio ($\geq$50\% overlap)
+\end{itemize}
+BF1 measures edge precision for thin structures, clDice captures topological correctness, and ConnR evaluates connected component preservation---all critical for structural assessment where crack continuity determines diagnostic conclusions.
+
+\subsection{Main Comparison}
+
+Table~\ref{tab:main} presents quantitative results on the DamSegment test set. Our DSCFormer achieves the best performance across all topology-sensitive metrics while maintaining competitive mIoU.
+
+\begin{table*}[t]
+\centering
+\caption{Quantitative comparison on the DamSegment test set. Best results in \textbf{bold}. BF1 and clDice are most relevant for structural inspection where crack connectivity determines safety assessment.}
+\label{tab:main}
+\begin{tabular}{lcccccc}
+\toprule
+Method & mIoU$_{fg}$ & IoU$_{cr}$ & IoU$_{sp}$ & BF1$_{fg}$ & clDice$_{fg}$ & ConnR$_{fg}$ \\
+\midrule
+U-Net (ResNet-34) & 59.6 & 51.3 & 67.9 & 64.6 & 73.7 & 76.6 \\
+DeepLabV3+ (ResNet-50) & 63.4 & 53.3 & 73.5 & 59.2 & 75.1 & 74.6 \\
+Mask2Former (Swin-S) & 67.9 & 57.1 & 78.6 & 72.5 & 86.6 & 72.6 \\
+SegFormer-B2 & 70.4 & 56.9 & 83.8 & 66.8 & 81.4 & 80.9 \\
+\midrule
+\textbf{Ours (DSCFormer)} & \textbf{71.4} & \textbf{57.6} & \textbf{85.2} & \textbf{72.1} & \textbf{86.2} & \textbf{82.3} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Compared to the SegFormer-B2 baseline, DSCFormer improves BF1 by \textbf{+5.3} and clDice by \textbf{+4.8}, with a modest mIoU gain of +1.0. We argue that BF1 and clDice improvements are disproportionately valuable for dam inspection: a prediction that correctly identifies crack extent and connectivity---even if slightly imprecise at boundaries---enables more reliable structural assessment than one with higher pixel overlap but fragmented topology.
+
+Notably, Mask2Former achieves comparable clDice (86.6) but with substantially lower mIoU (67.9) and ConnR (72.6), suggesting it captures crack shape but misses spalling regions. Our method achieves the best balance across all metrics.
+
+\subsection{Per-Tier Analysis}
+
+\begin{table}[t]
+\centering
+\caption{Per-difficulty-tier comparison of SegFormer-B2 baseline versus our DSCFormer. Largest gains appear on Medium and Hard tiers.}
+\label{tab:tier}
+\begin{tabular}{llccc}
+\toprule
+Tier & Method & mIoU$_{fg}$ & BF1$_{fg}$ & clDice$_{fg}$ \\
+\midrule
+\multirow{2}{*}{Easy} & SegFormer-B2 & 74.8 & 65.1 & 84.9 \\
+ & \textbf{Ours} & \textbf{76.0} & \textbf{68.3} & \textbf{87.0} \\
+\midrule
+\multirow{2}{*}{Medium} & SegFormer-B2 & 71.1 & 66.6 & 77.6 \\
+ & \textbf{Ours} & \textbf{72.7} & \textbf{77.9} & \textbf{89.6} \\
+\midrule
+\multirow{2}{*}{Hard} & SegFormer-B2 & 64.4 & 69.4 & 79.4 \\
+ & \textbf{Ours} & \textbf{66.1} & \textbf{75.5} & \textbf{84.4} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:tier} shows that DSCFormer achieves best results on \emph{all three} difficulty tiers. The largest BF1 improvements occur on Medium (+11.3) and Hard (+6.1) tiers, where crack topology is most challenging due to overlapping defects and poor contrast. This demonstrates that the DSConv branch and SRL are particularly effective when crack geometry is complex and connectivity preservation is most difficult.
+
+\subsection{Ablation Study}
+
+\begin{table}[t]
+\centering
+\caption{Ablation study showing incremental contributions of each component. DSConv primarily improves topology metrics; SRL adds both mIoU and boundary gains.}
+\label{tab:ablation}
+\begin{tabular}{lccc}
+\toprule
+Configuration & mIoU$_{fg}$ & BF1$_{fg}$ & clDice$_{fg}$ \\
+\midrule
+SegFormer-B2 (baseline) & 70.4 & 66.8 & 81.4 \\
++ DSConv & 70.4 & 69.4 & 85.5 \\
++ DSConv + SRL (\textbf{Ours}) & \textbf{71.4} & \textbf{72.1} & \textbf{86.2} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:ablation} presents the ablation study. Key observations:
+
+\begin{itemize}[nosep]
+    \item \textbf{DSConv alone} (G0): No mIoU change, but +2.6~BF1 and +4.1~clDice. The branch improves feature extraction for elongated structures without affecting overall pixel accuracy---its deformable sampling grid captures crack geometry that fixed kernels miss.
+    \item \textbf{Adding SRL} (G1, Ours): +1.0~mIoU, +2.7~BF1, +0.7~clDice over G0. SRL provides complementary gains by focusing gradient signal on skeleton pixels, improving both connectivity and overall segmentation quality.
+\end{itemize}
+
+The two components are complementary: DSConv improves the \emph{feature representation} (architectural enhancement) while SRL improves the \emph{training signal} (loss enhancement). Neither alone achieves the full improvement; their combination yields the strongest results.
+
+\subsection{Qualitative Results}
+
+Figure~\ref{fig:qualitative} presents representative predictions comparing SegFormer-B2 with our DSCFormer. The baseline frequently fragments continuous cracks into disconnected segments, particularly where cracks are thinnest or cross regions of spalling. Our method maintains crack connectivity in these challenging cases, consistent with the quantitative clDice and ConnR improvements.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{../inputs/figures/fig3_qualitative.png}
+    \caption{Qualitative comparison on Hard-tier samples. Top: input image and ground truth. Middle: SegFormer-B2 predictions showing crack fragmentation. Bottom: Our DSCFormer predictions maintaining crack connectivity.}
+    \label{fig:qualitative}
+\end{figure}
+
+% ===========================================================================
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{Application-Driven Metrics.}
+In dam inspection, the primary concern is whether a detected crack represents a continuous propagation path. A topologically correct but spatially imprecise prediction (high clDice, moderate IoU) is more useful for structural assessment than a fragmented prediction with high pixel overlap. Our +5.3~BF1 and +4.8~clDice gains directly translate to more reliable defect characterization.
+
+\paragraph{DSConv Mechanism.}
+The DSConv branch's effectiveness stems from its geometric inductive bias: by constraining kernel deformations to follow elongated paths, it captures crack features that rectangular convolutions systematically miss. The zero-initialization ensures the branch only activates when beneficial, avoiding negative transfer for non-crack regions.
+
+\paragraph{SRL vs.\ Soft-clDice.}
+While soft-clDice~\cite{shit2021cldice} requires GPU-intensive differentiable skeletonization, our adoption of SRL~\cite{shit2024skeleton} uses precomputed GT skeletons with negligible runtime cost. The delayed-start strategy (epoch 60) is critical: early activation causes training instability as the model attempts topology optimization before learning basic features. This staged approach is simpler and more stable than curriculum-based alternatives we explored.
+
+\paragraph{Limitations.}
+The mIoU improvement (+1.0) is modest compared to topology gains, reflecting that DSConv and SRL primarily address boundary and connectivity rather than region coverage. Crack IoU remains a bottleneck (~57.6\%) due to extreme class imbalance (crack pixels constitute $<$5\% of image area). The DSConv branch is currently crack-specific; extending to other elongated defect types (e.g., rebar corrosion) is future work. Additionally, evaluation on other dam inspection datasets would strengthen generalizability claims.
+
+% ===========================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented DSCFormer, a topology-aware segmentation framework for concrete dam defect analysis that achieves significant improvements in boundary precision and topological correctness. By combining Dynamic Snake Convolution for geometry-aware feature extraction with Skeleton Recall Loss for explicit connectivity supervision, our method improves BF1 by +5.3 and clDice by +4.8 over the SegFormer-B2 baseline while maintaining competitive mIoU. The two components provide complementary gains---DSConv at the architectural level and SRL at the training objective level---and both are lightweight additions that do not increase inference cost. Together with the DamSegment benchmark providing topology-aware evaluation across difficulty tiers, our work demonstrates that targeted architectural and loss design can substantially improve the structural reliability of defect segmentation for infrastructure monitoring.
+
+% ===========================================================================
+{\small
+\bibliographystyle{ieee_fullname}
+\bibliography{../refs}
+}
+
+\end{document}

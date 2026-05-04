@@ -1,0 +1,5 @@
+{
+  "fig_main_comparison_bar": "Comparison of segmentation methods on foreground-averaged metrics (mIoU_fg, BF1_fg, clDice_fg). Our DSCFormer achieves the highest mIoU while maintaining competitive boundary and connectivity scores.",
+  "fig_ablation_component_contribution": "Incremental contribution of each proposed component over the SegFormer-B2 baseline. DSConv improves boundary and connectivity metrics, while adding SRL further boosts all three metrics.",
+  "fig_per_tier_radar": "Per-difficulty-tier radar comparison between our method and SegFormer-B2 across five metrics. Our approach shows consistent gains, particularly on boundary (BF1) and connectivity (clDice) metrics for medium and hard samples."
+}
