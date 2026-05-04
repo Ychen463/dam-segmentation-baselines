@@ -213,6 +213,108 @@ def skeleton_consistency_loss(seg_logits, skel_logits, targets, eps=1e-6):
 
 
 # ---------------------------------------------------------------------------
+# Contrastive Skeleton Learning (Plan C, G4 preset)
+# ---------------------------------------------------------------------------
+
+def skeleton_contrastive_loss(contrast_feat, targets, crack_skel,
+                              temperature=0.1, n_samples=256, eps=1e-6):
+    """Contrastive loss that pulls skeleton pixel features together and pushes
+    them away from background features.
+
+    For each image in the batch:
+    - Positive pairs: features at skeleton pixels (should be similar)
+    - Negative pairs: skeleton features vs background features (should differ)
+
+    Uses InfoNCE-style loss with random sampling for efficiency.
+
+    Args:
+        contrast_feat: (B, D, H/4, W/4) projected features from contrast_proj.
+        targets: (B, H, W) ground truth masks.
+        crack_skel: (B, 1, H, W) binary GT skeleton.
+        temperature: contrastive temperature (lower = harder negatives).
+        n_samples: number of pixels to sample per class per image.
+
+    Returns:
+        Scalar contrastive loss.
+    """
+    B, D, Hf, Wf = contrast_feat.shape
+    H, W = targets.shape[-2:]
+
+    # Resize targets and skeleton to feature map resolution
+    targets_small = F.interpolate(targets.float().unsqueeze(1), size=(Hf, Wf),
+                                  mode="nearest").squeeze(1).long()
+    skel_small = F.interpolate(crack_skel, size=(Hf, Wf),
+                               mode="nearest")  # (B, 1, Hf, Wf)
+
+    total_loss = contrast_feat.new_zeros(())
+    valid_count = 0
+
+    for b in range(B):
+        feat = contrast_feat[b]  # (D, Hf, Wf)
+        feat_flat = feat.reshape(D, -1).T  # (Hf*Wf, D)
+
+        # Skeleton pixel indices
+        skel_mask = skel_small[b, 0].reshape(-1) > 0.5
+        # Background pixel indices (class 0, NOT on crack boundary)
+        bg_mask = targets_small[b].reshape(-1) == 0
+
+        n_skel = skel_mask.sum().item()
+        n_bg = bg_mask.sum().item()
+
+        if n_skel < 4 or n_bg < 4:
+            continue
+
+        # Sample skeleton and background pixels
+        n_s = min(n_samples, n_skel)
+        n_b = min(n_samples, n_bg)
+
+        skel_indices = torch.where(skel_mask)[0]
+        bg_indices = torch.where(bg_mask)[0]
+
+        perm_s = torch.randperm(n_skel, device=feat.device)[:n_s]
+        perm_b = torch.randperm(n_bg, device=feat.device)[:n_b]
+
+        skel_feats = feat_flat[skel_indices[perm_s]]   # (n_s, D)
+        bg_feats = feat_flat[bg_indices[perm_b]]       # (n_b, D)
+
+        # L2 normalize
+        skel_feats = F.normalize(skel_feats, dim=1)
+        bg_feats = F.normalize(bg_feats, dim=1)
+
+        # InfoNCE: each skeleton pixel as anchor, other skeleton pixels as
+        # positives, background pixels as negatives
+        # Similarity matrix: anchor vs all (positives + negatives)
+        anchors = skel_feats  # (n_s, D)
+        all_feats = torch.cat([skel_feats, bg_feats], dim=0)  # (n_s+n_b, D)
+        sim = torch.mm(anchors, all_feats.T) / temperature  # (n_s, n_s+n_b)
+
+        # Labels: for each anchor i, positives are indices 0..n_s-1 (excluding self)
+        # Use mean of positive similarities vs negatives
+        pos_sim = sim[:, :n_s]  # (n_s, n_s) — skeleton vs skeleton
+        neg_sim = sim[:, n_s:]  # (n_s, n_b) — skeleton vs background
+
+        # Mask out self-similarity
+        self_mask = torch.eye(n_s, device=feat.device, dtype=torch.bool)
+        pos_sim = pos_sim.masked_fill(self_mask, -1e9)
+
+        # InfoNCE per anchor: -log(exp(pos) / (exp(pos) + sum(exp(neg))))
+        # Use mean positive as the positive logit
+        pos_logit = pos_sim.max(dim=1).values  # best positive match
+        # LogSumExp of negatives
+        neg_logsumexp = torch.logsumexp(neg_sim, dim=1)
+        # Loss: -pos + log(exp(pos) + exp(neg))
+        loss_per_anchor = -pos_logit + torch.log(
+            torch.exp(pos_logit) + torch.exp(neg_logsumexp) + eps)
+
+        total_loss = total_loss + loss_per_anchor.mean()
+        valid_count += 1
+
+    if valid_count > 0:
+        return total_loss / valid_count
+    return contrast_feat.new_zeros(())
+
+
+# ---------------------------------------------------------------------------
 # Snake branch auxiliary loss (crack-only focal BCE + Dice)
 # ---------------------------------------------------------------------------
 
@@ -417,6 +519,17 @@ class CompositeLoss(nn.Module):
                 loss_skel_consist = skeleton_consistency_loss(
                     seg_logits, skel_logits, targets)
 
+        # Contrastive skeleton loss (Plan C, G4 preset)
+        loss_contrastive = seg_logits.new_zeros(())
+        if self.cfg.use_contrastive and "contrast_feat" in outputs:
+            if crack_skel is not None and crack_skel.any():
+                if epoch >= self.cfg.contrastive_start_epoch:
+                    loss_contrastive = skeleton_contrastive_loss(
+                        outputs["contrast_feat"], targets, crack_skel,
+                        temperature=self.cfg.contrastive_temperature,
+                        n_samples=self.cfg.contrastive_n_samples,
+                    )
+
         dice_w = self.cfg.lovasz_weight if self.cfg.use_lovasz_loss else self.cfg.loss_dice_w
         total = (self.cfg.loss_ce_w * loss_ce
                  + dice_w * loss_dice
@@ -425,7 +538,8 @@ class CompositeLoss(nn.Module):
                  + self.cfg.cldice_weight * mac_topo_multiplier * loss_topo
                  + self.cfg.snake_aux_weight * loss_snake
                  + self.cfg.skel_pred_weight * loss_skel_pred
-                 + self.cfg.skel_consist_weight * loss_skel_consist)
+                 + self.cfg.skel_consist_weight * loss_skel_consist
+                 + self.cfg.contrastive_weight * loss_contrastive)
 
         # Per-sample signals for difficulty estimation (detach!)
         ps_ce = per_sample_ce(seg_logits, targets, self.ce_weight).detach()
@@ -440,6 +554,7 @@ class CompositeLoss(nn.Module):
             "loss_snake": loss_snake.item(),
             "loss_skel_pred": loss_skel_pred.item(),
             "loss_skel_consist": loss_skel_consist.item(),
+            "loss_contrastive": loss_contrastive.item(),
             "per_sample_ce": ps_ce.cpu(),
             "per_sample_ent": ps_ent.cpu(),
         }

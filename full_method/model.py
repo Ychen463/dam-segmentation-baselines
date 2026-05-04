@@ -190,6 +190,43 @@ class CrackSnakeBranch(nn.Module):
         return self.head(out)
 
 
+class AttentionGate(nn.Module):
+    """Learnable gate for DSConv fusion (Plan B).
+
+    Instead of simple additive fusion (z_crack + E_crack), learns when to
+    trust the DSConv branch based on local context:
+        gate = sigmoid(W_g * [z_crack; E_crack])
+        output = z_crack + gate * E_crack
+
+    This allows the model to suppress DSConv in regions where it's not helpful
+    (e.g., spalling boundaries) and amplify it along crack paths.
+    """
+
+    def __init__(self, in_channels: int = 2):
+        super().__init__()
+        # Input: concatenation of [decoder_crack_logit, dsconv_enhancement]
+        self.gate_conv = nn.Sequential(
+            nn.Conv2d(in_channels, 16, 3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(16, 1, 1),
+        )
+        # Initialize near-identity (gate ≈ 1) so it starts like simple addition
+        nn.init.zeros_(self.gate_conv[-1].weight)
+        nn.init.constant_(self.gate_conv[-1].bias, 2.0)  # sigmoid(2) ≈ 0.88
+
+    def forward(self, z_crack: torch.Tensor, e_crack: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            z_crack: (B, 1, H, W) decoder crack logits
+            e_crack: (B, 1, H, W) DSConv enhancement
+        Returns:
+            (B, 1, H, W) gated crack logits
+        """
+        gate_input = torch.cat([z_crack, e_crack], dim=1)  # (B, 2, H, W)
+        gate = torch.sigmoid(self.gate_conv(gate_input))    # (B, 1, H, W)
+        return z_crack + gate * e_crack
+
+
 class SkeletonPredictionHead(nn.Module):
     """Lightweight head that predicts crack skeleton from decoder features.
 
@@ -255,12 +292,27 @@ class DSCformerDam(nn.Module):
             hidden=hidden, kernel_size=ks,
         )
 
-        # Skeleton prediction head (dual-task, G3 preset)
+        # Attention-gated fusion (Plan B, G4 preset)
+        self.use_attention_gate = cfg is not None and getattr(cfg, 'use_attention_gate', False)
+        if self.use_attention_gate:
+            self.attn_gate = AttentionGate(in_channels=2)
+
+        # Skeleton prediction head (dual-task, G3/G4 preset)
         self.use_skeleton_head = cfg is not None and getattr(cfg, 'use_skeleton_head', False)
         if self.use_skeleton_head:
             self.skeleton_head = SkeletonPredictionHead(
                 feat_dim=feat_dim,
                 hidden=getattr(cfg, 'skeleton_head_hidden', 128),
+            )
+
+        # Contrastive learning projection (Plan C, G4 preset)
+        self.use_contrastive = cfg is not None and getattr(cfg, 'use_contrastive', False)
+        if self.use_contrastive:
+            contrast_dim = getattr(cfg, 'contrastive_dim', 64)
+            self.contrast_proj = nn.Sequential(
+                nn.Conv2d(feat_dim, 128, 1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(128, contrast_dim, 1),
             )
 
         self._fuse_feat = None
@@ -296,9 +348,13 @@ class DSCformerDam(nn.Module):
         crack_enhance = self.snake_branch(s1, s2)  # (B, 1, H/8, W/8)
         crack_enhance = F.interpolate(crack_enhance, size=seg_logits.shape[-2:],
                                       mode="bilinear", align_corners=False)
-        # Additive fusion on crack channel only
+
+        # Fusion: attention-gated (Plan B) or simple additive
         seg_logits = seg_logits.clone()
-        seg_logits[:, 1:2] = seg_logits[:, 1:2] + crack_enhance
+        if self.use_attention_gate:
+            seg_logits[:, 1:2] = self.attn_gate(seg_logits[:, 1:2], crack_enhance)
+        else:
+            seg_logits[:, 1:2] = seg_logits[:, 1:2] + crack_enhance
 
         result = {
             "seg_logits": seg_logits,
@@ -306,9 +362,13 @@ class DSCformerDam(nn.Module):
             "crack_enhance": crack_enhance,
         }
 
-        # Skeleton prediction (dual-task)
+        # Skeleton prediction (dual-task, Plan A)
         if self.use_skeleton_head:
             result["skel_logits"] = self.skeleton_head(self._fuse_feat)
+
+        # Contrastive features (Plan C)
+        if self.use_contrastive:
+            result["contrast_feat"] = self.contrast_proj(self._fuse_feat)
 
         return result
 

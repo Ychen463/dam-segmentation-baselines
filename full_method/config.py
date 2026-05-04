@@ -103,12 +103,23 @@ class RunCfg:
     snake_channels: int = 64                 # crack branch hidden dim
     snake_kernel_size: int = 9               # DSConv kernel size
 
-    # Dual-Task Skeleton Consistency (G3 preset)
+    # Dual-Task Skeleton Consistency (G3/G4 preset — Plan A)
     use_skeleton_head: bool = False           # add skeleton prediction branch
     skeleton_head_hidden: int = 128           # hidden dim for skeleton head
     skel_pred_weight: float = 0.10           # weight for skeleton prediction loss
     skel_consist_weight: float = 0.05        # weight for skeleton consistency loss
     skel_consist_start_epoch: int = 40       # start consistency loss after this epoch
+
+    # Attention-Gated DSConv Fusion (G4 preset — Plan B)
+    use_attention_gate: bool = False          # replace additive fusion with learned gate
+
+    # Contrastive Skeleton Learning (G4 preset — Plan C)
+    use_contrastive: bool = False             # add contrastive projection head
+    contrastive_dim: int = 64                 # projection dimension
+    contrastive_weight: float = 0.05         # loss weight
+    contrastive_temperature: float = 0.1     # InfoNCE temperature
+    contrastive_n_samples: int = 256         # pixels sampled per class
+    contrastive_start_epoch: int = 30        # start contrastive after this epoch
 
     # EMA model averaging
     use_ema: bool = False
@@ -422,6 +433,37 @@ ABLATION_PRESETS = {
            "use_srl_loss": True, "cldice_weight": 0.05,
            "cldice_start_epoch": 60, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
+
+    # G4: DSCformerDam + SRL + All Three Plans (A+B+C)
+    # Plan A: Dual-Task Skeleton Consistency
+    # Plan B: Attention-Gated DSConv Fusion
+    # Plan C: Contrastive Skeleton Learning
+    "G4": {"name": "dscformer_full_G4",
+           "model_type": "dscformer",
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False,
+           "use_srl_loss": True, "cldice_weight": 0.05,
+           "cldice_start_epoch": 60, "cldice_iters": 7,
+           "use_soft_boundary_schedule": False,
+           # Plan A: Skeleton Head + Consistency
+           "use_skeleton_head": True,
+           "skeleton_head_hidden": 128,
+           "skel_pred_weight": 0.10,
+           "skel_consist_weight": 0.05,
+           "skel_consist_start_epoch": 40,
+           # Plan B: Attention Gate
+           "use_attention_gate": True,
+           # Plan C: Contrastive Learning
+           "use_contrastive": True,
+           "contrastive_dim": 64,
+           "contrastive_weight": 0.05,
+           "contrastive_temperature": 0.1,
+           "contrastive_n_samples": 256,
+           "contrastive_start_epoch": 30},
 
     # G3: DSCformerDam + SRL + Dual-Task Skeleton Consistency
     # Adds a skeleton prediction head + consistency loss for novelty
