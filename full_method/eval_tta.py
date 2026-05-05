@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from full_method import config as C
 from full_method.model import DSCformerDam, SegFormerWithBoundary
+from full_method.sam_model import TopoLoRASAM
 from full_method.dataset import FullMethodDataset
 from full_method.train import build_val_loader
 
@@ -40,9 +41,21 @@ def load_model(run_dir: Path, device: str):
 
     # Detect model type from run name or config
     run_name = run_dir.name
+    is_sam = "sam_lora" in run_name.lower() or "sam" in run_name.lower()
     is_dscformer = "dscformer" in run_name.lower() or "dsc" in run_name.lower()
 
-    if is_dscformer:
+    if is_sam:
+        cfg = C.RunCfg()
+        cfg.model_type = "sam_lora"
+        model = TopoLoRASAM(
+            sam_checkpoint=cfg.sam_checkpoint,
+            num_classes=C.NUM_CLASSES,
+            lora_rank=cfg.lora_rank,
+            lora_alpha=cfg.lora_alpha,
+            fpn_dim=cfg.sam_fpn_dim,
+            sam_img_size=cfg.sam_img_size,
+        )
+    elif is_dscformer:
         # Build a minimal cfg to reconstruct model
         cfg = C.RunCfg()
         # Check if multiscale

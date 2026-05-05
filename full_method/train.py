@@ -45,6 +45,7 @@ from full_method import config as C
 from full_method.config import ABLATION_PRESETS, apply_preset
 from full_method.dataset import FullMethodDataset, build_records, dict_collate
 from full_method.model import SegFormerWithBoundary, DSCformerDam, _PreviewWrapper
+from full_method.sam_model import TopoLoRASAM
 from full_method.losses import CompositeLoss
 from full_method.difficulty import DifficultyEstimator, SampleState
 from full_method.sampler import TierAwareDynamicSampler
@@ -589,14 +590,34 @@ def main() -> None:
     test_loader = build_val_loader(test_files, cfg, device)
 
     # ----- model -----
-    if cfg.model_type == "dscformer":
+    if cfg.model_type == "sam_lora":
+        model = TopoLoRASAM(
+            sam_checkpoint=cfg.sam_checkpoint,
+            num_classes=C.NUM_CLASSES,
+            lora_rank=cfg.lora_rank,
+            lora_alpha=cfg.lora_alpha,
+            fpn_dim=cfg.sam_fpn_dim,
+            sam_img_size=cfg.sam_img_size,
+        ).to(device)
+    elif cfg.model_type == "dscformer":
         model = DSCformerDam(cfg.pretrained, cfg=cfg).to(device)
     else:
         model = SegFormerWithBoundary(cfg.pretrained).to(device)
     preview_model = _PreviewWrapper(model)
     criterion = CompositeLoss(ce_weight=w, cfg=cfg).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr,
-                                  weight_decay=cfg.weight_decay)
+
+    # Optimizer: separate LR groups for SAM LoRA
+    if cfg.model_type == "sam_lora":
+        param_groups = [
+            {"params": model.lora_parameters(), "lr": cfg.sam_lr_lora},
+            {"params": model.decoder_parameters(), "lr": cfg.sam_lr_decoder},
+        ]
+        optimizer = torch.optim.AdamW(param_groups, weight_decay=cfg.weight_decay)
+        base_lr = cfg.sam_lr_decoder  # use decoder LR for scheduler
+    else:
+        optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr,
+                                      weight_decay=cfg.weight_decay)
+        base_lr = cfg.lr
 
     # Warmup + cosine scheduler
     from torch.optim.lr_scheduler import LinearLR, CosineAnnealingLR, SequentialLR
@@ -675,7 +696,8 @@ def main() -> None:
 
         print(f"  seg_logits shape: {outputs['seg_logits'].shape}")
         print(f"  boundary_logits shape: {outputs['boundary_logits'].shape}")
-        print(f"  fuse_feat shape: {model._fuse_feat.shape}")
+        if hasattr(model, '_fuse_feat') and model._fuse_feat is not None:
+            print(f"  fuse_feat shape: {model._fuse_feat.shape}")
 
         with torch.amp.autocast("cuda", enabled=use_amp):
             total_loss, info = criterion(outputs, masks, curriculum_scheduler, 1)

@@ -99,11 +99,20 @@ class RunCfg:
     snake_aux_weight: float = 0.10
 
     # Model architecture
-    model_type: str = "segformer"            # "segformer" or "dscformer"
+    model_type: str = "segformer"            # "segformer", "dscformer", or "sam_lora"
     snake_channels: int = 64                 # crack branch hidden dim
     snake_kernel_size: int = 9               # DSConv kernel size (single-scale)
     use_multiscale_snake: bool = False       # Multi-Scale DSConv (E1 preset)
     snake_kernel_sizes: tuple = (5, 9, 15)   # kernel sizes for multi-scale branch
+
+    # SAM LoRA settings (model_type="sam_lora")
+    sam_checkpoint: str = "sam_vit_b_01ec64.pth"   # path to SAM ViT-B weights
+    lora_rank: int = 16
+    lora_alpha: float = 16.0
+    sam_img_size: int = 1024
+    sam_fpn_dim: int = 256
+    sam_lr_lora: float = 1e-4               # LR for LoRA params
+    sam_lr_decoder: float = 3e-4            # LR for decoder params
 
     # Skeleton-Distance Weighted Loss (SDWL)
     use_sdwl: bool = False               # enable skeleton-distance weighted CE
@@ -1021,6 +1030,38 @@ ABLATION_PRESETS = {
            "use_cldice_loss": True, "cldice_weight": 0.05,
            "cldice_start_epoch": 60, "cldice_iters": 7,
            "use_soft_boundary_schedule": False},
+
+    # Set SAM: TopoLoRA-SAM (frozen SAM ViT-B + LoRA + FPN decoder)
+    # SAM1: SAM LoRA baseline (CE + Dice, no SRL)
+    "SAM1": {"name": "sam_lora_SAM1",
+             "model_type": "sam_lora",
+             "epochs": 50, "batch_size": 2,
+             "lora_rank": 16, "lora_alpha": 16.0,
+             "sam_img_size": 1024, "sam_fpn_dim": 256,
+             "sam_lr_lora": 1e-4, "sam_lr_decoder": 3e-4,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False, "use_srl_loss": False,
+             "use_soft_boundary_schedule": False},
+    # SAM2: SAM LoRA + SRL (topology-aware)
+    "SAM2": {"name": "sam_lora_srl_SAM2",
+             "model_type": "sam_lora",
+             "epochs": 50, "batch_size": 2,
+             "lora_rank": 16, "lora_alpha": 16.0,
+             "sam_img_size": 1024, "sam_fpn_dim": 256,
+             "sam_lr_lora": 1e-4, "sam_lr_decoder": 3e-4,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 20, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
 }
 
 
