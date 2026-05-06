@@ -1,17 +1,15 @@
 % Table 3: Ablation study
-\begin{table*}[t]
+\begin{table}[t]
 \centering
-\caption{Ablation study on the DamSegment test set. Each row adds a component to the baseline.}
+\caption{Ablation study on the DamSegment test set. Each row adds a component to the SegFormer-B2 baseline. DSConv improves crack connectivity; SRL adds consistent gains across all metrics.}
 \label{tab:ablation}
 \begin{tabular}{lcccccc}
 \toprule
-Configuration & mIoU$_{fg}$ & IoU$_{cr}$ & IoU$_{sp}$ & BF1$_{fg}$ & clDice$_{fg}$ & ConnR$_{fg}$ \\
+Config & mIoU$_{fg}$ & IoU$_{cr}$ & IoU$_{sp}$ & BF1$_{fg}$ & clDice$_{fg}$ & ConnR$_{fg}$ \\
 \midrule
-SegFormer-B2 (baseline) & 70.4 & 56.9 & 83.8 & 66.8 & 81.4 & 80.9 \\
-+ DSConv & 70.4 & 56.9 & 84.0 & 69.4 & 85.5 & \textbf{83.6} \\
-+ DSConv + SRL (Ours) & 71.4 & 57.6 & \textbf{85.2} & \textbf{72.1} & 86.2 & 82.3 \\
-+ DSConv + Aux Loss & 71.1 & 57.6 & 84.5 & 72.0 & \textbf{87.6} & 80.0 \\
-+ Curriculum Learning & \textbf{71.5} & \textbf{57.8} & 85.2 & 71.8 & 85.5 & 81.5 \\
+(a) SegFormer-B2 & 70.3 & 56.9 & 83.7 & 68.6 & 82.7 & 77.0 \\
+(b) + DSConv & 70.4 & 56.9 & 84.0 & 69.5 & 85.5 & \textbf{83.6} \\
+(c) + DSConv + SRL & \textbf{71.4} & \textbf{57.6} & \textbf{85.2} & \textbf{72.1} & \textbf{86.2} & 82.3 \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}

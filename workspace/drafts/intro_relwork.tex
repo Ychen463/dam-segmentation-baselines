@@ -24,8 +24,9 @@ In this paper we propose \textbf{DSCFormer}, a dual-branch architecture that aug
 We evaluate on a new \textbf{DamSegment} benchmark of 1\,500 annotated images spanning cracks and spalling on concrete dam surfaces.
 Our contributions are:
 \begin{itemize}
-    \item A topology-aware segmentation framework combining dynamic snake convolution with skeleton-based supervision for fine-grained dam defect segmentation.
+    \item A topology-aware segmentation framework combining dynamic snake convolution with skeleton-based supervision for fine-grained dam defect segmentation, achieving 72.3\% mIoU$_{fg}$ with test-time augmentation.
     \item Integration of Skeleton Recall Loss into a multi-class setting, demonstrating that explicit skeleton supervision yields +4.8 clDice and +5.3 Boundary F1 (BF1) over the SegFormer-B2 baseline without increasing inference cost.
+    \item A systematic comparison with foundation model adaptation approaches (SAM-LoRA, DINOv2-LoRA), revealing that task-specific architectural design outperforms parameter-efficient fine-tuning of large vision models on small-scale industrial datasets.
     \item The DamSegment dataset with pixel-level crack and spalling annotations, providing the first public benchmark specifically targeting concrete dam surface defects.
 \end{itemize}
 
