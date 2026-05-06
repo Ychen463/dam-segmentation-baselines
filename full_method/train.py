@@ -46,6 +46,7 @@ from full_method.config import ABLATION_PRESETS, apply_preset
 from full_method.dataset import FullMethodDataset, build_records, dict_collate
 from full_method.model import SegFormerWithBoundary, DSCformerDam, _PreviewWrapper
 from full_method.sam_model import TopoLoRASAM
+from full_method.dinov2_model import DINOv2LoRA
 from full_method.losses import CompositeLoss
 from full_method.difficulty import DifficultyEstimator, SampleState
 from full_method.sampler import TierAwareDynamicSampler
@@ -590,7 +591,15 @@ def main() -> None:
     test_loader = build_val_loader(test_files, cfg, device)
 
     # ----- model -----
-    if cfg.model_type == "sam_lora":
+    if cfg.model_type == "dinov2_lora":
+        model = DINOv2LoRA(
+            num_classes=C.NUM_CLASSES,
+            lora_rank=cfg.lora_rank,
+            lora_alpha=cfg.lora_alpha,
+            fpn_dim=cfg.dinov2_fpn_dim,
+            img_size=cfg.dinov2_img_size,
+        ).to(device)
+    elif cfg.model_type == "sam_lora":
         model = TopoLoRASAM(
             sam_checkpoint=cfg.sam_checkpoint,
             num_classes=C.NUM_CLASSES,
@@ -606,8 +615,8 @@ def main() -> None:
     preview_model = _PreviewWrapper(model)
     criterion = CompositeLoss(ce_weight=w, cfg=cfg).to(device)
 
-    # Optimizer: separate LR groups for SAM LoRA
-    if cfg.model_type == "sam_lora":
+    # Optimizer: separate LR groups for LoRA models
+    if cfg.model_type in ("sam_lora", "dinov2_lora"):
         param_groups = [
             {"params": model.lora_parameters(), "lr": cfg.sam_lr_lora},
             {"params": model.decoder_parameters(), "lr": cfg.sam_lr_decoder},

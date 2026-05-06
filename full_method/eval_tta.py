@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from full_method import config as C
 from full_method.model import DSCformerDam, SegFormerWithBoundary
 from full_method.sam_model import TopoLoRASAM
+from full_method.dinov2_model import DINOv2LoRA
 from full_method.dataset import FullMethodDataset
 from full_method.train import build_val_loader
 
@@ -41,10 +42,21 @@ def load_model(run_dir: Path, device: str):
 
     # Detect model type from run name or config
     run_name = run_dir.name
-    is_sam = "sam_lora" in run_name.lower() or "sam" in run_name.lower()
+    is_dinov2 = "dinov2" in run_name.lower()
+    is_sam = ("sam_lora" in run_name.lower() or "sam" in run_name.lower()) and not is_dinov2
     is_dscformer = "dscformer" in run_name.lower() or "dsc" in run_name.lower()
 
-    if is_sam:
+    if is_dinov2:
+        cfg = C.RunCfg()
+        cfg.model_type = "dinov2_lora"
+        model = DINOv2LoRA(
+            num_classes=C.NUM_CLASSES,
+            lora_rank=cfg.lora_rank,
+            lora_alpha=cfg.lora_alpha,
+            fpn_dim=cfg.dinov2_fpn_dim,
+            img_size=cfg.dinov2_img_size,
+        )
+    elif is_sam:
         cfg = C.RunCfg()
         cfg.model_type = "sam_lora"
         model = TopoLoRASAM(

@@ -99,7 +99,7 @@ class RunCfg:
     snake_aux_weight: float = 0.10
 
     # Model architecture
-    model_type: str = "segformer"            # "segformer", "dscformer", or "sam_lora"
+    model_type: str = "segformer"            # "segformer", "dscformer", "sam_lora", or "dinov2_lora"
     snake_channels: int = 64                 # crack branch hidden dim
     snake_kernel_size: int = 9               # DSConv kernel size (single-scale)
     use_multiscale_snake: bool = False       # Multi-Scale DSConv (E1 preset)
@@ -113,6 +113,10 @@ class RunCfg:
     sam_fpn_dim: int = 256
     sam_lr_lora: float = 1e-4               # LR for LoRA params
     sam_lr_decoder: float = 3e-4            # LR for decoder params
+
+    # DINOv2 LoRA settings (model_type="dinov2_lora")
+    dinov2_img_size: int = 518              # multiple of patch_size=14 (37*14=518)
+    dinov2_fpn_dim: int = 256
 
     # Skeleton-Distance Weighted Loss (SDWL)
     use_sdwl: bool = False               # enable skeleton-distance weighted CE
@@ -1062,6 +1066,38 @@ ABLATION_PRESETS = {
              "use_srl_loss": True, "cldice_weight": 0.05,
              "cldice_start_epoch": 20, "cldice_iters": 7,
              "use_soft_boundary_schedule": False},
+
+    # Set DINO: DINOv2-LoRA (frozen DINOv2 ViT-B/14 + LoRA + FPN decoder)
+    # DINO1: DINOv2 LoRA baseline (CE + Dice, no SRL)
+    "DINO1": {"name": "dinov2_lora_DINO1",
+              "model_type": "dinov2_lora",
+              "epochs": 50, "batch_size": 2,
+              "lora_rank": 16, "lora_alpha": 16.0,
+              "dinov2_img_size": 518, "dinov2_fpn_dim": 256,
+              "sam_lr_lora": 1e-4, "sam_lr_decoder": 3e-4,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False, "use_srl_loss": False,
+              "use_soft_boundary_schedule": False},
+    # DINO2: DINOv2 LoRA + SRL (topology-aware)
+    "DINO2": {"name": "dinov2_lora_srl_DINO2",
+              "model_type": "dinov2_lora",
+              "epochs": 50, "batch_size": 2,
+              "lora_rank": 16, "lora_alpha": 16.0,
+              "dinov2_img_size": 518, "dinov2_fpn_dim": 256,
+              "sam_lr_lora": 1e-4, "sam_lr_decoder": 3e-4,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False,
+              "use_srl_loss": True, "cldice_weight": 0.05,
+              "cldice_start_epoch": 20, "cldice_iters": 7,
+              "use_soft_boundary_schedule": False},
 }
 
 
