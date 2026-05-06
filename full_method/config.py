@@ -118,6 +118,12 @@ class RunCfg:
     dinov2_img_size: int = 518              # multiple of patch_size=14 (37*14=518)
     dinov2_fpn_dim: int = 256
 
+    # Knowledge Distillation (self-distillation from teacher checkpoint)
+    use_kd: bool = False
+    kd_teacher_checkpoint: str = ""         # path to teacher best.pt
+    kd_alpha: float = 0.5                   # weight for hard loss (1-alpha for KD loss)
+    kd_temperature: float = 4.0             # softmax temperature for KD
+
     # Skeleton-Distance Weighted Loss (SDWL)
     use_sdwl: bool = False               # enable skeleton-distance weighted CE
     sdwl_start_epoch: int = 30           # start SDWL after this epoch
@@ -1098,6 +1104,38 @@ ABLATION_PRESETS = {
               "use_srl_loss": True, "cldice_weight": 0.05,
               "cldice_start_epoch": 20, "cldice_iters": 7,
               "use_soft_boundary_schedule": False},
+
+    # Set KD: Knowledge Distillation (self-distillation from G1 teacher)
+    # KD1: Born-Again G1 (same arch, distilled from G1, α=0.5, T=4)
+    "KD1": {"name": "kd_born_again_KD1",
+            "model_type": "dscformer",
+            "use_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_alpha": 0.5, "kd_temperature": 4.0,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False,
+            "use_srl_loss": True, "cldice_weight": 0.05,
+            "cldice_start_epoch": 60, "cldice_iters": 7,
+            "use_soft_boundary_schedule": False},
+    # KD2: Born-Again G1 with higher KD weight (α=0.3 → more teacher influence)
+    "KD2": {"name": "kd_born_again_KD2",
+            "model_type": "dscformer",
+            "use_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_alpha": 0.3, "kd_temperature": 4.0,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False,
+            "use_srl_loss": True, "cldice_weight": 0.05,
+            "cldice_start_epoch": 60, "cldice_iters": 7,
+            "use_soft_boundary_schedule": False},
 }
 
 

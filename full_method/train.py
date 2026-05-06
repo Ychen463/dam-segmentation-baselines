@@ -147,6 +147,16 @@ METRIC_KEYS: List[str] = [
 ]
 
 
+def kd_loss(student_logits: torch.Tensor, teacher_logits: torch.Tensor,
+            temperature: float = 4.0) -> torch.Tensor:
+    """Knowledge distillation loss (KL divergence on softened probabilities)."""
+    s_log_prob = F.log_softmax(student_logits / temperature, dim=1)
+    t_prob = F.softmax(teacher_logits / temperature, dim=1)
+    # KL(teacher || student), mean over all pixels
+    loss = F.kl_div(s_log_prob, t_prob, reduction="batchmean") * (temperature ** 2)
+    return loss
+
+
 def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     metrics: SegMetricsBF1, grad_accum: int,
                     sample_bank: Dict[str, SampleState],
@@ -156,11 +166,12 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     cfg: C.RunCfg = None,
                     scaler: torch.amp.GradScaler = None,
                     mac_ce_multipliers: tuple = None,
-                    mac_topo_multiplier: float = 1.0) -> Dict[str, float]:
+                    mac_topo_multiplier: float = 1.0,
+                    teacher_model: nn.Module = None) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
-    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0, "loss_skel_pred": 0.0, "loss_skel_consist": 0.0, "loss_contrastive": 0.0}
+    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0, "loss_skel_pred": 0.0, "loss_skel_consist": 0.0, "loss_contrastive": 0.0, "loss_kd": 0.0}
     n_batches = 0
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)
@@ -196,6 +207,21 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                                          crack_skel=crack_skel,
                                          mac_ce_multipliers=mac_ce_multipliers,
                                          mac_topo_multiplier=mac_topo_multiplier)
+
+            # Knowledge distillation: blend hard loss with soft teacher loss
+            if teacher_model is not None and cfg is not None and cfg.use_kd:
+                with torch.no_grad():
+                    t_out = teacher_model(imgs)
+                    t_logits = F.interpolate(t_out["seg_logits"].float(),
+                                            masks.shape[-2:], mode="bilinear",
+                                            align_corners=False)
+                s_logits = F.interpolate(outputs["seg_logits"].float(),
+                                         masks.shape[-2:], mode="bilinear",
+                                         align_corners=False)
+                loss_kd = kd_loss(s_logits, t_logits, cfg.kd_temperature)
+                total_loss = cfg.kd_alpha * total_loss + (1 - cfg.kd_alpha) * loss_kd
+                info["loss_kd"] = float(loss_kd.detach().cpu())
+
             total_loss = total_loss / grad_accum
 
         if use_amp:
@@ -821,6 +847,24 @@ def main() -> None:
             p.requires_grad_(False)
         print(f"[train] EMA enabled: decay={cfg.ema_decay} start_epoch={cfg.ema_start_epoch}")
 
+    # ----- knowledge distillation: load teacher -----
+    teacher_model = None
+    if cfg.use_kd and cfg.kd_teacher_checkpoint:
+        teacher_path = Path(cfg.kd_teacher_checkpoint)
+        if not teacher_path.is_absolute():
+            teacher_path = (C.PKG_DIR / teacher_path).resolve()
+        print(f"[KD] loading teacher from {teacher_path}")
+        t_state = torch.load(teacher_path, map_location=device, weights_only=False)
+        teacher_model = DSCformerDam(cfg.pretrained, cfg=cfg).to(device)
+        teacher_model.load_state_dict(t_state["model"])
+        teacher_model.eval()
+        for p in teacher_model.parameters():
+            p.requires_grad_(False)
+        t_epoch = t_state.get("epoch", "?")
+        t_miou = t_state.get("mIoU_fg", t_state.get("best_miou_fg", "?"))
+        print(f"[KD] teacher loaded (epoch={t_epoch}, val_mIoU_fg={t_miou})")
+        print(f"[KD] alpha={cfg.kd_alpha} temperature={cfg.kd_temperature}")
+
     # ----- training loop -----
     run_t0 = time.time()
     epochs_done = 0
@@ -874,7 +918,8 @@ def main() -> None:
                              curriculum_scheduler, epoch, total_epochs,
                              cfg=cfg, scaler=scaler,
                              mac_ce_multipliers=_mac_ce_mults,
-                             mac_topo_multiplier=_mac_topo_mult)
+                             mac_topo_multiplier=_mac_topo_mult,
+                             teacher_model=teacher_model)
 
         # 2b. Update EMA model
         if ema_model is not None and epoch >= cfg.ema_start_epoch:
