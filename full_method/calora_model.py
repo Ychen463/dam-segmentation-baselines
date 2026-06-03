@@ -82,10 +82,17 @@ class MoELoRALinear(nn.Module):
                 for A, B, s in zip(self.lora_As, self.lora_Bs, self.scales)
             ) / self.num_experts
         else:
+            # Handle SAM window attention: x batch dim may be B*num_windows
+            # while gate is (B, num_experts). Repeat gate to match.
+            B_gate = gate.shape[0]
+            B_x = x.shape[0]
+            if B_x != B_gate and B_x % B_gate == 0:
+                n_windows = B_x // B_gate
+                gate = gate.repeat_interleave(n_windows, dim=0)
+
             lora_out = torch.zeros_like(base)
             for i, (A, B, s) in enumerate(zip(self.lora_As, self.lora_Bs, self.scales)):
                 expert_out = (x @ A.T) @ B.T * s
-                # gate[:, i] is (B,) -> expand to match x dims (B, H, W, D)
                 g = gate[:, i]
                 for _ in range(expert_out.dim() - 1):
                     g = g.unsqueeze(-1)
