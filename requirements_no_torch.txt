@@ -1,0 +1,29 @@
+# ---- Core DL (install separately if RunPod image does not include them) ----
+# RunPod PyTorch images (e.g. runpod/pytorch:2.4.0-py3.11-cuda12.4.1) already
+# provide torch + torchvision with matching CUDA. If you are on a bare CUDA
+# image, run first:
+#   pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu124
+#
+# Either way, do NOT let the lines below silently downgrade the container's torch.
+
+# ---- Segmentation stack ----
+segmentation-models-pytorch==0.5.0
+timm==1.0.26
+transformers>=4.40,<5
+
+# ---- Data / augmentation / CV ----
+numpy==2.0.2
+opencv-python-headless==4.13.0.92
+albumentations==2.0.8
+Pillow==11.3.0
+
+# ---- Metrics / math ----
+scipy==1.13.1
+scikit-image>=0.22
+
+# ---- CRF post-processing ----
+pydensecrf @ git+https://github.com/lucasb-eyer/pydensecrf.git@master
+
+# ---- Plotting + progress ----
+matplotlib==3.9.4
+tqdm==4.67.3
