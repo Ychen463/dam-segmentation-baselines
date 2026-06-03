@@ -46,6 +46,7 @@ from full_method.config import ABLATION_PRESETS, apply_preset
 from full_method.dataset import FullMethodDataset, build_records, dict_collate
 from full_method.model import SegFormerWithBoundary, DSCformerDam, _PreviewWrapper
 from full_method.sam_model import TopoLoRASAM
+from full_method.calora_model import CrackAdaptiveLoRASAM, compute_router_aux_loss
 from full_method.dinov2_model import DINOv2LoRA
 from full_method.losses import CompositeLoss
 from full_method.difficulty import DifficultyEstimator, SampleState
@@ -207,7 +208,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
     model.train()
     metrics.reset()
     loss_sum = 0.0
-    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0, "loss_skel_pred": 0.0, "loss_skel_consist": 0.0, "loss_contrastive": 0.0, "loss_kd": 0.0}
+    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0, "loss_skel_pred": 0.0, "loss_skel_consist": 0.0, "loss_contrastive": 0.0, "loss_kd": 0.0, "loss_router": 0.0}
     n_batches = 0
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)
@@ -267,6 +268,14 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                 total_loss = cfg.kd_alpha * total_loss + (1 - cfg.kd_alpha) * loss_kd
                 info["loss_kd"] = float(loss_kd.detach().cpu())
 
+            # CALoRA: auxiliary routing loss (crack density -> high-rank gate)
+            if (cfg is not None and cfg.model_type == "calora_sam"
+                    and cfg.calora_router_aux_weight > 0
+                    and "router_gates" in outputs):
+                loss_router = compute_router_aux_loss(outputs["router_gates"], masks)
+                total_loss = total_loss + cfg.calora_router_aux_weight * loss_router
+                info["loss_router"] = float(loss_router.detach().cpu())
+
             total_loss = total_loss / grad_accum
 
         if use_amp:
@@ -283,7 +292,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
 
         loss_sum += float(total_loss.detach().cpu()) * grad_accum
         for k in loss_parts:
-            loss_parts[k] += info[k]
+            loss_parts[k] += info.get(k, 0.0)
         n_batches += 1
 
         # Update metrics with seg_logits
@@ -338,6 +347,16 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
     m["loss"] = avg_loss
     for k in loss_parts:
         m[k] = loss_parts[k] / max(n_batches, 1)
+
+    # Log CALoRA router gate statistics (last batch)
+    if cfg is not None and cfg.model_type == "calora_sam" and "router_gates" in outputs:
+        gates = outputs["router_gates"].detach().cpu()
+        gate_mean = gates.mean(dim=0).tolist()
+        run_tag = cfg.name if cfg else "calora"
+        ranks_str = "/".join(str(r) for r in cfg.calora_ranks)
+        gate_str = " ".join(f"r{r}={g:.3f}" for r, g in zip(cfg.calora_ranks, gate_mean))
+        print(f"  [{run_tag}] router gates (ranks {ranks_str}): {gate_str}")
+
     return m
 
 
@@ -670,6 +689,16 @@ def main() -> None:
             fpn_dim=cfg.dinov2_fpn_dim,
             img_size=cfg.dinov2_img_size,
         ).to(device)
+    elif cfg.model_type == "calora_sam":
+        model = CrackAdaptiveLoRASAM(
+            sam_checkpoint=cfg.sam_checkpoint,
+            num_classes=C.NUM_CLASSES,
+            calora_ranks=cfg.calora_ranks,
+            lora_alpha=cfg.lora_alpha,
+            fpn_dim=cfg.sam_fpn_dim,
+            sam_img_size=cfg.sam_img_size,
+            router_hidden=cfg.calora_router_hidden,
+        ).to(device)
     elif cfg.model_type == "sam_lora":
         model = TopoLoRASAM(
             sam_checkpoint=cfg.sam_checkpoint,
@@ -687,7 +716,15 @@ def main() -> None:
     criterion = CompositeLoss(ce_weight=w, cfg=cfg).to(device)
 
     # Optimizer: separate LR groups for LoRA models
-    if cfg.model_type in ("sam_lora", "dinov2_lora"):
+    if cfg.model_type == "calora_sam":
+        param_groups = [
+            {"params": model.lora_parameters(), "lr": cfg.sam_lr_lora},
+            {"params": model.router_parameters(), "lr": cfg.sam_lr_decoder},
+            {"params": model.decoder_parameters(), "lr": cfg.sam_lr_decoder},
+        ]
+        optimizer = torch.optim.AdamW(param_groups, weight_decay=cfg.weight_decay)
+        base_lr = cfg.sam_lr_decoder
+    elif cfg.model_type in ("sam_lora", "dinov2_lora"):
         param_groups = [
             {"params": model.lora_parameters(), "lr": cfg.sam_lr_lora},
             {"params": model.decoder_parameters(), "lr": cfg.sam_lr_decoder},

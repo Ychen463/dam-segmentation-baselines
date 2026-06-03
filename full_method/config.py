@@ -118,6 +118,11 @@ class RunCfg:
     dinov2_img_size: int = 518              # multiple of patch_size=14 (37*14=518)
     dinov2_fpn_dim: int = 256
 
+    # CALoRA settings (model_type="calora_sam")
+    calora_ranks: tuple = (8, 32)           # MoE-LoRA expert ranks (low, high)
+    calora_router_hidden: int = 64          # router MLP hidden dimension
+    calora_router_aux_weight: float = 0.1   # auxiliary routing loss weight (0=disabled)
+
     # Knowledge Distillation (self-distillation from teacher checkpoint)
     use_kd: bool = False
     kd_teacher_checkpoint: str = ""         # path to teacher best.pt
@@ -1190,6 +1195,81 @@ ABLATION_PRESETS = {
              "use_cldice_loss": False,
              "use_srl_loss": True, "cldice_weight": 0.05,
              "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+    # Set CAL: Crack-Aware Adaptive LoRA (MoE-LoRA + crack-complexity router)
+    # CAL1: CALoRA-SAM baseline (CE + Dice, no SRL)
+    "CAL1": {"name": "calora_sam_CAL1",
+             "model_type": "calora_sam",
+             "epochs": 50, "batch_size": 2,
+             "calora_ranks": (8, 32),
+             "calora_router_hidden": 64,
+             "calora_router_aux_weight": 0.1,
+             "lora_alpha": 16.0,
+             "sam_img_size": 1024, "sam_fpn_dim": 256,
+             "sam_lr_lora": 1e-4, "sam_lr_decoder": 3e-4,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False, "use_srl_loss": False,
+             "use_soft_boundary_schedule": False},
+    # CAL2: CALoRA-SAM + SRL (topology-aware)
+    "CAL2": {"name": "calora_sam_srl_CAL2",
+             "model_type": "calora_sam",
+             "epochs": 50, "batch_size": 2,
+             "calora_ranks": (8, 32),
+             "calora_router_hidden": 64,
+             "calora_router_aux_weight": 0.1,
+             "lora_alpha": 16.0,
+             "sam_img_size": 1024, "sam_fpn_dim": 256,
+             "sam_lr_lora": 1e-4, "sam_lr_decoder": 3e-4,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 20, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+    # CAL3: CALoRA-SAM + SRL, 3 experts (rank 4/16/32)
+    "CAL3": {"name": "calora_3exp_srl_CAL3",
+             "model_type": "calora_sam",
+             "epochs": 50, "batch_size": 2,
+             "calora_ranks": (4, 16, 32),
+             "calora_router_hidden": 64,
+             "calora_router_aux_weight": 0.1,
+             "lora_alpha": 16.0,
+             "sam_img_size": 1024, "sam_fpn_dim": 256,
+             "sam_lr_lora": 1e-4, "sam_lr_decoder": 3e-4,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 20, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+    # CAL4: CALoRA-SAM + SRL, no aux routing loss (ablation)
+    "CAL4": {"name": "calora_noaux_srl_CAL4",
+             "model_type": "calora_sam",
+             "epochs": 50, "batch_size": 2,
+             "calora_ranks": (8, 32),
+             "calora_router_hidden": 64,
+             "calora_router_aux_weight": 0.0,
+             "lora_alpha": 16.0,
+             "sam_img_size": 1024, "sam_fpn_dim": 256,
+             "sam_lr_lora": 1e-4, "sam_lr_decoder": 3e-4,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 20, "cldice_iters": 7,
              "use_soft_boundary_schedule": False},
 }
 
