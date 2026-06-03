@@ -124,6 +124,17 @@ class RunCfg:
     kd_alpha: float = 0.5                   # weight for hard loss (1-alpha for KD loss)
     kd_temperature: float = 4.0             # softmax temperature for KD
 
+    # Dual-Teacher KD (complementary distillation from task-specific + foundation model)
+    use_dual_kd: bool = False
+    kd_teacher2_checkpoint: str = ""        # path to 2nd teacher best.pt
+    kd_teacher2_model_type: str = "sam_lora"  # model type for 2nd teacher
+    kd_t1_weight: float = 0.5              # weight for teacher 1 in ensemble
+    kd_t2_weight: float = 0.5              # weight for teacher 2 in ensemble
+    # Class-conditional weighting: per-class [teacher1_w, teacher2_w]
+    kd_class_weights: bool = False          # use per-class teacher weights
+    kd_crack_t2_weight: float = 0.6        # SAM2 weight for crack class (higher = more SAM2)
+    kd_spalling_t2_weight: float = 0.3     # SAM2 weight for spalling class (lower = more G1)
+
     # Skeleton-Distance Weighted Loss (SDWL)
     use_sdwl: bool = False               # enable skeleton-distance weighted CE
     sdwl_start_epoch: int = 30           # start SDWL after this epoch
@@ -1136,6 +1147,50 @@ ABLATION_PRESETS = {
             "use_srl_loss": True, "cldice_weight": 0.05,
             "cldice_start_epoch": 60, "cldice_iters": 7,
             "use_soft_boundary_schedule": False},
+
+    # Set DKD: Dual-Teacher Knowledge Distillation
+    # Teacher 1: G1 (task-specific, high IoU)
+    # Teacher 2: SAM2 (foundation model, high ConnR_crack)
+    # DKD1: equal-weight ensemble teacher
+    "DKD1": {"name": "dual_kd_equal_DKD1",
+             "model_type": "dscformer",
+             "use_kd": True, "use_dual_kd": True,
+             "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+             "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+             "kd_teacher2_model_type": "sam_lora",
+             "kd_alpha": 0.5, "kd_temperature": 4.0,
+             "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+             "kd_class_weights": False,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+    # DKD2: class-conditional weights (SAM2 heavier for crack, G1 heavier for spalling)
+    "DKD2": {"name": "dual_kd_classaware_DKD2",
+             "model_type": "dscformer",
+             "use_kd": True, "use_dual_kd": True,
+             "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+             "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+             "kd_teacher2_model_type": "sam_lora",
+             "kd_alpha": 0.5, "kd_temperature": 4.0,
+             "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+             "kd_class_weights": True,
+             "kd_crack_t2_weight": 0.6,
+             "kd_spalling_t2_weight": 0.3,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
 }
 
 

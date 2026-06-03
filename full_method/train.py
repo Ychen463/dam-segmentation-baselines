@@ -157,6 +157,41 @@ def kd_loss(student_logits: torch.Tensor, teacher_logits: torch.Tensor,
     return loss
 
 
+def dual_teacher_ensemble(t1_logits: torch.Tensor, t2_logits: torch.Tensor,
+                          cfg) -> torch.Tensor:
+    """Create ensemble soft labels from two complementary teachers.
+
+    If class_weights is enabled, uses per-class weighting:
+    - Crack class: higher weight for teacher 2 (foundation model, better ConnR)
+    - Spalling class: higher weight for teacher 1 (task-specific, better IoU)
+    """
+    if cfg.kd_class_weights:
+        t1_prob = F.softmax(t1_logits / cfg.kd_temperature, dim=1)
+        t2_prob = F.softmax(t2_logits / cfg.kd_temperature, dim=1)
+
+        # Per-class weights: [bg, crack, spalling]
+        w1_bg = 0.5
+        w2_bg = 0.5
+        w1_crack = 1.0 - cfg.kd_crack_t2_weight      # G1 weight for crack
+        w2_crack = cfg.kd_crack_t2_weight              # SAM2 weight for crack
+        w1_spalling = 1.0 - cfg.kd_spalling_t2_weight  # G1 weight for spalling
+        w2_spalling = cfg.kd_spalling_t2_weight         # SAM2 weight for spalling
+
+        ensemble = torch.zeros_like(t1_prob)
+        ensemble[:, 0] = w1_bg * t1_prob[:, 0] + w2_bg * t2_prob[:, 0]
+        ensemble[:, 1] = w1_crack * t1_prob[:, 1] + w2_crack * t2_prob[:, 1]
+        ensemble[:, 2] = w1_spalling * t1_prob[:, 2] + w2_spalling * t2_prob[:, 2]
+
+        # Renormalize to sum to 1
+        ensemble = ensemble / (ensemble.sum(dim=1, keepdim=True) + 1e-8)
+
+        # Convert back to logits for KD loss
+        return torch.log(ensemble + 1e-8) * cfg.kd_temperature
+    else:
+        # Simple weighted average of logits
+        return cfg.kd_t1_weight * t1_logits + cfg.kd_t2_weight * t2_logits
+
+
 def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     metrics: SegMetricsBF1, grad_accum: int,
                     sample_bank: Dict[str, SampleState],
@@ -167,7 +202,8 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     scaler: torch.amp.GradScaler = None,
                     mac_ce_multipliers: tuple = None,
                     mac_topo_multiplier: float = 1.0,
-                    teacher_model: nn.Module = None) -> Dict[str, float]:
+                    teacher_model: nn.Module = None,
+                    teacher2_model: nn.Module = None) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
@@ -215,6 +251,15 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     t_logits = F.interpolate(t_out["seg_logits"].float(),
                                             masks.shape[-2:], mode="bilinear",
                                             align_corners=False)
+
+                    # Dual-teacher: ensemble with second teacher
+                    if teacher2_model is not None and cfg.use_dual_kd:
+                        t2_out = teacher2_model(imgs)
+                        t2_logits = F.interpolate(t2_out["seg_logits"].float(),
+                                                  masks.shape[-2:], mode="bilinear",
+                                                  align_corners=False)
+                        t_logits = dual_teacher_ensemble(t_logits, t2_logits, cfg)
+
                 s_logits = F.interpolate(outputs["seg_logits"].float(),
                                          masks.shape[-2:], mode="bilinear",
                                          align_corners=False)
@@ -847,13 +892,14 @@ def main() -> None:
             p.requires_grad_(False)
         print(f"[train] EMA enabled: decay={cfg.ema_decay} start_epoch={cfg.ema_start_epoch}")
 
-    # ----- knowledge distillation: load teacher -----
+    # ----- knowledge distillation: load teacher(s) -----
     teacher_model = None
+    teacher2_model = None
     if cfg.use_kd and cfg.kd_teacher_checkpoint:
         teacher_path = Path(cfg.kd_teacher_checkpoint)
         if not teacher_path.is_absolute():
             teacher_path = (C.PKG_DIR / teacher_path).resolve()
-        print(f"[KD] loading teacher from {teacher_path}")
+        print(f"[KD] loading teacher 1 from {teacher_path}")
         t_state = torch.load(teacher_path, map_location=device, weights_only=False)
         teacher_model = DSCformerDam(cfg.pretrained, cfg=cfg).to(device)
         teacher_model.load_state_dict(t_state["model"])
@@ -862,8 +908,45 @@ def main() -> None:
             p.requires_grad_(False)
         t_epoch = t_state.get("epoch", "?")
         t_miou = t_state.get("mIoU_fg", t_state.get("best_miou_fg", "?"))
-        print(f"[KD] teacher loaded (epoch={t_epoch}, val_mIoU_fg={t_miou})")
+        print(f"[KD] teacher 1 loaded (epoch={t_epoch}, val_mIoU_fg={t_miou})")
         print(f"[KD] alpha={cfg.kd_alpha} temperature={cfg.kd_temperature}")
+
+        # Dual-teacher: load second teacher (foundation model)
+        if cfg.use_dual_kd and cfg.kd_teacher2_checkpoint:
+            t2_path = Path(cfg.kd_teacher2_checkpoint)
+            if not t2_path.is_absolute():
+                t2_path = (C.PKG_DIR / t2_path).resolve()
+            print(f"[KD] loading teacher 2 from {t2_path}")
+            t2_state = torch.load(t2_path, map_location=device, weights_only=False)
+            if cfg.kd_teacher2_model_type == "sam_lora":
+                teacher2_model = TopoLoRASAM(
+                    sam_checkpoint=cfg.sam_checkpoint,
+                    num_classes=C.NUM_CLASSES,
+                    lora_rank=cfg.lora_rank,
+                    lora_alpha=cfg.lora_alpha,
+                    fpn_dim=cfg.sam_fpn_dim,
+                    sam_img_size=cfg.sam_img_size,
+                ).to(device)
+            elif cfg.kd_teacher2_model_type == "dinov2_lora":
+                teacher2_model = DINOv2LoRA(
+                    num_classes=C.NUM_CLASSES,
+                    lora_rank=cfg.lora_rank,
+                    lora_alpha=cfg.lora_alpha,
+                    fpn_dim=cfg.dinov2_fpn_dim,
+                    img_size=cfg.dinov2_img_size,
+                ).to(device)
+            else:
+                teacher2_model = DSCformerDam(cfg.pretrained, cfg=cfg).to(device)
+            teacher2_model.load_state_dict(t2_state["model"])
+            teacher2_model.eval()
+            for p in teacher2_model.parameters():
+                p.requires_grad_(False)
+            t2_epoch = t2_state.get("epoch", "?")
+            t2_miou = t2_state.get("mIoU_fg", t2_state.get("best_miou_fg", "?"))
+            print(f"[KD] teacher 2 loaded (epoch={t2_epoch}, val_mIoU_fg={t2_miou})")
+            mode = "class-conditional" if cfg.kd_class_weights else "equal-weight"
+            print(f"[KD] dual-teacher mode: {mode} "
+                  f"(t1={cfg.kd_t1_weight}, t2={cfg.kd_t2_weight})")
 
     # ----- training loop -----
     run_t0 = time.time()
@@ -919,7 +1002,8 @@ def main() -> None:
                              cfg=cfg, scaler=scaler,
                              mac_ce_multipliers=_mac_ce_mults,
                              mac_topo_multiplier=_mac_topo_mult,
-                             teacher_model=teacher_model)
+                             teacher_model=teacher_model,
+                             teacher2_model=teacher2_model)
 
         # 2b. Update EMA model
         if ema_model is not None and epoch >= cfg.ema_start_epoch:
