@@ -1,0 +1,165 @@
+usage: train.py [-h] [--dry-run] [--epochs EPOCHS] [--grad-accum GRAD_ACCUM]
+                [--resume RESUME]
+                [--ablation {A2,A3,A3a,A3b,A4,A5,B0,B1,B2,B3,B4,B5,C1,C2,CAL1,CAL2,CAL3,CAL4,D0,D0v2,D1,D1v2,D1v3,DINO1,DINO2,DKD1,DKD2,E1,E2,E3,F1,F1v2,F1v3,G0,G1,G2,G3,G4,G4b,H0,H1,H2,KD1,KD2,M0,M1,M2,M3,MN3,MN4,MS1,N0,N1,N1m,N2,N2a,N3,N3a,N4a,P0,P1,P1v3,PL1,PL2,PL2b,PL3,R15a,R15b,R15d,R15e,R15f,S1,S2,SAM1,SAM2}]
+                [--no-dynamic-difficulty] [--no-class-sampling-bonus]
+                [--no-class-loss-schedule] [--no-boundary-loss]
+                [--no-tversky-loss] [--no-cldice-loss]
+                [--diff-alpha DIFF_ALPHA] [--diff-beta DIFF_BETA]
+                [--diff-gamma DIFF_GAMMA] [--diff-delta DIFF_DELTA]
+                [--name NAME] [--no-soft-curriculum]
+                [--no-dynamic-loss-reweight]
+                [--loss-reweight-lambda LOSS_REWEIGHT_LAMBDA]
+train.py: error: argument --resume: expected one argument
+[train] cuDNN warmup OK
+[train] full_method (calora_sam_srl_CAL2)
+[train] device=cuda  torch=2.6.0+cu124  transformers=4.57.6
+[train] cfg: pretrained=nvidia/segformer-b2-finetuned-ade-512-512 img=512 bs=2 grad_accum=1 epochs=50 lr=6e-05 warmup=5
+[train] difficulty: alpha=1.0 beta=0.5 gamma=0.3 delta=0.3 ema=0.9 tau=0.5
+[train] bonuses: spalling=0.3 late_hard_crack=0.4
+[train] ablation switches: dynamic_difficulty=False class_sampling_bonus=False class_loss_schedule=False boundary_loss=False tversky_loss=False
+[train] new switches: soft_curriculum=False softmax_sampling=False dynamic_loss_reweight=False (lambda=0.5) soft_boundary=False (start=0.6 max=0.1)
+[train] cldice: use=False weight=0.05 start_epoch=20 iters=7
+[train] srl: use=True weight=0.05 start_epoch=20
+[train] snake_aux: use=False weight=0.1
+[train] model_type=calora_sam snake_channels=64 snake_kernel=9
+[train] no_curriculum=True
+[train] competence: hard=False soft=False c0=0.333 duration=70 floors=[0.05,0.02,0.0]
+[train] MAC: use=False morph_diff=False adaptive_pacing=False class_loss=False diff_gamma=0.5 weights=[0.4,0.3,0.2,0.1]
+[train] sizes: train=1200 val=150 test=150
+[train] building records (scanning masks for has_spalling) ...
+[train] records: {0: 400, 1: 400, 2: 400}  has_spalling=292/1200
+[train] raw pixel frequency: {'background': 0.952165391031901, 'crack': 0.03423014119466146, 'spalling': 0.0136044677734375}
+[train] clipped weights    : {'background': 0.25, 'crack': 1.080772481700143, 'spalling': 1.7143055384148256}
+[CALoRA-SAM] loaded SAM ViT-B from sam_vit_b_01ec64.pth
+[CALoRA-SAM] injected MoE-LoRA into 48 layers (ranks=(8, 32))
+[CALoRA-SAM] total: 99.4M, trainable: 9.7M (9.8%)
+[CALoRA-SAM] router: 49.3K, MoE-LoRA: 5.90M
+[train] mixed precision (AMP) enabled
+[train] viz samples (6):
+    Hard/H (99).jpg
+    Hard/H (365).jpg
+    Medium/M (127).jpg
+    Medium/M (422).jpg
+    Hard/H (431).jpg
+    Hard/H (476).jpg
+[train] resuming from /workspace/dam-segmentation-baselines/full_method/runs/calora_sam_srl_CAL2/full_method/runs/calora_sam_srl_CAL2/last.pth
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/dam-segmentation-baselines/full_method/train.py", line 1285, in <module>
+    main()
+  File "/workspace/dam-segmentation-baselines/full_method/train.py", line 878, in main
+    state = torch.load(resume_path, map_location=device, weights_only=False)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/torch/serialization.py", line 1425, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/torch/serialization.py", line 751, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/torch/serialization.py", line 732, in __init__
+    super().__init__(open(name, mode))
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/dam-segmentation-baselines/full_method/runs/calora_sam_srl_CAL2/full_method/runs/calora_sam_srl_CAL2/last.pth'
+[train] cuDNN warmup OK
+[train] full_method (calora_sam_srl_CAL2)
+[train] device=cuda  torch=2.6.0+cu124  transformers=4.57.6
+[train] cfg: pretrained=nvidia/segformer-b2-finetuned-ade-512-512 img=512 bs=2 grad_accum=1 epochs=50 lr=6e-05 warmup=5
+[train] difficulty: alpha=1.0 beta=0.5 gamma=0.3 delta=0.3 ema=0.9 tau=0.5
+[train] bonuses: spalling=0.3 late_hard_crack=0.4
+[train] ablation switches: dynamic_difficulty=False class_sampling_bonus=False class_loss_schedule=False boundary_loss=False tversky_loss=False
+[train] new switches: soft_curriculum=False softmax_sampling=False dynamic_loss_reweight=False (lambda=0.5) soft_boundary=False (start=0.6 max=0.1)
+[train] cldice: use=False weight=0.05 start_epoch=20 iters=7
+[train] srl: use=True weight=0.05 start_epoch=20
+[train] snake_aux: use=False weight=0.1
+[train] model_type=calora_sam snake_channels=64 snake_kernel=9
+[train] no_curriculum=True
+[train] competence: hard=False soft=False c0=0.333 duration=70 floors=[0.05,0.02,0.0]
+[train] MAC: use=False morph_diff=False adaptive_pacing=False class_loss=False diff_gamma=0.5 weights=[0.4,0.3,0.2,0.1]
+[train] sizes: train=1200 val=150 test=150
+[train] building records (scanning masks for has_spalling) ...
+[train] records: {0: 400, 1: 400, 2: 400}  has_spalling=292/1200
+[train] raw pixel frequency: {'background': 0.952165391031901, 'crack': 0.03423014119466146, 'spalling': 0.0136044677734375}
+[train] clipped weights    : {'background': 0.25, 'crack': 1.080772481700143, 'spalling': 1.7143055384148256}
+[CALoRA-SAM] loaded SAM ViT-B from sam_vit_b_01ec64.pth
+[CALoRA-SAM] injected MoE-LoRA into 48 layers (ranks=(8, 32))
+[CALoRA-SAM] total: 99.4M, trainable: 9.7M (9.8%)
+[CALoRA-SAM] router: 49.3K, MoE-LoRA: 5.90M
+[train] mixed precision (AMP) enabled
+[train] viz samples (6):
+    Hard/H (99).jpg
+    Hard/H (365).jpg
+    Medium/M (127).jpg
+    Medium/M (422).jpg
+    Hard/H (431).jpg
+    Hard/H (476).jpg
+[train] resuming from /workspace/dam-segmentation-baselines/full_method/runs/calora_sam_srl_CAL2/last.pth
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/dam-segmentation-baselines/full_method/train.py", line 1285, in <module>
+    main()
+  File "/workspace/dam-segmentation-baselines/full_method/train.py", line 878, in main
+    state = torch.load(resume_path, map_location=device, weights_only=False)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/torch/serialization.py", line 1425, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/torch/serialization.py", line 751, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/torch/serialization.py", line 732, in __init__
+    super().__init__(open(name, mode))
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/dam-segmentation-baselines/full_method/runs/calora_sam_srl_CAL2/last.pth'
+[train] cuDNN warmup OK
+[train] full_method (calora_sam_srl_CAL2)
+[train] device=cuda  torch=2.6.0+cu124  transformers=4.57.6
+[train] cfg: pretrained=nvidia/segformer-b2-finetuned-ade-512-512 img=512 bs=2 grad_accum=1 epochs=50 lr=6e-05 warmup=5
+[train] difficulty: alpha=1.0 beta=0.5 gamma=0.3 delta=0.3 ema=0.9 tau=0.5
+[train] bonuses: spalling=0.3 late_hard_crack=0.4
+[train] ablation switches: dynamic_difficulty=False class_sampling_bonus=False class_loss_schedule=False boundary_loss=False tversky_loss=False
+[train] new switches: soft_curriculum=False softmax_sampling=False dynamic_loss_reweight=False (lambda=0.5) soft_boundary=False (start=0.6 max=0.1)
+[train] cldice: use=False weight=0.05 start_epoch=20 iters=7
+[train] srl: use=True weight=0.05 start_epoch=20
+[train] snake_aux: use=False weight=0.1
+[train] model_type=calora_sam snake_channels=64 snake_kernel=9
+[train] no_curriculum=True
+[train] competence: hard=False soft=False c0=0.333 duration=70 floors=[0.05,0.02,0.0]
+[train] MAC: use=False morph_diff=False adaptive_pacing=False class_loss=False diff_gamma=0.5 weights=[0.4,0.3,0.2,0.1]
+[train] sizes: train=1200 val=150 test=150
+[train] building records (scanning masks for has_spalling) ...
+[train] records: {0: 400, 1: 400, 2: 400}  has_spalling=292/1200
+[train] raw pixel frequency: {'background': 0.952165391031901, 'crack': 0.03423014119466146, 'spalling': 0.0136044677734375}
+[train] clipped weights    : {'background': 0.25, 'crack': 1.080772481700143, 'spalling': 1.7143055384148256}
+[CALoRA-SAM] loaded SAM ViT-B from sam_vit_b_01ec64.pth
+[CALoRA-SAM] injected MoE-LoRA into 48 layers (ranks=(8, 32))
+[CALoRA-SAM] total: 99.4M, trainable: 9.7M (9.8%)
+[CALoRA-SAM] router: 49.3K, MoE-LoRA: 5.90M
+[train] mixed precision (AMP) enabled
+[train] viz samples (6):
+    Hard/H (99).jpg
+    Hard/H (365).jpg
+    Medium/M (127).jpg
+    Medium/M (422).jpg
+    Hard/H (431).jpg
+    Hard/H (476).jpg
+[train] resuming from /workspace/dam-segmentation-baselines/full_method/runs/calora_sam_srl_CAL2/last.pth
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/dam-segmentation-baselines/full_method/train.py", line 1285, in <module>
+    main()
+  File "/workspace/dam-segmentation-baselines/full_method/train.py", line 878, in main
+    state = torch.load(resume_path, map_location=device, weights_only=False)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/torch/serialization.py", line 1425, in load
+    with _open_file_like(f, "rb") as opened_file:
+         ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/torch/serialization.py", line 751, in _open_file_like
+    return _open_file(name_or_buffer, mode)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/torch/serialization.py", line 732, in __init__
+    super().__init__(open(name, mode))
+                     ^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/dam-segmentation-baselines/full_method/runs/calora_sam_srl_CAL2/last.pth'
