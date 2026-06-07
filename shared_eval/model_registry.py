@@ -300,3 +300,17 @@ for _preset_id, _preset_cfg in _ABLATION_PRESETS.items():
                                    pretrained=_pretrained),
         inference_wrapper=FullMethodLogitsWrapper,
     ))
+    # Multi-seed variants (e.g. plain_segformer_P0_seed123)
+    for _seed in (42, 123, 2024):
+        _seed_name = f"{_abl_name}_seed{_seed}"
+        _seed_ckpt = _CODES / "full_method" / "runs" / _seed_name / "best.pt"
+        if _seed_ckpt.exists():
+            register(ModelEntry(
+                name=_seed_name,
+                checkpoint=_seed_ckpt,
+                img_size=_img_size,
+                build_fn=functools.partial(_build_full_method,
+                                           model_type=_model_type,
+                                           pretrained=_pretrained),
+                inference_wrapper=FullMethodLogitsWrapper,
+            ))

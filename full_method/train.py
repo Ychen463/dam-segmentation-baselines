@@ -480,6 +480,8 @@ def main() -> None:
     parser.add_argument("--no-soft-curriculum", action="store_true")
     parser.add_argument("--no-dynamic-loss-reweight", action="store_true")
     parser.add_argument("--loss-reweight-lambda", type=float, default=None)
+    parser.add_argument("--seed", type=int, default=None,
+                        help="Override random seed (default: config SEED=42)")
     args = parser.parse_args()
 
     # Config resolution: defaults -> preset -> CLI flags -> CLI name
@@ -518,7 +520,8 @@ def main() -> None:
         cfg.grad_accum = args.grad_accum
     total_epochs = args.epochs if args.epochs is not None else cfg.epochs
 
-    set_seed(C.SEED)
+    seed = args.seed if args.seed is not None else C.SEED
+    set_seed(seed)
     device = pick_device(C.DEVICE)
 
     # cuDNN warmup / fallback (RunPod compatibility)
