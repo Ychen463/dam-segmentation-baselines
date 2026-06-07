@@ -1,0 +1,26 @@
+run: dkd5e_crk07_spl02
+ablation_preset: DKD5e
+mode: plain (no TTA)
+test set metrics (plain):
+  IoU_background: 0.9770017795068193
+  IoU_crack: 0.5846946566703124
+  IoU_spalling: 0.8227376207983284
+  Dice_background: 0.9883671220068817
+  Dice_crack: 0.7379272141913394
+  Dice_spalling: 0.9027493715063424
+  mIoU_fg: 0.7037161387343204
+  mIoU_all: 0.7948113523251533
+  pixel_acc: 0.9776731618245442
+  BF1_crack: 0.7588206355682455
+  BF1_spalling: 0.6634913821697996
+  BF1_fg_mean: 0.7111560088690225
+  clDice_crack: 0.8347330154028335
+  clDice_spalling: 0.8708882798999482
+  clDice_fg_mean: 0.8528106476513908
+  ConnR_crack: 0.7999758161100364
+  ConnR_spalling: 0.7612612612612613
+  ConnR_fg_mean: 0.7806185386856488
+confusion matrix (rows=gt, cols=pred):
+[[36859097   488048    33323]
+ [  286554  1105008     1848]
+ [   59723     8431   479568]]

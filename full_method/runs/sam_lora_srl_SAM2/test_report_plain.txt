@@ -1,0 +1,25 @@
+run: sam_lora_srl_SAM2
+mode: plain (no TTA)
+test set metrics (plain):
+  IoU_background: 0.9738880133697447
+  IoU_crack: 0.559139008217191
+  IoU_spalling: 0.8209117361784675
+  Dice_background: 0.9867712927717324
+  Dice_crack: 0.7172407402679798
+  Dice_spalling: 0.9016491243022117
+  mIoU_fg: 0.6900253721978292
+  mIoU_all: 0.7846462525884678
+  pixel_acc: 0.9747286987304687
+  BF1_crack: 0.7333343393319529
+  BF1_spalling: 0.6670071755835479
+  BF1_fg_mean: 0.7001707574577505
+  clDice_crack: 0.8177404282602249
+  clDice_spalling: 0.8627363955011577
+  clDice_fg_mean: 0.8402384118806913
+  ConnR_crack: 0.8217023914971415
+  ConnR_spalling: 0.8603603603603603
+  ConnR_fg_mean: 0.8410313759287509
+confusion matrix (rows=gt, cols=pred):
+[[36703386   633771    43311]
+ [  253769  1137849     1792]
+ [   53244     7821   486657]]
