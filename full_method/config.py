@@ -1455,6 +1455,84 @@ ABLATION_PRESETS = {
               "cldice_start_epoch": 20, "cldice_iters": 7,
               "use_soft_boundary_schedule": False},
 
+    # =========================================================================
+    # Set DKD round 3: Targeted optimizations based on experiment analysis
+    # =========================================================================
+    # DKD7: DKD2 + curriculum learning (G2 showed 71.5 mIoU without KD;
+    #        adding KD on top of curriculum may push further)
+    "DKD7": {"name": "dkd7_curriculum",
+             "model_type": "dscformer",
+             "use_kd": True, "use_dual_kd": True,
+             "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+             "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+             "kd_teacher2_model_type": "sam_lora",
+             "kd_alpha": 0.5, "kd_temperature": 4.0,
+             "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+             "kd_class_weights": True,
+             "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+             # Curriculum from G2
+             "no_curriculum": False,
+             "use_competence_soft_mixing": True,
+             "competence_c0": 0.333, "competence_duration": 70,
+             "competence_floor_easy": 0.05,
+             "competence_floor_medium": 0.02,
+             "competence_floor_hard": 0.00,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": True,
+             "use_dynamic_loss_reweight": True,
+             "loss_reweight_lambda": 0.5,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+    # DKD8: DKD2 but Teacher 1 = G0 (DSConv only, no SRL)
+    #        G0 has ConnR_fg=83.6 vs G1's 77.8; avoids passing SRL's
+    #        ConnR regression into the teacher signal
+    "DKD8": {"name": "dkd8_teacher_g0",
+             "model_type": "dscformer",
+             "use_kd": True, "use_dual_kd": True,
+             "kd_teacher_checkpoint": "runs/dscformer_plain_G0/best.pt",
+             "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+             "kd_teacher2_model_type": "sam_lora",
+             "kd_alpha": 0.5, "kd_temperature": 4.0,
+             "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+             "kd_class_weights": True,
+             "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+    # DKD9: DKD2 + moderate augmentation
+    #        N1m showed moderate aug helps (+0.1 mIoU, +1.2 BF1 over basic);
+    #        keeps SRL at epoch 60 (unlike DKD4 which used epoch 30)
+    "DKD9": {"name": "dkd9_modaug",
+             "model_type": "dscformer",
+             "aug_level": "moderate",
+             "use_kd": True, "use_dual_kd": True,
+             "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+             "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+             "kd_teacher2_model_type": "sam_lora",
+             "kd_alpha": 0.5, "kd_temperature": 4.0,
+             "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+             "kd_class_weights": True,
+             "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False,
+             "use_srl_loss": True, "cldice_weight": 0.05,
+             "cldice_start_epoch": 60, "cldice_iters": 7,
+             "use_soft_boundary_schedule": False},
+
     # Set CAL: Crack-Aware Adaptive LoRA (MoE-LoRA + crack-complexity router)
     # CAL1: CALoRA-SAM baseline (CE + Dice, no SRL)
     "CAL1": {"name": "calora_sam_CAL1",
