@@ -1533,6 +1533,73 @@ ABLATION_PRESETS = {
              "cldice_start_epoch": 60, "cldice_iters": 7,
              "use_soft_boundary_schedule": False},
 
+    # =========================================================================
+    # Set DKD round 3b: SRL ConnR regression fixes
+    # Problem: SRL causes ConnR_sp -9.0 (82.4→73.4), ConnR_fg -5.7
+    # =========================================================================
+    # DKD10: DKD2 but NO SRL — let DTKD alone provide topology guidance
+    #         Tests whether DTKD can substitute for SRL entirely
+    "DKD10": {"name": "dkd10_no_srl",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": True,
+              "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False,
+              "use_srl_loss": False,
+              "use_soft_boundary_schedule": False},
+    # DKD11: DKD2 + weaker SRL (weight 0.02 instead of 0.05)
+    #         Reduces ConnR damage while preserving some BF1 gain
+    "DKD11": {"name": "dkd11_weak_srl",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": True,
+              "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False,
+              "use_srl_loss": True, "cldice_weight": 0.02,
+              "cldice_start_epoch": 60, "cldice_iters": 7,
+              "use_soft_boundary_schedule": False},
+    # DKD12: DKD2 + late SRL (epoch 80 instead of 60)
+    #         Gives model more time to stabilize before SRL perturbs gradients
+    "DKD12": {"name": "dkd12_late_srl",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": True,
+              "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False,
+              "use_srl_loss": True, "cldice_weight": 0.05,
+              "cldice_start_epoch": 80, "cldice_iters": 7,
+              "use_soft_boundary_schedule": False},
+
     # Set CAL: Crack-Aware Adaptive LoRA (MoE-LoRA + crack-complexity router)
     # CAL1: CALoRA-SAM baseline (CE + Dice, no SRL)
     "CAL1": {"name": "calora_sam_CAL1",
