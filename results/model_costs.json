@@ -1,0 +1,67 @@
+[
+  {
+    "name": "U-Net",
+    "backbone": "ResNet-34",
+    "img_size": 320,
+    "params_M": 24.436659,
+    "trainable_M": 24.436659,
+    "fps": 519.4900100524198
+  },
+  {
+    "name": "DeepLabV3+",
+    "backbone": "ResNet-50",
+    "img_size": 512,
+    "params_M": 26.678099,
+    "trainable_M": 26.678099,
+    "fps": 332.95430143771875
+  },
+  {
+    "name": "Mask2Former",
+    "backbone": "Swin-S",
+    "img_size": 512,
+    "params_M": 68.719758,
+    "trainable_M": 68.719758,
+    "fps": 39.05724701660515
+  },
+  {
+    "name": "SegFormer-B2",
+    "backbone": "MiT-B2",
+    "img_size": 512,
+    "params_M": 27.348931,
+    "trainable_M": 27.348931,
+    "fps": 123.67544735434463
+  },
+  {
+    "name": "SAM-LoRA",
+    "backbone": "ViT-B",
+    "img_size": 1024,
+    "params_M": 93.7,
+    "trainable_M": 5.0,
+    "fps": null
+  },
+  {
+    "name": "DINOv2-LoRA",
+    "backbone": "ViT-B/14",
+    "img_size": 518,
+    "params_M": 92.683011,
+    "trainable_M": 6.102531,
+    "fps": 68.25433266864779
+  },
+  {
+    "name": "DSCFormer",
+    "backbone": "MiT-B2",
+    "img_size": 512,
+    "params_M": 31.324583,
+    "trainable_M": 31.324583,
+    "fps": 96.3748123122702
+  },
+  {
+    "name": "DSCFormer+DTKD",
+    "backbone": "MiT-B2",
+    "img_size": 512,
+    "params_M": 31.324583,
+    "trainable_M": 31.324583,
+    "fps": 96.3748123122702,
+    "note": "Same arch as DSCFormer at inference"
+  }
+]
