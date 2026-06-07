@@ -1,12 +1,23 @@
-"""Test-Time Augmentation (TTA) evaluation for DSCformerDam.
+"""Test set evaluation with optional TTA for all model types.
 
-Loads a trained checkpoint and evaluates on the test set with multi-scale
-and flip augmentations, averaging logits before argmax.
+Supports preset-based model loading via --ablation flag, which correctly
+reconstructs the model architecture from ABLATION_PRESETS in config.py.
 
 Usage:
+    # Evaluate DKD5e with TTA (preset-based)
+    python eval_tta.py --run dkd5e_crk07_spl02 --ablation DKD5e
+
+    # Evaluate DKD5e WITHOUT TTA (test-only)
+    python eval_tta.py --run dkd5e_crk07_spl02 --ablation DKD5e --no-tta
+
+    # Evaluate G1 with TTA (auto-detected by run name)
     python eval_tta.py --run dscformer_srl_G1
-    python eval_tta.py --run dscformer_srl_G1 --scales 0.75 1.0 1.25
-    python eval_tta.py --run dscformer_srl_G1 --no-flip  # scales only
+
+    # Evaluate with explicit model type
+    python eval_tta.py --run my_run --model-type dscformer
+
+    # Custom TTA scales
+    python eval_tta.py --run dkd5e_crk07_spl02 --ablation DKD5e --scales 0.75 1.0 1.25
 """
 from __future__ import annotations
 
@@ -14,7 +25,6 @@ import argparse
 import sys
 from pathlib import Path
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -25,30 +35,51 @@ from full_method import config as C
 from full_method.model import DSCformerDam, SegFormerWithBoundary
 from full_method.sam_model import TopoLoRASAM
 from full_method.dinov2_model import DINOv2LoRA
-from full_method.dataset import FullMethodDataset
 from full_method.train import build_val_loader
 
-IMAGENET_MEAN = [0.485, 0.456, 0.406]
-IMAGENET_STD = [0.229, 0.224, 0.225]
 
+def load_model(run_dir: Path, device: str, ablation: str | None = None,
+               model_type: str | None = None):
+    """Load model from best.pt checkpoint.
 
-def load_model(run_dir: Path, device: str):
-    """Load model from best.pt checkpoint."""
+    Args:
+        run_dir: path to run directory containing best.pt
+        device: torch device
+        ablation: preset name (e.g. "DKD5e") to reconstruct cfg via apply_preset
+        model_type: explicit model type override ("dscformer", "sam_lora", "dinov2_lora", "segformer")
+    """
     best_pt = run_dir / "best.pt"
     if not best_pt.exists():
         raise FileNotFoundError(f"No best.pt in {run_dir}")
 
     state = torch.load(best_pt, map_location=device, weights_only=False)
 
-    # Detect model type from run name or config
-    run_name = run_dir.name
-    is_dinov2 = "dinov2" in run_name.lower()
-    is_sam = ("sam_lora" in run_name.lower() or "sam" in run_name.lower()) and not is_dinov2
-    is_dscformer = "dscformer" in run_name.lower() or "dsc" in run_name.lower()
+    # Determine model type: ablation preset > explicit flag > run name heuristic
+    cfg = C.RunCfg()
 
-    if is_dinov2:
-        cfg = C.RunCfg()
-        cfg.model_type = "dinov2_lora"
+    if ablation is not None:
+        C.apply_preset(cfg, ablation)
+        mtype = cfg.model_type
+        print(f"[eval] using ablation preset '{ablation}' -> model_type='{mtype}'")
+    elif model_type is not None:
+        mtype = model_type
+        cfg.model_type = mtype
+        print(f"[eval] using explicit model_type='{mtype}'")
+    else:
+        # Fallback: detect from run name
+        run_name = run_dir.name.lower()
+        if "dinov2" in run_name:
+            mtype = "dinov2_lora"
+        elif "sam_lora" in run_name or "sam" in run_name:
+            mtype = "sam_lora"
+        elif "dscformer" in run_name or "dsc" in run_name:
+            mtype = "dscformer"
+        else:
+            mtype = "segformer"
+        print(f"[eval] auto-detected model_type='{mtype}' from run name '{run_dir.name}'")
+
+    # Build model
+    if mtype == "dinov2_lora":
         model = DINOv2LoRA(
             num_classes=C.NUM_CLASSES,
             lora_rank=cfg.lora_rank,
@@ -56,9 +87,7 @@ def load_model(run_dir: Path, device: str):
             fpn_dim=cfg.dinov2_fpn_dim,
             img_size=cfg.dinov2_img_size,
         )
-    elif is_sam:
-        cfg = C.RunCfg()
-        cfg.model_type = "sam_lora"
+    elif mtype == "sam_lora":
         model = TopoLoRASAM(
             sam_checkpoint=cfg.sam_checkpoint,
             num_classes=C.NUM_CLASSES,
@@ -67,22 +96,17 @@ def load_model(run_dir: Path, device: str):
             fpn_dim=cfg.sam_fpn_dim,
             sam_img_size=cfg.sam_img_size,
         )
-    elif is_dscformer:
-        # Build a minimal cfg to reconstruct model
-        cfg = C.RunCfg()
-        # Check if multiscale
-        if "multiscale" in run_name.lower():
-            cfg.use_multiscale_snake = True
+    elif mtype == "dscformer":
         model = DSCformerDam(cfg.pretrained, C.NUM_CLASSES, cfg=cfg)
     else:
-        model = SegFormerWithBoundary(C.RunCfg().pretrained, C.NUM_CLASSES)
+        model = SegFormerWithBoundary(cfg.pretrained, C.NUM_CLASSES)
 
     model.load_state_dict(state["model"])
     model.to(device).eval()
 
     best_epoch = state.get("epoch", "?")
     best_miou = state.get("mIoU_fg", state.get("best_miou_fg", "?"))
-    print(f"[TTA] loaded {best_pt.name} (epoch={best_epoch}, val_mIoU_fg={best_miou})")
+    print(f"[eval] loaded {best_pt.name} (epoch={best_epoch}, val_mIoU_fg={best_miou})")
     return model
 
 
@@ -133,17 +157,42 @@ def tta_predict(model, image: torch.Tensor, scales: list, use_flip: bool,
     return logits_sum / n_augs
 
 
+def plain_predict(model, image: torch.Tensor, target_size: tuple,
+                  device: str, use_amp: bool = True) -> torch.Tensor:
+    """Standard forward pass without TTA. Returns logits (B, C, H, W)."""
+    with torch.no_grad(), torch.amp.autocast("cuda", enabled=use_amp):
+        out = model(image)
+        logits = out["seg_logits"].float()
+    logits = F.interpolate(logits, size=target_size, mode="bilinear", align_corners=False)
+    return logits
+
+
+METRIC_KEYS = (
+    "IoU_background", "IoU_crack", "IoU_spalling",
+    "Dice_background", "Dice_crack", "Dice_spalling",
+    "mIoU_fg", "mIoU_all", "pixel_acc",
+    "BF1_crack", "BF1_spalling", "BF1_fg_mean",
+    "clDice_crack", "clDice_spalling", "clDice_fg_mean",
+    "ConnR_crack", "ConnR_spalling", "ConnR_fg_mean",
+)
+
+
 def main():
-    parser = argparse.ArgumentParser(description="TTA evaluation")
+    parser = argparse.ArgumentParser(description="Test set evaluation (with optional TTA)")
     parser.add_argument("--run", type=str, required=True,
-                        help="run directory name (e.g. dscformer_srl_G1)")
+                        help="run directory name (e.g. dkd5e_crk07_spl02)")
+    parser.add_argument("--ablation", type=str, default=None,
+                        help="ablation preset name (e.g. DKD5e) for correct model reconstruction")
+    parser.add_argument("--model-type", type=str, default=None,
+                        choices=["dscformer", "sam_lora", "dinov2_lora", "segformer"],
+                        help="explicit model type override")
+    parser.add_argument("--no-tta", action="store_true",
+                        help="disable TTA, run plain test evaluation")
     parser.add_argument("--scales", type=float, nargs="+",
                         default=[0.75, 1.0, 1.25],
                         help="TTA scales (default: 0.75 1.0 1.25)")
     parser.add_argument("--no-flip", action="store_true",
-                        help="disable flip augmentation")
-    parser.add_argument("--batch-size", type=int, default=1,
-                        help="must be 1 for TTA (default)")
+                        help="disable flip augmentation in TTA")
     args = parser.parse_args()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -153,11 +202,12 @@ def main():
         sys.exit(1)
 
     # Load model
-    model = load_model(run_dir, device)
+    model = load_model(run_dir, device, ablation=args.ablation,
+                       model_type=args.model_type)
 
     # Build test loader
     cfg = C.RunCfg()
-    cfg.batch_size = 1  # TTA requires batch_size=1
+    cfg.batch_size = 1
     test_files = []
     with open(C.SPLIT_FILES["test"]) as f:
         test_files = [line.strip() for line in f if line.strip()]
@@ -168,30 +218,41 @@ def main():
         from shared_eval.metrics_full import SegMetricsFull
         metrics = SegMetricsFull(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
     except ImportError:
-        print("[TTA] WARNING: shared_eval not available, using basic metrics")
+        print("[eval] WARNING: shared_eval not available, using basic metrics")
         from full_method.train import SegMetricsBF1
         metrics = SegMetricsBF1(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
 
     metrics.reset()
     use_amp = (device == "cuda")
+    use_tta = not args.no_tta
     use_flip = not args.no_flip
     scales = args.scales
 
-    aug_desc = f"scales={scales}"
-    if use_flip:
-        aug_desc += " + hflip + vflip"
-    n_augs = len(scales) * (3 if use_flip else 1)
-    print(f"[TTA] {aug_desc}  ({n_augs} views per image)")
-    print(f"[TTA] evaluating {len(test_files)} test images...")
+    if use_tta:
+        aug_desc = f"scales={scales}"
+        if use_flip:
+            aug_desc += " + hflip + vflip"
+        n_augs = len(scales) * (3 if use_flip else 1)
+        mode_str = f"TTA ({aug_desc}, {n_augs} views)"
+    else:
+        mode_str = "plain (no TTA)"
+
+    print(f"[eval] mode: {mode_str}")
+    print(f"[eval] evaluating {len(test_files)} test images...")
 
     for i, batch in enumerate(test_loader):
         imgs = batch["image"].to(device, non_blocking=True).float()
         masks = batch["mask"].to(device, non_blocking=True).long()
         target_size = masks.shape[-2:]
 
-        avg_logits = tta_predict(model, imgs, scales, use_flip, target_size,
+        if use_tta:
+            logits = tta_predict(model, imgs, scales, use_flip, target_size,
                                  device, use_amp=use_amp)
-        metrics.update(avg_logits, masks)
+        else:
+            logits = plain_predict(model, imgs, target_size, device,
+                                   use_amp=use_amp)
+
+        metrics.update(logits, masks)
 
         if (i + 1) % 50 == 0:
             print(f"  [{i+1}/{len(test_loader)}]")
@@ -199,38 +260,35 @@ def main():
     m = metrics.compute()
 
     # Print results
+    suffix = "TTA" if use_tta else "plain"
     print(f"\n{'='*60}")
-    print(f"TTA Results: {args.run}")
-    print(f"Augmentations: {aug_desc}")
+    print(f"Test Results ({suffix}): {args.run}")
+    if use_tta:
+        print(f"Augmentations: {aug_desc}")
     print(f"{'='*60}")
-    for k in ("IoU_background", "IoU_crack", "IoU_spalling",
-              "Dice_background", "Dice_crack", "Dice_spalling",
-              "mIoU_fg", "mIoU_all", "pixel_acc",
-              "BF1_crack", "BF1_spalling", "BF1_fg_mean",
-              "clDice_crack", "clDice_spalling", "clDice_fg_mean",
-              "ConnR_crack", "ConnR_spalling", "ConnR_fg_mean"):
+    for k in METRIC_KEYS:
         val = m.get(k)
         if val is not None:
             print(f"  {k}: {val:.6f}")
     print(f"{'='*60}")
 
     # Save report
-    report_path = run_dir / "test_report_tta.txt"
+    report_name = f"test_report_{'tta' if use_tta else 'plain'}.txt"
+    report_path = run_dir / report_name
     with open(report_path, "w") as f:
         f.write(f"run: {args.run}\n")
-        f.write(f"tta: scales={scales} flip={use_flip} n_views={n_augs}\n")
-        f.write("test set metrics (TTA):\n")
-        for k in ("IoU_background", "IoU_crack", "IoU_spalling",
-                  "Dice_background", "Dice_crack", "Dice_spalling",
-                  "mIoU_fg", "mIoU_all", "pixel_acc",
-                  "BF1_crack", "BF1_spalling", "BF1_fg_mean",
-                  "clDice_crack", "clDice_spalling", "clDice_fg_mean",
-                  "ConnR_crack", "ConnR_spalling", "ConnR_fg_mean"):
+        if args.ablation:
+            f.write(f"ablation_preset: {args.ablation}\n")
+        f.write(f"mode: {mode_str}\n")
+        if use_tta:
+            f.write(f"tta: scales={scales} flip={use_flip} n_views={n_augs}\n")
+        f.write(f"test set metrics ({suffix}):\n")
+        for k in METRIC_KEYS:
             f.write(f"  {k}: {m.get(k)}\n")
         if hasattr(metrics, 'cm'):
             f.write("confusion matrix (rows=gt, cols=pred):\n")
             f.write(str(metrics.cm) + "\n")
-    print(f"[TTA] wrote {report_path}")
+    print(f"[eval] wrote {report_path}")
 
 
 if __name__ == "__main__":
