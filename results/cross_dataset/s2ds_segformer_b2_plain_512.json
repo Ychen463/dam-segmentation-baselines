@@ -1,22 +1,22 @@
 {
   "s2ds": {
-    "IoU_background": 0.024241151280184708,
-    "Dice_background": 0.04733485126991047,
-    "IoU_crack": 0.00019879247582017557,
-    "Dice_crack": 0.0003975059304522833,
-    "IoU_spalling": 0.0,
-    "Dice_spalling": 0.0,
-    "mIoU_fg": 9.939623791008778e-05,
-    "mIoU_all": 0.008146647918668294,
-    "pixel_acc": 0.024369557698567707,
-    "BF1_crack": 0.07375864317033186,
-    "BF1_spalling": 0.0,
-    "BF1_fg_mean": 0.03687932158516593,
-    "clDice_crack": 0.01887260988328781,
-    "ConnR_crack": 1.0,
+    "IoU_background": 0.0162999756020484,
+    "Dice_background": 0.032077095332787776,
+    "IoU_crack": 0.0012575263718997702,
+    "Dice_crack": 0.002511893970887733,
+    "IoU_spalling": 0.00037561981989124013,
+    "Dice_spalling": 0.0007509575652370799,
+    "mIoU_fg": 0.0008165730958955052,
+    "mIoU_all": 0.005977707264613136,
+    "pixel_acc": 0.016845333960748488,
+    "BF1_crack": 0.017927630345793238,
+    "BF1_spalling": 0.03869685866547822,
+    "BF1_fg_mean": 0.028312244505635728,
+    "clDice_crack": 0.025915303463935536,
+    "ConnR_crack": 0.9987228607918263,
     "clDice_spalling": 0.0,
     "ConnR_spalling": 0.0,
-    "clDice_fg_mean": 0.009436304941643905,
-    "ConnR_fg_mean": 0.5
+    "clDice_fg_mean": 0.012957651731967768,
+    "ConnR_fg_mean": 0.49936143039591313
   }
 }
