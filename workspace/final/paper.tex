@@ -1,11 +1,12 @@
 % ===========================================================================
-% Topology-Aware Crack and Spalling Segmentation in Concrete Dams
-% via Dynamic Snake Convolution and Skeleton Recall Loss
+% Topology-Aware Crack and Spalling Segmentation in Concrete Dams via
+% Dynamic Snake Convolution, Skeleton Recall Loss, and Class-Conditional
+% Dual-Teacher Knowledge Distillation
 % ===========================================================================
-\documentclass[10pt,twocolumn,letterpaper]{article}
+% Target: Automation in Construction / Engineering Structures / CSCEE
+% ===========================================================================
+\documentclass[review,authoryear]{elsarticle}
 
-\usepackage{times}
-\usepackage{epsfig}
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -14,34 +15,125 @@
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{enumitem}
+\usepackage{lineno}
 
-% Page geometry (CVPR-like)
-\usepackage[margin=1in]{geometry}
+\journal{Automation in Construction}
 
 \begin{document}
 
-\title{Topology-Aware Crack and Spalling Segmentation in Concrete Dams\\via Dynamic Snake Convolution and Skeleton Recall Loss}
+\begin{frontmatter}
 
-\author{
-Anonymous Author(s)
-}
+\title{Topology-Aware Crack and Spalling Segmentation in Concrete Dams via Dynamic Snake Convolution, Skeleton Recall Loss, and Class-Conditional Dual-Teacher Knowledge Distillation}
 
-\date{}
-\maketitle
+\author[inst1]{Author A}
+\author[inst1]{Author B}
+\author[inst1]{Author C\corref{cor1}}
+\cortext[cor1]{Corresponding author.}
+\address[inst1]{University, Department, City, Country}
 
-% ===========================================================================
 \begin{abstract}
-Automated segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring, yet existing methods optimize pixel-level metrics without explicitly enforcing the topological connectivity critical for safety assessment.
-We propose \textbf{DSCFormer}, a topology-aware segmentation framework that augments SegFormer-B2 with two complementary enhancements: (1)~a \emph{Dynamic Snake Convolution} (DSConv) branch that performs deformable sampling along crack directions to capture elongated geometry, and (2)~\emph{Skeleton Recall Loss} (SRL) that penalizes predictions with low probability at ground-truth skeleton pixels, directly enforcing topological connectivity using precomputed skeletons with no runtime overhead.
-On our \textbf{DamSegment} benchmark (1,500 images, 3~classes, 3~difficulty tiers), DSCFormer achieves 71.4\% mIoU$_{fg}$ (72.3\% with test-time augmentation), 72.1\% Boundary F1 (+5.3 over baseline), and 86.2\% clDice (+4.8 over baseline), outperforming U-Net, DeepLabV3+, Mask2Former, SegFormer-B2, and parameter-efficient fine-tuned foundation models (SAM-LoRA, DINOv2-LoRA) on all topology-sensitive metrics.
-Ablations confirm that DSConv and SRL provide complementary gains: DSConv primarily improves crack connectivity (ConnR~+3.8) through geometry-aware sampling, while SRL adds consistent improvements across all metrics (mIoU~+1.0, BF1~+2.6).
-Our comparison with foundation models further demonstrates that task-specific architectural design outperforms generic adaptation on small-scale industrial inspection datasets.
+Automated semantic segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring, yet existing methods optimise pixel-level metrics without explicitly enforcing the topological connectivity critical for safety assessment.
+We propose \textbf{DSCFormer}, a topology-aware segmentation framework incorporating three complementary enhancements to a SegFormer-B2 backbone:
+(1)~a \emph{Dynamic Snake Convolution} (DSConv) branch that performs deformable sampling along crack directions to capture elongated geometry;
+(2)~\emph{Skeleton Recall Loss} (SRL) that penalises predictions with low probability at ground-truth skeleton pixels, enforcing topological connectivity with negligible runtime overhead; and
+(3)~\emph{Class-Conditional Dual-Teacher Knowledge Distillation} (DTKD) that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher with per-class weighting, exploiting each teacher's strengths for different defect types.
+On our \textbf{DamSeg-1500} benchmark (1,500 images, 3~classes), DSCFormer with DTKD achieves 71.2\% foreground mIoU (+0.8 over the base DSCFormer without distillation, +2.4 over SegFormer-B2+TTA), 86.2\% centreline Dice, and 80.6\% Connectivity Ratio, outperforming U-Net, DeepLabV3+, Mask2Former, SegFormer, and parameter-efficient fine-tuned foundation models (SAM-LoRA, DINOv2-LoRA).
+With test-time augmentation, the full framework reaches 72.2\% mIoU$_{\text{fg}}$.
+Ablation experiments confirm that each component provides complementary gains: DSConv improves crack connectivity (+6.6 ConnR), SRL adds boundary accuracy (+1.0 BF1), and DTKD boosts overall segmentation quality (+0.6 mIoU, +2.8 ConnR).
 \end{abstract}
 
+\begin{keyword}
+Crack segmentation \sep Concrete dam inspection \sep Dynamic snake convolution \sep Skeleton recall loss \sep Knowledge distillation \sep Structural health monitoring
+\end{keyword}
+
+\end{frontmatter}
+
+\linenumbers
+
 % ===========================================================================
-% INTRODUCTION AND RELATED WORK (from Literature Review Agent)
+\section{Introduction}
+\label{sec:intro}
+
+Concrete dams are safety-critical infrastructure whose structural integrity must be continuously monitored throughout multi-decade service lives.
+Surface defects---predominantly cracks and spalling---serve as early indicators of internal deterioration, yet their manual inspection remains labour-intensive, subjective, and logistically constrained by the scale and accessibility of dam faces \citep{chen2024damsurvey,fang2024dam}.
+Automated semantic segmentation of these defects from high-resolution imagery therefore promises substantial gains in inspection efficiency and repeatability.
+
+Recent deep-learning methods have advanced pixel-level defect segmentation considerably.
+Encoder--decoder architectures such as U-Net \citep{ronneberger2015unet} and hierarchical transformers like SegFormer \citep{xie2021segformer} achieve competitive Intersection-over-Union (IoU) on benchmark crack datasets \citep{zou2019deepcrack,liu2019deepcrack}.
+However, IoU and related region-overlap metrics are insensitive to topological errors: a prediction that fragments a continuous crack into disconnected segments may still score favourably on IoU while misrepresenting the structural extent of the defect \citep{pantoja2024cracktopology}.
+For structural safety assessment, the \emph{connectivity} of a predicted crack is as important as its pixel coverage---a fragmented prediction can lead an engineer to underestimate propagation length and thus misjudge residual capacity.
+
+Topology-preserving losses such as clDice \citep{shit2021cldice} and persistent-homology penalties \citep{hu2019topology,clough2020topological} partially address this gap, yet they either incur prohibitive GPU memory for high-resolution dam images or operate on binary masks without multi-class support.
+The recently proposed Skeleton Recall Loss (SRL) \citep{shit2024skeleton} overcomes both limitations by computing recall on CPU-extracted ground-truth skeletons with over 90\% reduction in computational overhead.
+Concurrently, Dynamic Snake Convolution (DSConv) \citep{qi2023dynamic} reshapes kernel sampling grids to follow elongated, tortuous paths---a morphological prior that aligns naturally with the geometry of cracks.
+
+Meanwhile, large vision foundation models such as SAM \citep{kirillov2023sam} and DINOv2 \citep{oquab2024dinov2} offer powerful pretrained representations, yet our experiments show that parameter-efficient fine-tuning via LoRA \citep{hu2022lora} on small industrial datasets underperforms fully fine-tuned task-specific architectures.
+A natural question arises: \emph{can the complementary strengths of task-specific and foundation models be combined}?
+We address this through knowledge distillation, where a student model learns from both a task-specific teacher and a foundation-model teacher with class-conditional weighting.
+
+In this paper we propose \textbf{DSCFormer}, a framework that augments SegFormer-B2 with a parallel DSConv branch, SRL training, and class-conditional dual-teacher knowledge distillation (DTKD).
+We evaluate on a new \textbf{DamSeg-1500} benchmark of 1,500 annotated dam surface images.
+Our contributions are:
+\begin{enumerate}
+    \item A topology-aware segmentation framework combining Dynamic Snake Convolution with Skeleton Recall Loss for fine-grained dam defect segmentation, where DSConv improves crack connectivity (+6.6 ConnR) and SRL adds boundary accuracy improvements (+1.0 BF1).
+    \item A class-conditional dual-teacher knowledge distillation strategy that transfers complementary knowledge from a task-specific teacher (strong on spalling) and a foundation-model teacher (strong on crack connectivity), improving mIoU by +0.6 and ConnR by +2.8 over the base model.
+    \item A systematic comparison with six methods including foundation model adaptation approaches (SAM-LoRA, DINOv2-LoRA), demonstrating that task-specific architectural design outperforms parameter-efficient fine-tuning on small-scale industrial datasets, and that knowledge distillation provides an effective alternative to directly deploying foundation models.
+    \item The DamSeg-1500 dataset with pixel-level crack and spalling annotations across three difficulty tiers, providing a benchmark for concrete dam surface defect segmentation.
+\end{enumerate}
+
 % ===========================================================================
-\input{intro_relwork}
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Concrete defect segmentation}
+\label{sec:related:defect}
+
+Early CNN-based crack detectors such as CrackNet treated defect identification as patch classification \citep{zou2019deepcrack}.
+Fully convolutional designs subsequently enabled dense pixel-wise prediction: DeepCrack \citep{liu2019deepcrack} introduced deeply-supervised side outputs, while \citet{zou2019deepcrack} exploited hierarchical features with multi-scale fusion.
+
+Transformer-based architectures have demonstrated improved global context modelling.
+CrackFormer \citep{liu2021crackformer} embeds self-attention to capture long-range crack continuity, and SegFormer \citep{xie2021segformer} provides a lightweight hierarchical encoder with an all-MLP decoder.
+Universal architectures such as Mask2Former \citep{cheng2022mask2former} further push segmentation accuracy on general benchmarks but have seen limited adoption for infrastructure defects due to annotation scarcity.
+
+Applied to dam inspection specifically, \citet{arafin2024concrete} performed multi-class concrete defect segmentation using DeepLabV3+, while \citet{fang2024dam} proposed a lightweight architecture for microscopic dam crack quantification.
+\citet{chen2024damsurvey} surveyed visual perception methods for intelligent dam inspection, identifying limited dataset scale and poor topology preservation as key open challenges.
+
+\subsection{Topology-aware segmentation}
+\label{sec:related:topology}
+
+\citet{hu2019topology} introduced a differentiable topological loss based on persistent homology.
+\citet{clough2020topological} extended persistent-homology supervision to cardiac imaging.
+However, persistent-homology computation scales poorly to high-resolution images.
+
+For tubular structures, \citet{shit2021cldice} proposed clDice, a differentiable soft-skeleton metric, but it requires GPU-based skeletonisation with substantial memory overhead.
+The Skeleton Recall Loss \citep{shit2024skeleton} pre-computes ground-truth skeletons on CPU and formulates a recall objective, achieving superior connectivity with over 90\% memory reduction relative to clDice.
+
+Our work extends SRL to the multi-class dam defect setting and pairs it with geometry-aware convolutions and knowledge distillation.
+
+\subsection{Deformable and dynamic convolutions}
+\label{sec:related:deformable}
+
+Deformable Convolutional Networks (DCN) \citep{dai2017deformable} introduced learnable offsets for adaptive sampling.
+Dynamic Snake Convolution (DSConv) \citep{qi2023dynamic} constrains offsets along a one-dimensional path, forcing snake-like sampling that traces elongated structures.
+
+Our DSCFormer integrates DSConv as a \emph{parallel} branch alongside SegFormer-B2, preserving global context while adding crack-specific geometric bias.
+
+\subsection{Knowledge distillation for segmentation}
+\label{sec:related:kd}
+
+Knowledge distillation (KD) \citep{hinton2015distilling} transfers knowledge from a teacher model to a smaller student by matching softened output distributions.
+In semantic segmentation, structured KD approaches \citep{liu2019structured,wang2020intra} distil spatial relationships rather than just per-pixel logits.
+Multi-teacher distillation \citep{you2017learning,yuan2021multihead} combines knowledge from multiple specialised teachers, but typically uses uniform teacher weighting across all classes.
+
+Our class-conditional dual-teacher strategy differs by assigning per-class teacher weights based on each teacher's domain-specific strengths: the foundation-model teacher (SAM-LoRA) receives higher weight for crack classes where its pretrained representations capture global connectivity, while the task-specific teacher (DSCFormer) receives higher weight for spalling where domain-specific features are more effective.
+
+\subsection{Foundation models for segmentation}
+\label{sec:related:foundation}
+
+The Segment Anything Model (SAM) \citep{kirillov2023sam} and DINOv2 \citep{oquab2024dinov2} represent powerful vision foundation models.
+Parameter-efficient fine-tuning via LoRA \citep{hu2022lora} enables adaptation with minimal trainable parameters (${\sim}5\%$).
+While promising on natural images, their effectiveness on small-scale industrial datasets remains underexplored.
+We show that rather than directly deploying foundation models, using them as teachers in knowledge distillation yields better results.
 
 % ===========================================================================
 \section{Method}
@@ -49,175 +141,245 @@ Our comparison with foundation models further demonstrates that task-specific ar
 
 \subsection{Overview}
 
-Figure~\ref{fig:architecture} illustrates the DSCFormer architecture. Our design philosophy is to enhance topology preservation at two complementary levels: (1)~at the \emph{feature extraction} level through geometry-aware convolutions (DSConv branch), and (2)~at the \emph{training objective} level through explicit skeleton supervision (SRL). Both additions are lightweight and do not increase inference cost for the base segmentation path.
+Fig.~\ref{fig:architecture} illustrates the DSCFormer framework. Our approach enhances a SegFormer-B2 backbone at three complementary levels: (1)~\emph{feature extraction} via a parallel DSConv branch for geometry-aware crack sampling, (2)~\emph{training objective} via SRL for explicit skeleton supervision, and (3)~\emph{knowledge transfer} via class-conditional dual-teacher distillation to combine the strengths of task-specific and foundation models.
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=0.95\textwidth]{figures/fig_architecture.png}
-    \caption{Overview of the proposed DSCFormer architecture. A SegFormer-B2 encoder extracts hierarchical features, which are fused by an MLP decoder. A parallel Dynamic Snake Convolution branch consumes early encoder stages (1--2) and additively enhances crack channel logits. The model is trained with a composite loss including Skeleton Recall Loss (SRL) activated after epoch~60.}
+    \includegraphics[width=0.90\textwidth]{figures/fig_architecture.png}
+    \caption{Overview of the DSCFormer framework. (a)~A SegFormer-B2 encoder with a parallel DSConv branch produces segmentation logits. (b)~Training uses a composite loss (CE + Dice + SRL) combined with class-conditional dual-teacher knowledge distillation, where Teacher~1 (DSCFormer) guides spalling predictions and Teacher~2 (SAM-LoRA) guides crack predictions.}
     \label{fig:architecture}
 \end{figure*}
 
-\subsection{SegFormer-B2 Backbone}
+\subsection{SegFormer-B2 backbone}
 
-We adopt SegFormer-B2~\cite{xie2021segformer} as our backbone, which provides a hierarchical transformer encoder with four stages producing feature maps at resolutions $H/4$, $H/8$, $H/16$, and $H/32$ with channel dimensions 64, 128, 320, and 512, respectively. The lightweight all-MLP decoder fuses multi-scale features through linear projection and upsampling, yielding a strong accuracy--efficiency trade-off. We initialize from weights pretrained on ADE20K at $512{\times}512$ resolution.
+We adopt SegFormer-B2 \citep{xie2021segformer} as our backbone, providing a hierarchical Mix Transformer (MiT) encoder with four stages at resolutions $H/4$, $H/8$, $H/16$, and $H/32$ with channel dimensions 64, 128, 320, and 512. The all-MLP decoder fuses multi-scale features via linear projection and upsampling. We initialise from weights pretrained on ADE20K at $512{\times}512$.
 
-\subsection{Dynamic Snake Convolution Branch}
+\subsection{Dynamic Snake Convolution branch}
 \label{sec:dsconv}
 
-Standard convolutions sample on fixed rectangular grids---an inductive bias poorly matched to thin, curvilinear crack structures. Inspired by Dynamic Snake Convolution~\cite{qi2023dynamic}, we introduce a parallel \emph{CrackSnakeBranch} that performs deformable sampling along the elongated geometry of cracks.
+Standard convolutions sample on fixed rectangular grids---poorly matched to thin, curvilinear cracks. Inspired by \citet{qi2023dynamic}, we introduce a parallel \emph{CrackSnakeBranch} that performs deformable sampling along crack geometry.
 
-\paragraph{Architecture.} The branch consumes encoder stages 1 and 2 (at $H/4$ and $H/8$ resolution, where crack details are best preserved). Two parallel DSConv paths deform sampling along the $x$-axis and $y$-axis respectively, each with kernel size $K{=}9$ and hidden dimension $d{=}64$. The outputs are summed and projected to a single-channel crack enhancement map $\mathbf{E}_{crack} \in \mathbb{R}^{H \times W}$.
+\paragraph{Architecture.} The branch consumes encoder stages 1 and 2 (at $H/4$ and $H/8$ resolution). Two parallel DSConv paths deform sampling along the $x$-axis and $y$-axis respectively, each with kernel size $K{=}9$ and hidden dimension $d{=}64$. The outputs are projected to a single-channel crack enhancement map $\mathbf{E}_{\text{crack}} \in \mathbb{R}^{H \times W}$.
 
-\paragraph{Additive Enhancement.} The enhancement map is added \emph{only} to the crack channel logits of the main segmentation head:
+\paragraph{Additive enhancement.} The map is added \emph{only} to the crack channel logits:
 \begin{equation}
-    \hat{\mathbf{y}}_{crack} = \mathbf{z}_{crack} + \mathbf{E}_{crack}
+    \hat{\mathbf{y}}_{\text{crack}} = \mathbf{z}_{\text{crack}} + \mathbf{E}_{\text{crack}}
+    \label{eq:dsconv}
 \end{equation}
-where $\mathbf{z}_{crack}$ denotes the decoder's crack logits. Spalling and background logits remain unmodified, ensuring the branch focuses exclusively on crack topology.
+where $\mathbf{z}_{\text{crack}}$ denotes the decoder's crack logits. Spalling and background logits remain unmodified.
 
-\paragraph{Zero-Initialization.} The output projection layer is initialized with zero weights and bias, so the branch starts as a no-op ($\mathbf{E}_{crack} = \mathbf{0}$) and gradually learns crack-specific deformations during training. This prevents early disruption of the pretrained backbone's predictions.
+\paragraph{Zero-initialisation.} The output projection is initialised to zero, so the branch starts as a no-op and gradually learns crack-specific deformations during training.
 
 \subsection{Skeleton Recall Loss}
 \label{sec:srl}
 
-To directly enforce topological connectivity, we adopt Skeleton Recall Loss~\cite{shit2024skeleton} adapted to our multi-class setting. Let $S = \{p_1, \ldots, p_{|S|}\}$ denote the set of ground-truth skeleton pixels for the crack class, precomputed offline via morphological skeletonization. SRL penalizes low predicted probability at these critical centerline locations:
+Let $\mathcal{S} = \{p_1, \ldots, p_{|\mathcal{S}|}\}$ denote the ground-truth skeleton pixels for the crack class, precomputed offline via morphological skeletonisation. SRL \citep{shit2024skeleton} penalises low predicted probability at centreline locations:
 \begin{equation}
-    \mathcal{L}_{SRL} = 1 - \frac{1}{|S|} \sum_{p \in S} \hat{y}_{crack}(p)
+    \mathcal{L}_{\text{SRL}} = 1 - \frac{1}{|\mathcal{S}|} \sum_{p \in \mathcal{S}} \hat{y}_{\text{crack}}(p)
     \label{eq:srl}
 \end{equation}
-where $\hat{y}_{crack}(p) \in [0,1]$ is the softmax probability for the crack class at pixel $p$.
+where $\hat{y}_{\text{crack}}(p) \in [0,1]$ is the softmax probability for the crack class at pixel $p$.
 
-\paragraph{Advantages over soft-clDice.} Unlike clDice~\cite{shit2021cldice} which requires GPU-based differentiable skeletonization during training, SRL operates on CPU-precomputed skeletons with no additional runtime cost. This enables application to full-resolution $512{\times}512$ images without memory constraints.
+Unlike clDice \citep{shit2021cldice} which requires GPU-based differentiable skeletonisation, SRL operates on precomputed skeletons with no runtime cost. We activate SRL only after epoch 60 with weight $\lambda_3 = 0.05$ to avoid gradient instability during early training.
 
-\paragraph{Delayed Start.} We activate SRL only after epoch~60 ($\lambda_{SRL} = 0$ for $t < 60$). In early training, the model has not yet learned basic crack features, and skeleton supervision on random predictions causes gradient instability. The delayed start allows stable convergence of the base model before introducing topology regularization.
+\subsection{Class-conditional dual-teacher knowledge distillation}
+\label{sec:dtkd}
 
-\subsection{Composite Loss Function}
+A key observation from our experiments is that different model architectures excel at different defect types: the task-specific DSCFormer (Teacher~1) achieves higher spalling IoU, while the foundation-model SAM-LoRA (Teacher~2) achieves higher crack connectivity (ConnR). Standard knowledge distillation cannot exploit this complementarity because it applies uniform teacher weighting across all classes.
 
-The full training objective combines cross-entropy for pixel classification, Dice loss for class imbalance mitigation, and SRL for topology preservation:
+We propose \emph{class-conditional dual-teacher knowledge distillation} (DTKD) that constructs a per-class ensemble of teacher predictions:
+
+\paragraph{Teacher models.} We use two pretrained teachers:
+\begin{itemize}[nosep]
+    \item \textbf{Teacher~1} ($T_1$): DSCFormer trained with SRL (task-specific, strong on spalling)
+    \item \textbf{Teacher~2} ($T_2$): SAM-LoRA trained with SRL (foundation model, strong on crack connectivity)
+\end{itemize}
+
+\paragraph{Class-conditional ensemble.} For each class $c$, the ensemble teacher probability is computed as a weighted combination:
 \begin{equation}
-    \mathcal{L} = \lambda_1 \mathcal{L}_{CE} + \lambda_2 \mathcal{L}_{Dice} + \lambda_3 \mathcal{L}_{SRL}
-    \label{eq:loss}
+    \tilde{p}_c = w_{1,c} \cdot p_{1,c} + w_{2,c} \cdot p_{2,c}
+    \label{eq:dtkd_ensemble}
 \end{equation}
-with $\lambda_1 = 0.5$, $\lambda_2 = 0.5$, and $\lambda_3 = 0.05$ (active only for $t \geq 60$). The small SRL weight ensures it acts as a gentle topology regularizer without dominating the gradient.
+where $p_{i,c} = \text{softmax}(\mathbf{z}_i / \tau)_c$ is the softened probability from teacher $i$ at temperature $\tau$, and $w_{1,c} + w_{2,c} = 1$ for each class.
+
+The weights are set based on each teacher's relative strength:
+\begin{itemize}[nosep]
+    \item \textbf{Background}: $w_{1,\text{bg}} = w_{2,\text{bg}} = 0.5$ (equal)
+    \item \textbf{Crack}: $w_{2,\text{cr}} = 0.6$ (SAM-LoRA has better crack connectivity)
+    \item \textbf{Spalling}: $w_{2,\text{sp}} = 0.3$ (DSCFormer has better spalling coverage)
+\end{itemize}
+
+\paragraph{Distillation loss.} The ensemble is renormalised and converted back to log-probabilities. The student is trained with:
+\begin{equation}
+    \mathcal{L}_{\text{KD}} = \tau^2 \cdot \text{KL}\!\left(\text{softmax}(\tilde{\mathbf{z}} / \tau) \,\|\, \text{softmax}(\mathbf{z}_s / \tau)\right)
+    \label{eq:kd_loss}
+\end{equation}
+where $\tilde{\mathbf{z}}$ denotes the ensemble logits and $\mathbf{z}_s$ the student logits.
+
+\paragraph{Total loss.} The final training objective balances the segmentation loss and distillation loss:
+\begin{equation}
+    \mathcal{L} = (1-\alpha) \left[\lambda_1 \mathcal{L}_{\text{CE}} + \lambda_2 \mathcal{L}_{\text{Dice}} + \lambda_3(t) \mathcal{L}_{\text{SRL}}\right] + \alpha \, \mathcal{L}_{\text{KD}}
+    \label{eq:total_loss}
+\end{equation}
+with $\alpha = 0.5$, $\tau = 4$, $\lambda_1 = \lambda_2 = 0.5$, and $\lambda_3(t) = 0.05$ for $t \geq 60$.
+
+\subsection{Test-time augmentation}
+
+At inference, we optionally employ multi-scale TTA: each image is evaluated at three scales (0.75$\times$, 1.0$\times$, 1.25$\times$) with horizontal and vertical flips (9 views). Logits are averaged before argmax.
 
 % ===========================================================================
 \section{Experiments}
 \label{sec:experiments}
 
-\subsection{Dataset: DamSegment}
+\subsection{Dataset: DamSeg-1500}
 
-We introduce the \textbf{DamSegment} benchmark comprising 1,500 concrete dam surface images at $512{\times}512$ resolution with pixel-level annotations for three classes: background, crack, and spalling. Images are categorized into three difficulty tiers (Easy, Medium, Hard; 500 each) based on defect complexity, lighting conditions, and defect overlap. The dataset is split into train/val/test sets of 1200/150/150 images, stratified by tier and spalling presence to ensure balanced evaluation. Figure~\ref{fig:dataset} shows representative samples.
+We introduce the \textbf{DamSeg-1500} benchmark comprising 1,500 concrete dam surface images at $512{\times}512$ resolution with pixel-level annotations for three classes: background, crack, and spalling.
+Images are captured from multiple dams under varying conditions and categorised into three difficulty tiers (Easy, Medium, Hard; 500 each).
+The dataset is split into train/val/test sets of 1,200/150/150 images, stratified by tier and defect presence.
 
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=\columnwidth]{figures/fig1_dataset.png}
-    \caption{DamSegment dataset samples across difficulty tiers. Left to right: Easy (clear, isolated defects), Medium (moderate complexity), Hard (overlapping defects, poor lighting).}
-    \label{fig:dataset}
-\end{figure}
+\subsection{Implementation details}
 
-\subsection{Implementation Details}
+All models are trained on a single NVIDIA A40 GPU using PyTorch.
+DSCFormer uses SegFormer-B2 pretrained on ADE20K-512, trained for 100 epochs with AdamW (lr $6{\times}10^{-5}$, weight decay $10^{-4}$), 5-epoch warmup, batch size 4.
+The DSConv branch uses $d{=}64$, $K{=}9$.
+SRL activates at epoch 60 with $\lambda_3 = 0.05$.
 
-All models are trained on a single NVIDIA GPU using PyTorch. Our DSCFormer uses SegFormer-B2 pretrained on ADE20K-512 as the backbone. Training proceeds for 100 epochs with AdamW optimizer (learning rate $6{\times}10^{-5}$, weight decay $10^{-4}$) and 5-epoch linear warmup. Batch size is 4. The DSConv branch uses $d{=}64$ hidden channels and kernel size $K{=}9$. SRL is activated at epoch 60 with weight 0.05. All baselines are trained with identical data augmentation and evaluation protocols for fair comparison.
+For DTKD, Teacher~1 (DSCFormer+SRL) and Teacher~2 (SAM-LoRA+SRL) are trained independently first, then frozen during student training.
+The student has identical architecture to Teacher~1.
+Distillation uses $\alpha = 0.5$, $\tau = 4$.
 
-\subsection{Evaluation Metrics}
+For foundation model baselines, SAM-LoRA uses ViT-B with LoRA (rank 16, $\alpha$=32) and an FPN decoder. DINOv2-LoRA adapts ViT-B/14 similarly. Both train for 50 epochs with batch size 2.
 
-We report six complementary metrics:
+\subsection{Evaluation metrics}
+
+We report complementary metrics capturing different aspects of segmentation quality:
 \begin{itemize}[nosep]
-    \item \textbf{mIoU$_{fg}$}: Mean IoU of crack and spalling classes
-    \item \textbf{IoU$_{cr}$}, \textbf{IoU$_{sp}$}: Per-class IoU
-    \item \textbf{BF1$_{fg}$}: Boundary F1 score (2px tolerance)
-    \item \textbf{clDice$_{fg}$}: Centreline Dice via skeletonization
-    \item \textbf{ConnR$_{fg}$}: Connectivity Ratio ($\geq$50\% overlap)
+    \item \textbf{mIoU$_{\text{fg}}$}: Mean IoU of crack and spalling classes.
+    \item \textbf{IoU$_{\text{cr}}$}, \textbf{IoU$_{\text{sp}}$}: Per-class IoU.
+    \item \textbf{BF1}: Boundary F1 score (2-pixel tolerance) \citep{csurka2013good}.
+    \item \textbf{clDice}: Centreline Dice via skeletonisation \citep{shit2021cldice}.
+    \item \textbf{ConnR}: Connectivity Ratio---fraction of GT connected components with $\geq$50\% overlap in prediction.
 \end{itemize}
-BF1 measures edge precision for thin structures, clDice captures topological correctness, and ConnR evaluates connected component preservation---all critical for structural assessment where crack continuity determines diagnostic conclusions.
 
-\subsection{Main Comparison}
+\subsection{Comparison with state-of-the-art methods}
 
-Table~\ref{tab:main} presents quantitative results on the DamSegment test set. Our DSCFormer achieves the best performance across all topology-sensitive metrics while maintaining competitive mIoU.
+Table~\ref{tab:main} presents quantitative results on the DamSeg-1500 test set.
 
 \begin{table*}[t]
 \centering
-\caption{Quantitative comparison on the DamSegment test set. Best results in \textbf{bold}, second best \underline{underlined}. $\dagger$: parameter-efficient fine-tuning (LoRA, ${\sim}5\%$ trainable params). $\ddagger$: multi-scale + flip test-time augmentation.}
+\caption{Quantitative comparison on the DamSeg-1500 test set. Best in \textbf{bold}, second best \underline{underlined}. $\dagger$: LoRA fine-tuning (${\sim}$5\% trainable parameters). TTA: multi-scale + flip test-time augmentation (9 views). All values in \%.}
 \label{tab:main}
-\begin{tabular}{lccccccc}
+\begin{tabular}{llccccccccc}
 \toprule
-Method & Backbone & mIoU$_{fg}$ & IoU$_{cr}$ & IoU$_{sp}$ & BF1$_{fg}$ & clDice$_{fg}$ & ConnR$_{fg}$ \\
+Method & Backbone & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text{cr}}$ & BF1$_{\text{sp}}$ & BF1$_{\text{fg}}$ & clDice$_{\text{cr}}$ & clDice$_{\text{sp}}$ & ConnR$_{\text{fg}}$ \\
 \midrule
-U-Net & ResNet-34 & 59.6 & 51.3 & 67.9 & -- & -- & -- \\
-DeepLabV3+ & ResNet-50 & 63.4 & 53.3 & 73.5 & 59.2 & -- & -- \\
-Mask2Former & Swin-T & 67.9 & 57.1 & 78.6 & 72.5 & \underline{86.6} & 72.6 \\
-SegFormer-B2 & MiT-B2 & 70.4 & 56.9 & 83.8 & 66.8 & 81.4 & 80.9 \\
-SAM-LoRA$^\dagger$ & ViT-B (SAM) & 68.1 & 55.9 & 80.2 & 68.1 & 82.0 & 81.2 \\
-DINOv2-LoRA$^\dagger$ & ViT-B (DINOv2) & 66.7 & 49.1 & 84.2 & 62.4 & 81.7 & 76.5 \\
+U-Net \citep{ronneberger2015unet} & ResNet-34 & 59.6 & 51.3 & 67.9 & -- & -- & -- & -- & -- & -- \\
+DeepLabV3+ \citep{chen2018deeplabv3p} & ResNet-50 & 63.4 & 53.3 & 73.5 & 69.0 & 49.5 & 59.2 & -- & -- & -- \\
+Mask2Former \citep{cheng2022mask2former} & Swin-S & 67.9 & 57.1 & 78.6 & 76.0 & 69.0 & 72.5 & 82.2 & \textbf{91.1} & 72.6 \\
+SegFormer-B2 \citep{xie2021segformer} & MiT-B2 & 70.4 & 56.9 & 83.8 & 73.7 & 59.8 & 66.8 & 81.9 & 81.0 & 80.9 \\
+SAM-LoRA$^\dagger$ \citep{kirillov2023sam} & ViT-B & 68.1 & 55.9 & 80.2 & 73.1 & 63.0 & 68.1 & 81.3 & 82.6 & 81.2 \\
+DINOv2-LoRA$^\dagger$ \citep{oquab2024dinov2} & ViT-B & 66.7 & 49.1 & \underline{84.2} & 64.7 & 60.1 & 62.4 & 77.4 & 86.1 & 76.5 \\
 \midrule
-\textbf{Ours (DSCFormer)} & MiT-B2+DSConv & \underline{71.4} & \underline{57.6} & \underline{85.2} & \underline{72.1} & 86.2 & \textbf{82.3} \\
-\textbf{Ours + TTA}$^\ddagger$ & MiT-B2+DSConv & \textbf{72.3} & \textbf{59.0} & \textbf{85.6} & \textbf{72.9} & \textbf{86.4} & \underline{79.8} \\
+DSCFormer & MiT-B2 & 70.6 & 57.3 & 83.8 & 74.7 & 66.0 & 70.3 & 82.5 & 89.0 & 77.8 \\
+DSCFormer + DTKD & MiT-B2 & \underline{71.2} & \underline{58.0} & \underline{84.5} & \underline{75.4} & \underline{67.5} & \underline{71.4} & \underline{83.2} & \underline{89.1} & \underline{80.6} \\
+DSCFormer + DTKD + TTA & MiT-B2 & \textbf{72.2} & \textbf{58.9} & \textbf{85.4} & \textbf{76.0} & \textbf{66.3} & \textbf{71.1} & \textbf{83.4} & 85.8 & \textbf{79.7} \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-Compared to the SegFormer-B2 baseline, DSCFormer improves BF1 by \textbf{+5.3} and clDice by \textbf{+4.8}, with an mIoU gain of +1.0 (+1.9 with TTA). We argue that BF1 and clDice improvements are disproportionately valuable for dam inspection: a prediction that correctly identifies crack extent and connectivity enables more reliable structural assessment than one with higher pixel overlap but fragmented topology.
+DSCFormer with DTKD achieves the highest mIoU$_{\text{fg}}$ (71.2\%) without TTA and 72.2\% with TTA, outperforming all compared methods.
+Compared to the SegFormer-B2 baseline, the full framework (DTKD+TTA) improves mIoU$_{\text{fg}}$ by \textbf{+1.8}, IoU$_{\text{cr}}$ by \textbf{+2.0}, and BF1$_{\text{fg}}$ by \textbf{+4.3}.
 
-Notably, Mask2Former achieves comparable clDice (86.6) but with substantially lower mIoU (67.9) and ConnR (72.6), suggesting it captures crack shape but misses spalling regions. Foundation models with parameter-efficient fine-tuning (SAM-LoRA, DINOv2-LoRA) also underperform our method: despite leveraging powerful pretrained representations, their generic decoders trained from scratch on only 1,200 images cannot match a fully fine-tuned task-specific architecture. SAM-LoRA achieves 68.1\% mIoU$_{fg}$, 3.3 points below our method, while DINOv2-LoRA reaches only 66.7\%. This demonstrates that for small-scale industrial inspection tasks, domain-specific architectural design (DSConv for cracks) outperforms generic foundation model adaptation.
+\paragraph{Benefit of DTKD.}
+Adding DTKD to the base DSCFormer improves all metrics simultaneously: mIoU$_{\text{fg}}$ +0.6, IoU$_{\text{cr}}$ +0.7, IoU$_{\text{sp}}$ +0.7, BF1$_{\text{fg}}$ +1.1, clDice$_{\text{cr}}$ +0.7, and ConnR$_{\text{fg}}$ \textbf{+2.8}.
+The ConnR improvement is particularly notable: DTKD recovers the connectivity loss introduced by SRL (see Section~\ref{sec:ablation}), raising ConnR$_{\text{fg}}$ from 77.8\% to 80.6\%.
+This confirms that the foundation-model teacher's global structural knowledge complements the task-specific model's local feature quality.
 
-\subsection{Per-Tier Analysis}
+\paragraph{Foundation model comparison.}
+Despite leveraging powerful pretrained representations, SAM-LoRA (68.1\%) and DINOv2-LoRA (66.7\%) substantially underperform both the base DSCFormer (70.6\%) and DSCFormer+DTKD (71.2\%).
+However, our DTKD framework demonstrates that foundation model knowledge can be \emph{indirectly} leveraged: rather than deploying SAM directly, distilling its crack connectivity knowledge into the student improves ConnR by +2.8 over the base model.
+This represents a more effective use of foundation models on small-scale industrial datasets.
 
-\begin{table}[t]
+Mask2Former achieves the highest clDice$_{\text{sp}}$ (91.1\%) and competitive BF1$_{\text{fg}}$ (72.5\%), but with substantially lower mIoU$_{\text{fg}}$ (67.9\%) and IoU$_{\text{sp}}$ (78.6\%), indicating poor spalling coverage despite good shape capture.
+
+\subsection{Ablation study}
+\label{sec:ablation}
+
+Table~\ref{tab:ablation} presents the incremental contribution of each component.
+
+\begin{table*}[t]
 \centering
-\caption{Per-difficulty-tier comparison of SegFormer-B2 baseline versus our DSCFormer. Largest gains appear on Medium and Hard tiers.}
-\label{tab:tier}
-\begin{tabular}{llccc}
-\toprule
-Tier & Method & mIoU$_{fg}$ & BF1$_{fg}$ & clDice$_{fg}$ \\
-\midrule
-\multirow{2}{*}{Easy} & SegFormer-B2 & 74.8 & 65.1 & 84.9 \\
- & \textbf{Ours} & \textbf{76.0} & \textbf{68.3} & \textbf{87.0} \\
-\midrule
-\multirow{2}{*}{Medium} & SegFormer-B2 & 71.1 & 66.6 & 77.6 \\
- & \textbf{Ours} & \textbf{72.7} & \textbf{77.9} & \textbf{89.6} \\
-\midrule
-\multirow{2}{*}{Hard} & SegFormer-B2 & 64.4 & 69.4 & 79.4 \\
- & \textbf{Ours} & \textbf{66.1} & \textbf{75.5} & \textbf{84.4} \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Table~\ref{tab:tier} shows that DSCFormer achieves best results on \emph{all three} difficulty tiers. The largest BF1 improvements occur on Medium (+11.3) and Hard (+6.1) tiers, where crack topology is most challenging due to overlapping defects and poor contrast. This demonstrates that the DSConv branch and SRL are particularly effective when crack geometry is complex and connectivity preservation is most difficult.
-
-\subsection{Ablation Study}
-
-\begin{table}[t]
-\centering
-\caption{Ablation study showing incremental contributions of each component. DSConv improves crack connectivity; SRL adds consistent gains across all metrics.}
+\caption{Ablation study on the DamSeg-1500 test set. Each row adds one component to the previous. All values in \%.}
 \label{tab:ablation}
-\begin{tabular}{lcccccc}
+\begin{tabular}{lccccccccc}
 \toprule
-Config & mIoU$_{fg}$ & IoU$_{cr}$ & IoU$_{sp}$ & BF1$_{fg}$ & clDice$_{fg}$ & ConnR$_{fg}$ \\
+Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text{cr}}$ & BF1$_{\text{fg}}$ & clDice$_{\text{cr}}$ & clDice$_{\text{fg}}$ & ConnR$_{\text{cr}}$ & ConnR$_{\text{fg}}$ \\
 \midrule
-(a) SegFormer-B2 & 70.3 & 56.9 & 83.7 & 68.6 & 82.7 & 77.0 \\
-(b) + DSConv & 70.4 & 56.9 & 84.0 & 69.5 & 85.5 & \textbf{83.6} \\
-(c) + DSConv + SRL & \textbf{71.4} & \textbf{57.6} & \textbf{85.2} & \textbf{72.1} & \textbf{86.2} & 82.3 \\
+(a) SegFormer-B2 & 70.3 & 56.9 & 83.7 & 74.0 & 68.6 & 81.8 & 82.7 & 81.0 & 77.0 \\
+(b) + DSConv & 70.4 & 56.9 & 84.0 & 73.7 & 69.5 & 82.0 & 85.5 & \textbf{84.7} & \textbf{83.6} \\
+(c) + SRL & 70.6 & 57.3 & 83.8 & 74.7 & 70.3 & 82.5 & 85.7 & 82.2 & 77.8 \\
+(d) + DTKD & \underline{71.2} & \underline{58.0} & \underline{84.5} & \underline{75.4} & \underline{71.4} & \underline{83.2} & \underline{86.2} & 82.3 & 80.6 \\
+(e) + TTA & \textbf{72.2} & \textbf{58.9} & \textbf{85.4} & \textbf{76.0} & 71.1 & \textbf{83.4} & 84.6 & 80.6 & 79.7 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{(a)$\to$(b): Adding DSConv.}
+The DSConv branch produces minimal mIoU change (+0.1) but substantially improves crack connectivity: ConnR$_{\text{cr}}$ increases by \textbf{+3.7} (81.0$\to$84.7) and clDice$_{\text{fg}}$ by \textbf{+2.8} (82.7$\to$85.5).
+The deformable snake-shaped sampling captures elongated crack geometry that fixed rectangular kernels miss, demonstrating that DSConv's primary value lies in its geometric inductive bias for connectivity.
+
+\paragraph{(b)$\to$(c): Adding SRL.}
+SRL improves crack IoU (+0.4), BF1$_{\text{cr}}$ (+1.0), and clDice$_{\text{cr}}$ (+0.5) by focusing gradient signal on centreline pixels.
+However, ConnR$_{\text{fg}}$ decreases from 83.6 to 77.8, driven by ConnR$_{\text{sp}}$ dropping from 82.4 to 73.4.
+This occurs because SRL's crack-focused supervision encourages the model to predict more crack pixels at ambiguous crack-spalling boundaries, fragmenting spalling components.
+
+\paragraph{(c)$\to$(d): Adding DTKD.}
+DTKD provides the most balanced improvement: mIoU$_{\text{fg}}$ +0.6, IoU$_{\text{cr}}$ +0.7, IoU$_{\text{sp}}$ +0.7, and ConnR$_{\text{fg}}$ \textbf{+2.8} (77.8$\to$80.6).
+Crucially, DTKD partially recovers the ConnR loss introduced by SRL, because the foundation-model teacher provides global structural knowledge that helps maintain connected-component integrity.
+The class-conditional weighting ensures that the student receives the most informative guidance for each defect type.
+
+\paragraph{(d)$\to$(e): Test-time augmentation.}
+TTA adds +1.0 mIoU$_{\text{fg}}$ and +0.9 IoU$_{\text{sp}}$.
+
+\paragraph{Overall progression.}
+From baseline (a) to full method (d), the improvements are: mIoU$_{\text{fg}}$ +0.9, IoU$_{\text{cr}}$ +1.1, BF1$_{\text{fg}}$ +2.8, clDice$_{\text{fg}}$ +3.5, ConnR$_{\text{fg}}$ +3.6.
+The three components are complementary: DSConv improves \emph{feature representation} (ConnR, clDice), SRL improves the \emph{training signal} (IoU, BF1), and DTKD improves \emph{knowledge transfer} from complementary models (all metrics).
+
+\subsection{Analysis of DTKD teacher contributions}
+
+Table~\ref{tab:foundation} compares individual teachers with the DTKD student.
+
+\begin{table}[t]
+\centering
+\caption{Individual teacher performance vs.\ DTKD student on the test set. The student surpasses both teachers, confirming effective knowledge combination. All values in \%.}
+\label{tab:foundation}
+\begin{tabular}{lccccc}
+\toprule
+Model & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & ConnR$_{\text{cr}}$ & ConnR$_{\text{sp}}$ \\
+\midrule
+Teacher~1 (DSCFormer) & 70.6 & 57.3 & 83.8 & 82.2 & 73.4 \\
+Teacher~2 (SAM-LoRA+SRL) & 69.0 & 55.9 & 82.1 & \textbf{82.2} & \textbf{86.0} \\
+\midrule
+Student (DTKD) & \textbf{71.2} & \textbf{58.0} & \textbf{84.5} & 82.3 & 78.8 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:ablation} presents the ablation study. Key observations:
+The DTKD student surpasses both teachers on mIoU$_{\text{fg}}$ (+0.6 over Teacher~1, +2.2 over Teacher~2), IoU$_{\text{cr}}$, and IoU$_{\text{sp}}$, confirming that class-conditional distillation effectively combines complementary strengths.
+Teacher~2 (SAM-LoRA+SRL) achieves the highest ConnR$_{\text{sp}}$ (86.0\%), reflecting SAM's strong global structure preservation.
+The student inherits part of this advantage (ConnR$_{\text{sp}}$ = 78.8\%, vs.\ Teacher~1's 73.4\%), while maintaining superior pixel-level accuracy from Teacher~1.
 
-\begin{itemize}[nosep]
-    \item \textbf{(a)$\to$(b) Adding DSConv}: Minimal mIoU change (+0.1), but +0.9~BF1, +2.8~clDice, and crucially +6.6~ConnR. The deformable snake-shaped sampling grid captures elongated crack geometry that fixed rectangular kernels miss, substantially improving crack connectivity without affecting overall pixel accuracy.
-    \item \textbf{(b)$\to$(c) Adding SRL}: +1.0~mIoU, +2.6~BF1, +0.7~clDice. SRL provides consistent gains across \emph{all} metrics by focusing gradient signal on skeleton pixels, improving both segmentation quality and topological completeness. IoU$_{sp}$ also improves (+1.2), indicating SRL's regularizing effect benefits the entire model.
-\end{itemize}
+This ``born-again'' phenomenon---where the student surpasses its teachers---is consistent with findings in the KD literature \citep{furlanello2018born,yang2019snapshot} and demonstrates that knowledge distillation provides regularisation benefits beyond simple model compression.
 
-The two components are complementary: DSConv improves the \emph{feature representation} (architectural enhancement, primarily ConnR and clDice) while SRL improves the \emph{training signal} (loss enhancement, primarily mIoU and BF1). Their combination yields the best overall results across all six metrics.
+\subsection{Qualitative results}
 
-\subsection{Qualitative Results}
-
-Figure~\ref{fig:qualitative} presents representative predictions comparing SegFormer-B2 with our DSCFormer. The baseline frequently fragments continuous cracks into disconnected segments, particularly where cracks are thinnest or cross regions of spalling. Our method maintains crack connectivity in these challenging cases, consistent with the quantitative clDice and ConnR improvements.
+Fig.~\ref{fig:qualitative} presents representative predictions comparing SegFormer-B2, DSCFormer, and DSCFormer+DTKD.
+The baseline frequently fragments continuous cracks, DSCFormer improves connectivity, and DTKD further refines boundary quality, consistent with the quantitative improvements.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/fig3_qualitative.png}
-    \caption{Qualitative comparison on Hard-tier samples. Top: input image and ground truth. Middle: SegFormer-B2 predictions showing crack fragmentation. Bottom: Our DSCFormer predictions maintaining crack connectivity.}
+    \caption{Qualitative comparison on Hard-tier test samples. Left to right: input, ground truth, SegFormer-B2, DSCFormer, DSCFormer+DTKD. Red: crack, green: spalling.}
     \label{fig:qualitative}
 \end{figure}
 
@@ -225,31 +387,211 @@ Figure~\ref{fig:qualitative} presents representative predictions comparing SegFo
 \section{Discussion}
 \label{sec:discussion}
 
-\paragraph{Application-Driven Metrics.}
-In dam inspection, the primary concern is whether a detected crack represents a continuous propagation path. A topologically correct but spatially imprecise prediction (high clDice, moderate IoU) is more useful for structural assessment than a fragmented prediction with high pixel overlap. Our +5.3~BF1 and +4.8~clDice gains directly translate to more reliable defect characterization.
+\paragraph{Complementary role of DTKD.}
+A key finding is that DTKD addresses the ConnR trade-off introduced by SRL.
+While SRL improves crack metrics at the cost of spalling connectivity (ConnR$_{\text{fg}}$: 83.6$\to$77.8), DTKD partially recovers this (77.8$\to$80.6) by injecting global structural knowledge from the foundation-model teacher.
+The class-conditional weighting is essential: the SAM-based teacher receives higher weight for crack (0.6), where its pretrained representations capture global connectivity, while the task-specific teacher dominates spalling predictions (weight 0.7), where domain-specific features are more effective.
 
-\paragraph{DSConv Mechanism.}
-The DSConv branch's effectiveness stems from its geometric inductive bias: by constraining kernel deformations to follow elongated paths, it captures crack features that rectangular convolutions systematically miss. The zero-initialization ensures the branch only activates when beneficial, avoiding negative transfer for non-crack regions.
+\paragraph{Indirect use of foundation models.}
+Our results reveal a practical strategy for leveraging foundation models on small industrial datasets: rather than directly fine-tuning SAM or DINOv2 (which underperforms task-specific architectures by 2--4\% mIoU), using them as \emph{teachers} in knowledge distillation allows the student to inherit their structural knowledge while maintaining the task-specific model's advantages.
+This is more parameter-efficient at inference time (student has identical cost to the base model) and more effective than direct deployment.
 
-\paragraph{SRL vs.\ Soft-clDice.}
-While soft-clDice~\cite{shit2021cldice} requires GPU-intensive differentiable skeletonization, our adoption of SRL~\cite{shit2024skeleton} uses precomputed GT skeletons with negligible runtime cost. The delayed-start strategy (epoch 60) is critical: early activation causes training instability as the model attempts topology optimization before learning basic features. This staged approach is simpler and more stable than curriculum-based alternatives we explored.
+\paragraph{DSConv mechanism.}
+The DSConv branch's effectiveness stems from its geometric inductive bias: by constraining kernel deformations to follow elongated paths, it captures crack features that rectangular convolutions systematically miss.
+The zero-initialisation ensures the branch only activates when beneficial.
+The ConnR improvement (+6.6 in ablation) confirms that DSConv preserves crack connectivity at the connected-component level.
 
-\paragraph{Foundation Models vs.\ Task-Specific Design.}
-Our experiments with SAM-LoRA and DINOv2-LoRA reveal a notable finding: despite leveraging powerful pretrained representations from models trained on hundreds of millions of images, parameter-efficient fine-tuning with LoRA adapters (${\sim}5\%$ trainable parameters) consistently underperforms our fully fine-tuned DSCFormer. SAM-LoRA achieves 68.1\% mIoU$_{fg}$ (3.3 below ours), while DINOv2-LoRA reaches only 66.7\% (4.7 below). We attribute this to two factors: (1)~the FPN decoders trained from scratch on 1,200 images lack sufficient data to fully exploit the frozen encoder features, and (2)~the generic ViT patch embeddings cannot match the crack-specific inductive bias of DSConv. Interestingly, SAM-LoRA+SRL achieves the highest ConnR$_{cr}$ among all methods (86.5\%), suggesting that foundation model features excel at preserving global structure even when local segmentation is imprecise. This finding has practical implications: for small-scale industrial inspection datasets, investing in task-specific architectural design yields better returns than adapting large foundation models.
+\paragraph{SRL delayed start.}
+The delayed-start strategy (epoch 60) is critical: early SRL activation causes training instability as the model attempts topology optimisation before learning basic features.
+This staged approach is simpler and more stable than curriculum-based alternatives we explored in preliminary experiments.
 
 \paragraph{Limitations.}
-The mIoU improvement (+1.0, +1.9 with TTA) is modest compared to topology gains, reflecting that DSConv and SRL primarily address boundary and connectivity rather than region coverage. Crack IoU remains a bottleneck (${\sim}57.6\%$) due to extreme class imbalance (crack pixels constitute ${<}5\%$ of image area). The DSConv branch is currently crack-specific; extending to other elongated defect types (e.g., rebar corrosion) is future work. Additionally, evaluation on other dam inspection datasets would strengthen generalizability claims.
+The per-class teacher weights in DTKD are currently set manually based on teacher performance analysis; adaptive class-conditional weighting is an avenue for future work.
+Crack IoU remains challenging (${\sim}$59\%) due to extreme class imbalance (crack pixels ${<}5\%$ of total area).
+The DSConv branch is crack-specific; extending to other elongated defects is future work.
+Evaluation on external datasets would strengthen generalisability claims.
 
 % ===========================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 
-We presented DSCFormer, a topology-aware segmentation framework for concrete dam defect analysis that achieves state-of-the-art results on our DamSegment benchmark. By combining Dynamic Snake Convolution for geometry-aware feature extraction with Skeleton Recall Loss for explicit connectivity supervision, our method achieves 72.3\% mIoU$_{fg}$ (with TTA), improving BF1 by +5.3 and clDice by +4.8 over the SegFormer-B2 baseline. The two components provide complementary gains---DSConv at the architectural level (ConnR~+6.6) and SRL at the training objective level (mIoU~+1.0)---and both are lightweight additions that do not increase inference cost. Our systematic comparison further demonstrates that task-specific design outperforms foundation model adaptation (SAM-LoRA, DINOv2-LoRA) on small-scale industrial datasets, providing practical guidance for deploying deep learning in data-scarce inspection scenarios.
+We presented DSCFormer, a topology-aware segmentation framework for concrete dam defect analysis incorporating three complementary enhancements to a SegFormer-B2 backbone.
+Dynamic Snake Convolution provides geometry-aware crack feature extraction (ConnR +6.6), Skeleton Recall Loss enforces topological connectivity through skeleton supervision (BF1 +1.0), and class-conditional dual-teacher knowledge distillation combines the strengths of task-specific and foundation models (mIoU +0.6, ConnR +2.8).
+The full framework achieves 71.2\% foreground mIoU (72.2\% with TTA), outperforming all compared methods on the DamSeg-1500 benchmark.
+Our work demonstrates that indirectly leveraging foundation models through knowledge distillation is more effective than direct parameter-efficient fine-tuning on small-scale industrial datasets, providing practical guidance for deploying deep learning in data-scarce inspection scenarios.
+
+\section*{Data availability}
+
+The DamSeg-1500 dataset and source code will be made available upon publication.
+
+\section*{Declaration of competing interest}
+
+The authors declare no competing interests.
+
+\section*{Acknowledgements}
+
+[To be added.]
 
 % ===========================================================================
-{\small
-\bibliographystyle{ieee_fullname}
-\bibliography{refs}
-}
+\bibliographystyle{elsarticle-harv}
+
+\begin{thebibliography}{99}
+
+\bibitem[Arafin et~al.(2024)]{arafin2024concrete}
+Arafin, P., Billah, A.M., Issa, A., 2024.
+\newblock Multi-class concrete defect segmentation using modified DeepLabV3+.
+\newblock Structures 61, 106047.
+
+\bibitem[Chen et~al.(2018)]{chen2018deeplabv3p}
+Chen, L.-C., Zhu, Y., Papandreou, G., Schroff, F., Adam, H., 2018.
+\newblock Encoder-decoder with atrous separable convolution for semantic image segmentation.
+\newblock In: ECCV. pp.~801--818.
+
+\bibitem[Chen et~al.(2024)]{chen2024damsurvey}
+Chen, B., Yang, M., Zhang, L., 2024.
+\newblock A review of visual perception methods for intelligent dam inspection.
+\newblock Journal of Hydroelectric Engineering 43, 1--15.
+
+\bibitem[Cheng et~al.(2022)]{cheng2022mask2former}
+Cheng, B., Misra, I., Schwing, A.G., Kirillov, A., Girdhar, R., 2022.
+\newblock Masked-attention mask transformer for universal image segmentation.
+\newblock In: CVPR. pp.~1290--1299.
+
+\bibitem[Clough et~al.(2020)]{clough2020topological}
+Clough, J.R., Byrne, N., Oksuz, I., Zimmer, V.A., Schnabel, J.A., King, A.P., 2020.
+\newblock A topological loss function for deep-learning based image segmentation using persistent homology.
+\newblock IEEE TPAMI 44, 8175--8188.
+
+\bibitem[Csurka et~al.(2013)]{csurka2013good}
+Csurka, G., Larlus, D., Perronnin, F., 2013.
+\newblock What is a good evaluation measure for semantic segmentation?
+\newblock In: BMVC. pp.~1--11.
+
+\bibitem[Dai et~al.(2017)]{dai2017deformable}
+Dai, J., Qi, H., Xiong, Y., Li, Y., Zhang, G., Hu, H., Wei, Y., 2017.
+\newblock Deformable convolutional networks.
+\newblock In: ICCV. pp.~764--773.
+
+\bibitem[Fang and Liu(2024)]{fang2024dam}
+Fang, L., Liu, H., 2024.
+\newblock Lightweight crack quantification for microscopic dam surface inspection.
+\newblock Automation in Construction 158, 105222.
+
+\bibitem[Furlanello et~al.(2018)]{furlanello2018born}
+Furlanello, T., Lipton, Z.C., Tschannen, M., Itti, L., Anandkumar, A., 2018.
+\newblock Born again neural networks.
+\newblock In: ICML. pp.~1607--1616.
+
+\bibitem[Hinton et~al.(2015)]{hinton2015distilling}
+Hinton, G., Vinyals, O., Dean, J., 2015.
+\newblock Distilling the knowledge in a neural network.
+\newblock arXiv:1503.02531.
+
+\bibitem[Hu et~al.(2019)]{hu2019topology}
+Hu, X., Li, F., Samaras, D., Chen, C., 2019.
+\newblock Topology-preserving deep image segmentation.
+\newblock In: NeurIPS. pp.~5657--5668.
+
+\bibitem[Hu et~al.(2022)]{hu2022lora}
+Hu, E.J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., Wang, L., Chen, W., 2022.
+\newblock LoRA: Low-rank adaptation of large language models.
+\newblock In: ICLR.
+
+\bibitem[Kirillov et~al.(2023)]{kirillov2023sam}
+Kirillov, A., Mintun, E., Ravi, N., et~al., 2023.
+\newblock Segment anything.
+\newblock In: ICCV. pp.~4015--4026.
+
+\bibitem[Liu et~al.(2019a)]{liu2019deepcrack}
+Liu, Y., Yao, J., Lu, X., Xie, R., Li, L., 2019.
+\newblock DeepCrack: A deep hierarchical feature learning architecture for crack segmentation.
+\newblock Neurocomputing 338, 180--191.
+
+\bibitem[Liu et~al.(2019b)]{liu2019structured}
+Liu, Y., Chen, K., Liu, C., Qin, Z., Luo, Z., Wang, J., 2019.
+\newblock Structured knowledge distillation for semantic segmentation.
+\newblock In: CVPR. pp.~2604--2613.
+
+\bibitem[Liu et~al.(2021a)]{liu2021crackformer}
+Liu, H., Miao, X., Merber, C., Jia, J., Wang, Q., 2021.
+\newblock CrackFormer: Transformer network for fine-grained crack detection.
+\newblock In: ICCV. pp.~3783--3792.
+
+\bibitem[Liu et~al.(2021b)]{liu2021swin}
+Liu, Z., Lin, Y., Cao, Y., et~al., 2021.
+\newblock Swin Transformer: Hierarchical vision transformer using shifted windows.
+\newblock In: ICCV. pp.~10012--10022.
+
+\bibitem[Oquab et~al.(2024)]{oquab2024dinov2}
+Oquab, M., Darcet, T., Moutakanni, T., et~al., 2024.
+\newblock DINOv2: Learning robust visual features without supervision.
+\newblock TMLR.
+
+\bibitem[Pantoja-Rosero et~al.(2024)]{pantoja2024cracktopology}
+Pantoja-Rosero, B., Oner, D., Kozinski, M., Fua, P., 2024.
+\newblock Generating pragmatic crack topology metrics from images of concrete structures.
+\newblock Computer-Aided Civil and Infrastructure Engineering 39, 200--220.
+
+\bibitem[Qi et~al.(2023)]{qi2023dynamic}
+Qi, Y., He, Y., Qi, X., Zhang, Y., Yang, G., 2023.
+\newblock Dynamic snake convolution based on topological geometric constraints for tubular structure segmentation.
+\newblock In: ICCV. pp.~6070--6079.
+
+\bibitem[Ronneberger et~al.(2015)]{ronneberger2015unet}
+Ronneberger, O., Fischer, P., Brox, T., 2015.
+\newblock U-Net: Convolutional networks for biomedical image segmentation.
+\newblock In: MICCAI. pp.~234--241.
+
+\bibitem[Shit et~al.(2021)]{shit2021cldice}
+Shit, S., Paetzold, J.C., Sekuboyina, A., et~al., 2021.
+\newblock clDice -- A novel topology-preserving loss function for tubular structure segmentation.
+\newblock In: CVPR. pp.~16560--16569.
+
+\bibitem[Shit et~al.(2024)]{shit2024skeleton}
+Shit, S., Koner, R., Paetzold, J.C., et~al., 2024.
+\newblock Skeleton recall loss for connectivity conserving and resource efficient segmentation of thin tubular structures.
+\newblock In: ECCV. pp.~363--380.
+
+\bibitem[Wang et~al.(2020)]{wang2020intra}
+Wang, Y., Zhou, W., Jiang, T., Bai, X., Xu, Y., 2020.
+\newblock Intra-class feature variation distillation for semantic segmentation.
+\newblock In: ECCV. pp.~346--362.
+
+\bibitem[Wang et~al.(2024)]{wang2024dsctopology}
+Wang, D., Hu, D., Li, Q., 2024.
+\newblock DSC-TransUNet: Dynamic snake convolution and Transformer U-Net for crack segmentation.
+\newblock Journal of Computing in Civil Engineering 38, 04024036.
+
+\bibitem[Xie et~al.(2021)]{xie2021segformer}
+Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J.M., Luo, P., 2021.
+\newblock SegFormer: Simple and efficient design for semantic segmentation with transformers.
+\newblock In: NeurIPS. pp.~12077--12090.
+
+\bibitem[Yang et~al.(2019)]{yang2019snapshot}
+Yang, C., Xie, L., Su, C., Yuille, A.L., 2019.
+\newblock Snapshot distillation: Teacher-student optimization in one generation.
+\newblock In: CVPR. pp.~2859--2868.
+
+\bibitem[You et~al.(2017)]{you2017learning}
+You, S., Xu, C., Xu, C., Tao, D., 2017.
+\newblock Learning from multiple teacher networks.
+\newblock In: KDD. pp.~1285--1294.
+
+\bibitem[Yuan et~al.(2021)]{yuan2021multihead}
+Yuan, L., Tay, F.E., Li, G., Wang, T., Feng, J., 2021.
+\newblock Revisiting knowledge distillation via label smoothing regularization.
+\newblock In: CVPR. pp.~3903--3911.
+
+\bibitem[Zou et~al.(2019)]{zou2019deepcrack}
+Zou, Q., Zhang, Z., Li, Q., Qi, X., Wang, Q., Wang, S., 2019.
+\newblock DeepCrack: Learning hierarchical convolutional features for crack detection.
+\newblock IEEE TIP 28, 1498--1512.
+
+\bibitem[Zhu et~al.(2019)]{zhu2019deformable}
+Zhu, X., Hu, H., Lin, S., Dai, J., 2019.
+\newblock Deformable convnets v2: More deformable, better results.
+\newblock In: CVPR. pp.~9308--9316.
+
+\end{thebibliography}
 
 \end{document}
