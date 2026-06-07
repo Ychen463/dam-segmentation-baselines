@@ -41,6 +41,7 @@ On the semantic segmentation subset of the \textbf{DamSegment} dataset \citep{da
 With test-time augmentation, the full framework reaches 72.2\% mIoU$_{\text{fg}}$.
 Mask2Former achieves higher boundary F1 (72.5\% vs.\ 71.4\%) due to its mask-attention mechanism, though with substantially lower mIoU (67.9\%).
 Ablation experiments confirm that each component provides complementary gains: DSConv improves crack connectivity (+6.6 ConnR), SRL adds boundary accuracy (+1.0 BF1), and DTKD boosts overall segmentation quality (+0.6 mIoU, +2.8 ConnR).
+Zero-shot cross-dataset evaluation on S2DS shows that DSConv-equipped models achieve substantially higher transfer performance (17.1\% mIoU$_{\text{fg}}$) than SegFormer-B2 (0.1\%) and Mask2Former (2.5\%), indicating improved cross-domain robustness from the geometric inductive bias.
 \end{abstract}
 
 \begin{keyword}
@@ -289,7 +290,7 @@ DSCFormer + DTKD + TTA & MiT-B2 & \textbf{72.2} & \textbf{58.9} & \textbf{85.4} 
 \end{table*}
 
 DSCFormer with DTKD achieves the highest mIoU$_{\text{fg}}$ (71.2\% without TTA, 72.2\% with TTA) and the highest IoU for both crack and spalling classes among all compared methods.
-Mask2Former achieves the highest BF1$_{\text{fg}}$ (72.5\%) due to its mask-attention mechanism, though with substantially lower mIoU$_{\text{fg}}$ (67.9\%).
+Mask2Former achieves the highest BF1$_{\text{fg}}$ (72.5\%) due to its mask-attention mechanism, though with substantially lower mIoU$_{\text{fg}}$ (67.9\%). DSCFormer+DTKD+TTA ties Mask2Former on BF1$_{\text{cr}}$ (both 76.0\%).
 SAM-LoRA achieves the highest ConnR$_{\text{fg}}$ (81.2\%), reflecting SAM's strong global structure preservation.
 Compared to the SegFormer-B2 baseline, DSCFormer+DTKD improves mIoU$_{\text{fg}}$ by \textbf{+0.8}, IoU$_{\text{cr}}$ by \textbf{+1.1}, and BF1$_{\text{fg}}$ by \textbf{+4.6}.
 
@@ -312,7 +313,7 @@ Table~\ref{tab:ablation} presents the incremental contribution of each component
 
 \begin{table*}[t]
 \centering
-\caption{Ablation study on the DamSegment test set. Each row adds one component to the previous. All values in \%.}
+\caption{Ablation study on the DamSegment test set. Each row adds one component to the previous. Row~(a) uses the full-method training pipeline without any enhancements; minor differences from Table~\ref{tab:main} reflect different training frameworks. All values in \%.}
 \label{tab:ablation}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -466,6 +467,7 @@ Cross-dataset evaluation on S2DS demonstrates improved relative robustness of DS
 We presented DSCFormer, a topology-aware segmentation framework for concrete dam defect analysis incorporating three complementary enhancements to a SegFormer-B2 backbone.
 Dynamic Snake Convolution provides geometry-aware crack feature extraction (ConnR +6.6), Skeleton Recall Loss improves skeleton-level recall and boundary accuracy (BF1 +1.0), and class-conditional dual-teacher knowledge distillation combines the strengths of task-specific and foundation models (mIoU +0.6, ConnR +2.8).
 The full framework achieves 71.2\% foreground mIoU (72.2\% with TTA), the highest among all compared methods on the DamSegment benchmark, while Mask2Former achieves higher boundary F1 due to its mask-attention design.
+Zero-shot cross-dataset evaluation on S2DS confirms that the geometric inductive bias of DSConv substantially improves cross-domain robustness compared to standard architectures, though absolute transfer performance remains limited, motivating future work on domain adaptation.
 Our work demonstrates that indirectly leveraging foundation models through knowledge distillation is more effective than direct parameter-efficient fine-tuning on small-scale industrial datasets, providing practical guidance for deploying deep learning in data-scarce inspection scenarios.
 
 \section*{Data availability}

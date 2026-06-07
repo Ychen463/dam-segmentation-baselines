@@ -1,0 +1,26 @@
+[
+  {
+    "model_a": "dual_kd_classaware_DKD2",
+    "model_b": "dscformer_srl_G1",
+    "tier": "overall",
+    "metrics": {
+      "IoU_crack": {
+        "n_pairs": 148,
+        "mean_a": 0.57689,
+        "ci95_a": [
+          0.55292,
+          0.59888
+        ],
+        "mean_b": 0.57025,
+        "ci95_b": [
+          0.54631,
+          0.59223
+        ],
+        "mean_diff": 0.00664,
+        "ci95_diff": [
+          0.00032,
+          0.01282
+        ],
+        "wilcoxon_stat": 4009.0,
+        "p_value": 0.011298,
+        "significant_005": 
