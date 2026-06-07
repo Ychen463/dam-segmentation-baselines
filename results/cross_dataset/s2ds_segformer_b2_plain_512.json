@@ -1,0 +1,22 @@
+{
+  "s2ds": {
+    "IoU_background": 0.024241151280184708,
+    "Dice_background": 0.04733485126991047,
+    "IoU_crack": 0.00019879247582017557,
+    "Dice_crack": 0.0003975059304522833,
+    "IoU_spalling": 0.0,
+    "Dice_spalling": 0.0,
+    "mIoU_fg": 9.939623791008778e-05,
+    "mIoU_all": 0.008146647918668294,
+    "pixel_acc": 0.024369557698567707,
+    "BF1_crack": 0.07375864317033186,
+    "BF1_spalling": 0.0,
+    "BF1_fg_mean": 0.03687932158516593,
+    "clDice_crack": 0.01887260988328781,
+    "ConnR_crack": 1.0,
+    "clDice_spalling": 0.0,
+    "ConnR_spalling": 0.0,
+    "clDice_fg_mean": 0.009436304941643905,
+    "ConnR_fg_mean": 0.5
+  }
+}
