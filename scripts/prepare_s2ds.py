@@ -104,9 +104,17 @@ def process_split(raw_dir: Path, split: str, output_dir: Path, target_size: int)
             continue
 
         # Read image
-        img = Image.open(img_path).convert("RGB")
+        try:
+            img = Image.open(img_path).convert("RGB")
+        except (OSError, SyntaxError) as e:
+            print(f"    [WARN] Skipping corrupt image: {img_path.name} ({e})")
+            continue
         # Read label (may be RGBA)
-        lab = Image.open(lab_path).convert("RGB")
+        try:
+            lab = Image.open(lab_path).convert("RGB")
+        except (OSError, SyntaxError) as e:
+            print(f"    [WARN] Skipping corrupt label: {lab_path.name} ({e})")
+            continue
         lab_np = np.array(lab)
 
         # Decode: RGB -> 7-class -> 3-class
