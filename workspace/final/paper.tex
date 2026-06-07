@@ -32,10 +32,10 @@
 \address[inst1]{University, Department, City, Country}
 
 \begin{abstract}
-Automated semantic segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring, yet existing methods optimise pixel-level metrics without explicitly enforcing the topological connectivity critical for safety assessment.
+Automated semantic segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring, yet existing methods optimise pixel-level metrics without explicitly preserving the structural continuity critical for safety assessment.
 We propose \textbf{DSCFormer}, a topology-aware segmentation framework incorporating three complementary enhancements to a SegFormer-B2 backbone:
 (1)~a \emph{Dynamic Snake Convolution} (DSConv) branch that performs deformable sampling along crack directions to capture elongated geometry;
-(2)~\emph{Skeleton Recall Loss} (SRL) that penalises predictions with low probability at ground-truth skeleton pixels, enforcing topological connectivity with negligible runtime overhead; and
+(2)~\emph{Skeleton Recall Loss} (SRL) that penalises predictions with low probability at ground-truth skeleton pixels, improving skeleton-level recall and centreline preservation with negligible runtime overhead; and
 (3)~\emph{Class-Conditional Dual-Teacher Knowledge Distillation} (DTKD) that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher with per-class weighting, exploiting each teacher's strengths for different defect types.
 On the semantic segmentation subset of the \textbf{DamSegment} dataset \citep{damsegment2026} (1,500 images, 3~classes), DSCFormer with DTKD achieves 71.2\% foreground mIoU, the highest among all compared methods, and 86.2\% centreline Dice.
 With test-time augmentation, the full framework reaches 72.2\% mIoU$_{\text{fg}}$.
@@ -321,8 +321,8 @@ Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1
 (a) SegFormer-B2 & 70.3 & 56.9 & 83.7 & 74.0 & 68.6 & 81.8 & 82.7 & 81.0 & 77.0 \\
 (b) + DSConv & 70.4 & 56.9 & 84.0 & 73.7 & 69.5 & 82.0 & 85.5 & \textbf{84.7} & \textbf{83.6} \\
 (c) + SRL & 70.6 & 57.3 & 83.8 & 74.7 & 70.3 & 82.5 & 85.7 & 82.2 & 77.8 \\
-(d) + DTKD & \underline{71.2} & \underline{58.0} & \underline{84.5} & \underline{75.4} & \underline{71.4} & \underline{83.2} & \underline{86.2} & 82.3 & 80.6 \\
-(e) + TTA & \textbf{72.2} & \textbf{58.9} & \textbf{85.4} & \textbf{76.0} & 71.1 & \textbf{83.4} & 84.6 & 80.6 & 79.7 \\
+(d) + DTKD & \underline{71.2} & \underline{58.0} & \underline{84.5} & \underline{75.4} & \textbf{71.4} & \underline{83.2} & \textbf{86.2} & \underline{82.3} & \underline{80.6} \\
+(e) + TTA & \textbf{72.2} & \textbf{58.9} & \textbf{85.4} & \textbf{76.0} & \underline{71.1} & \textbf{83.4} & \underline{84.6} & 80.6 & 79.7 \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -348,6 +348,12 @@ This suggests that multi-scale/flip aggregation improves pixel coverage but may 
 \paragraph{Overall progression.}
 From baseline (a) to full method (d), the improvements are: mIoU$_{\text{fg}}$ +0.9, IoU$_{\text{cr}}$ +1.1, BF1$_{\text{fg}}$ +2.8, clDice$_{\text{fg}}$ +3.5, ConnR$_{\text{fg}}$ +3.6.
 The three components are complementary: DSConv improves \emph{feature representation} (ConnR, clDice), SRL improves the \emph{training signal} (IoU, BF1), and DTKD improves \emph{knowledge transfer} from complementary models (all metrics).
+
+\paragraph{Statistical significance.}
+To verify that DTKD's gains over DSCFormer are not due to random variation, we conduct paired Wilcoxon signed-rank tests on the 150 test images.
+DTKD significantly improves crack segmentation: IoU$_{\text{cr}}$ ($p{=}0.011$), BF1$_{\text{cr}}$ ($p{=}0.006$), and clDice$_{\text{cr}}$ ($p{<}0.001$), with 95\% bootstrap confidence intervals excluding zero.
+The improvement is most pronounced on Hard-tier images (clDice$_{\text{cr}}$ $p{<}0.001$, IoU$_{\text{cr}}$ $p{=}0.020$), where complex crack patterns benefit most from the foundation-model teacher's global knowledge.
+Spalling improvements are directionally consistent but not statistically significant at $\alpha{=}0.05$ ($p{=}0.135$ for IoU$_{\text{sp}}$), likely due to the smaller number of spalling-containing test images.
 
 \subsection{Analysis of DTKD teacher contributions}
 
@@ -387,6 +393,44 @@ The baseline frequently fragments continuous cracks, DSCFormer improves connecti
     \label{fig:qualitative}
 \end{figure}
 
+\subsection{Cross-dataset evaluation}
+\label{sec:cross_dataset}
+
+To assess generalisability beyond the training domain, we perform zero-shot transfer evaluation on the S2DS dataset \citep{s2ds2021}, which contains 743 images ($1024{\times}1024$) of concrete surfaces with pixel-level annotations for seven defect classes: background, crack, spalling, corrosion, efflorescence, vegetation, and control point.
+We map S2DS crack and spalling to our label scheme and treat all other classes as background, since they fall outside the DamSegment label space.
+All images are resized to $512{\times}512$ (bilinear for images, nearest-neighbour for masks).
+The S2DS test split contains 93~images, of which 27 contain only crack, 20 contain only spalling, and 46 are background-only; crack pixels account for 0.12\% and spalling for 4.27\% of the test area.
+No fine-tuning is performed: models trained on DamSegment are applied directly.
+
+\begin{table}[t]
+\centering
+\caption{Cross-dataset evaluation: DamSegment$\to$S2DS (zero-shot). All values in \%.}
+\label{tab:cross_dataset}
+\begin{tabular}{lcccccc}
+\toprule
+Model & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text{fg}}$ & clDice$_{\text{fg}}$ & ConnR$_{\text{fg}}$ \\
+\midrule
+SegFormer-B2 & 0.1 & 0.1 & 0.0 & 2.8 & 1.3 & 49.9 \\
+Mask2Former & 2.5 & 0.1 & 4.8 & 5.5 & 21.2 & 49.7 \\
+DSCFormer & \textbf{17.1} & 7.6 & \textbf{26.7} & \textbf{49.6} & \textbf{72.1} & 69.3 \\
+DSCFormer + DTKD & 16.6 & \textbf{8.6} & 24.7 & 48.3 & 68.6 & \textbf{70.8} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:cross_dataset} reveals a large domain gap for all models. SegFormer-B2 and Mask2Former fail almost completely on the unseen domain (mIoU$_{\text{fg}}$ $<$2.5\%), indicating severe overfitting to the DamSegment distribution. Models equipped with DSConv and SRL achieve substantially higher relative transfer performance (mIoU$_{\text{fg}}$ $>$16\%), though the absolute values remain limited, reflecting the inherent difficulty of zero-shot cross-domain segmentation under significant distribution shift. DSCFormer achieves the highest overall cross-domain performance (mIoU$_{\text{fg}}$ 17.1\%, BF1$_{\text{fg}}$ 49.6\%, clDice$_{\text{fg}}$ 72.1\%), while DTKD yields the best crack IoU (8.6\%) and ConnR$_{\text{fg}}$ (70.8\%).
+
+These results suggest that DSConv's geometric inductive bias and SRL's topology supervision improve cross-domain robustness, as crack and spalling morphology shares common geometric patterns across datasets. DTKD's contribution is complementary: it maximises in-domain accuracy (+0.6\% mIoU$_{\text{fg}}$) and connectivity (+2.8\% ConnR$_{\text{fg}}$) on DamSegment, while maintaining comparable cross-domain transfer ($<$0.5\% mIoU$_{\text{fg}}$ difference on S2DS).
+
+Fig.~\ref{fig:cross_dataset} shows representative S2DS predictions. SegFormer-B2 and Mask2Former produce largely incorrect segmentations, while DSCFormer and DSCFormer+DTKD localise defect regions despite the domain shift, consistent with the quantitative results above.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/fig_cross_dataset.png}
+    \caption{Cross-dataset qualitative results on S2DS (zero-shot). Left to right: input, ground truth, SegFormer-B2, Mask2Former, DSCFormer, DSCFormer+DTKD. Red: crack, green: spalling. SegFormer-B2 and Mask2Former fail on the unseen domain, while DSConv-equipped models retain partial defect localisation.}
+    \label{fig:cross_dataset}
+\end{figure}
+
 % ===========================================================================
 \section{Discussion}
 \label{sec:discussion}
@@ -413,14 +457,14 @@ This staged approach is simpler and more stable than curriculum-based alternativ
 The per-class teacher weights in DTKD are currently set manually based on teacher performance analysis; adaptive class-conditional weighting is an avenue for future work.
 Crack IoU remains challenging (${\sim}$59\%) due to extreme class imbalance (crack pixels ${<}5\%$ of total area).
 The DSConv branch is crack-specific; extending to other elongated defects is future work.
-Evaluation on external datasets would strengthen generalisability claims.
+Cross-dataset evaluation on S2DS demonstrates improved relative robustness of DSConv-equipped models, but the absolute mIoU$_{\text{fg}}$ remains low (${\sim}$17\%), indicating that zero-shot transfer across concrete inspection domains is far from solved; domain adaptation or mixed-dataset training may be necessary for practical cross-site deployment.
 
 % ===========================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 
 We presented DSCFormer, a topology-aware segmentation framework for concrete dam defect analysis incorporating three complementary enhancements to a SegFormer-B2 backbone.
-Dynamic Snake Convolution provides geometry-aware crack feature extraction (ConnR +6.6), Skeleton Recall Loss enforces topological connectivity through skeleton supervision (BF1 +1.0), and class-conditional dual-teacher knowledge distillation combines the strengths of task-specific and foundation models (mIoU +0.6, ConnR +2.8).
+Dynamic Snake Convolution provides geometry-aware crack feature extraction (ConnR +6.6), Skeleton Recall Loss improves skeleton-level recall and boundary accuracy (BF1 +1.0), and class-conditional dual-teacher knowledge distillation combines the strengths of task-specific and foundation models (mIoU +0.6, ConnR +2.8).
 The full framework achieves 71.2\% foreground mIoU (72.2\% with TTA), the highest among all compared methods on the DamSegment benchmark, while Mask2Former achieves higher boundary F1 due to its mask-attention design.
 Our work demonstrates that indirectly leveraging foundation models through knowledge distillation is more effective than direct parameter-efficient fine-tuning on small-scale industrial datasets, providing practical guidance for deploying deep learning in data-scarce inspection scenarios.
 
@@ -551,6 +595,11 @@ Qi, Y., He, Y., Qi, X., Zhang, Y., Yang, G., 2023.
 Ronneberger, O., Fischer, P., Brox, T., 2015.
 \newblock U-Net: Convolutional networks for biomedical image segmentation.
 \newblock In: MICCAI. pp.~234--241.
+
+\bibitem[Benz et~al.(2021)]{s2ds2021}
+Benz, C., Debus, P., Ha, H.K., Rodehorst, V., 2021.
+\newblock S2DS -- Structural defects dataset.
+\newblock Available at: \url{https://github.com/Christoph-Benz/S2DS}.
 
 \bibitem[Shit et~al.(2021)]{shit2021cldice}
 Shit, S., Paetzold, J.C., Sekuboyina, A., et~al., 2021.

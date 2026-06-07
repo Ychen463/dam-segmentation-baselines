@@ -142,7 +142,7 @@ def compare_pair(
             "ci95_diff": [round(lo_diff, 5), round(hi_diff, 5)],
             "wilcoxon_stat": round(float(stat), 2),
             "p_value": round(float(p_val), 6),
-            "significant_005": p_val < 0.05,
+            "significant_005": bool(p_val < 0.05),
         }
 
     return results
