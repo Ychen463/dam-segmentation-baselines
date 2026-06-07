@@ -46,48 +46,45 @@ You should probably TRAIN this model on a down-stream task to be able to use it 
 [KD] teacher 2 loaded (epoch=40, val_mIoU_fg=0.6944438789823197)
 [KD] dual-teacher mode: class-conditional (t1=0.5, t2=0.5)
 [dual_kd_classaware_DKD2_seed42] [curriculum] epoch 1: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
-Traceback (most recent call last):
-  File "<frozen runpy>", line 198, in _run_module_as_main
-  File "<frozen runpy>", line 88, in _run_code
-  File "/workspace/dam-segmentation-baselines/full_method/train.py", line 1288, in <module>
-    main()
-  File "/workspace/dam-segmentation-baselines/full_method/train.py", line 1038, in main
-    tr = train_one_epoch(model, train_loader, optimizer, criterion, device,
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/workspace/dam-segmentation-baselines/full_method/train.py", line 258, in train_one_epoch
-    t2_out = teacher2_model(imgs)
-             ^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/workspace/dam-segmentation-baselines/full_method/sam_model.py", line 237, in forward
-    features = self._extract_features(x)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/workspace/dam-segmentation-baselines/full_method/sam_model.py", line 213, in _extract_features
-    x = block(x)
-        ^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/segment_anything/modeling/image_encoder.py", line 174, in forward
-    x = self.attn(x)
-        ^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/torch/nn/modules/module.py", line 1750, in _call_impl
-    return forward_call(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/segment_anything/modeling/image_encoder.py", line 234, in forward
-    attn = add_decomposed_rel_pos(attn, q, self.rel_pos_h, self.rel_pos_w, (H, W), (H, W))
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.11/dist-packages/segment_anything/modeling/image_encoder.py", line 358, in add_decomposed_rel_pos
-    attn.view(B, q_h, q_w, k_h, k_w) + rel_h[:, :, :, :, None] + rel_w[:, :, :, None, :]
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~
-torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 1.50 GiB. GPU 0 has a total capacity of 23.52 GiB of which 840.44 MiB is free. Process 19229 has 15.50 GiB memory in use. Including non-PyTorch memory, this process has 7.18 GiB memory in use. Of the allocated memory 6.27 GiB is allocated by PyTorch, and 456.33 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+  [dual_kd_classaware_DKD2_seed42] [epoch 1/100] batch 30/300 (10%) loss=1696110.2292 elapsed=12s eta=112s
+  [dual_kd_classaware_DKD2_seed42] [epoch 1/100] batch 60/300 (20%) loss=1709720.1958 elapsed=24s eta=97s
+  [dual_kd_classaware_DKD2_seed42] [epoch 1/100] batch 90/300 (30%) loss=1712397.5153 elapsed=36s eta=85s
+  [dual_kd_classaware_DKD2_seed42] [epoch 1/100] batch 120/300 (40%) loss=1717631.7740 elapsed=48s eta=72s
+  [dual_kd_classaware_DKD2_seed42] [epoch 1/100] batch 150/300 (50%) loss=1718963.1508 elapsed=60s eta=60s
+  [dual_kd_classaware_DKD2_seed42] [epoch 1/100] batch 180/300 (60%) loss=1719642.6771 elapsed=72s eta=48s
+  [dual_kd_classaware_DKD2_seed42] [epoch 1/100] batch 210/300 (70%) loss=1718003.0292 elapsed=83s eta=36s
+  [dual_kd_classaware_DKD2_seed42] [epoch 1/100] batch 240/300 (80%) loss=1716268.1719 elapsed=95s eta=24s
+  [dual_kd_classaware_DKD2_seed42] [epoch 1/100] batch 270/300 (90%) loss=1714911.8097 elapsed=108s eta=12s
+  [dual_kd_classaware_DKD2_seed42] [epoch 1/100] batch 300/300 (100%) loss=1713445.5254 elapsed=120s eta=0s
+[dual_kd_classaware_DKD2_seed42] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[dual_kd_classaware_DKD2_seed42] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[dual_kd_classaware_DKD2_seed42] [epoch 001/100] remain=99 epochs ep_eta=206.9min (avg 125s/ep)
+[dual_kd_classaware_DKD2_seed42] [epoch 001/100] lr=0.000012  dt=125.4s
+  train loss=1713445.5254  ce=1.0918 dice=0.9441  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=1.0055
+  IoU   bg=0.4781  crack=0.0516  spalling=0.0130  | mIoU_fg=0.0323  pix_acc=0.4863
+  Dice  bg=0.6469  crack=0.0982  spalling=0.0257
+  BF1   crack=0.1220  spalling=0.0144  | BF1_fg_mean=0.0682
+  [dual_kd_classaware_DKD2_seed42] [best] mIoU_fg=0.0323  saved -> best.pt
+[dual_kd_classaware_DKD2_seed42] [curriculum] epoch 2: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [dual_kd_classaware_DKD2_seed42] [epoch 2/100] batch 30/300 (10%) loss=1681133.3042 elapsed=12s eta=109s
+  [dual_kd_classaware_DKD2_seed42] [epoch 2/100] batch 60/300 (20%) loss=1650975.7792 elapsed=24s eta=95s
+  [dual_kd_classaware_DKD2_seed42] [epoch 2/100] batch 90/300 (30%) loss=1628330.1486 elapsed=35s eta=82s
+  [dual_kd_classaware_DKD2_seed42] [epoch 2/100] batch 120/300 (40%) loss=1603746.9135 elapsed=46s eta=70s
+  [dual_kd_classaware_DKD2_seed42] [epoch 2/100] batch 150/300 (50%) loss=1580025.5317 elapsed=58s eta=58s
+  [dual_kd_classaware_DKD2_seed42] [epoch 2/100] batch 180/300 (60%) loss=1555359.4333 elapsed=69s eta=46s
+  [dual_kd_classaware_DKD2_seed42] [epoch 2/100] batch 210/300 (70%) loss=1528477.2607 elapsed=80s eta=34s
+  [dual_kd_classaware_DKD2_seed42] [epoch 2/100] batch 240/300 (80%) loss=1503859.3818 elapsed=92s eta=23s
+  [dual_kd_classaware_DKD2_seed42] [epoch 2/100] batch 270/300 (90%) loss=1476952.5718 elapsed=103s eta=11s
+  [dual_kd_classaware_DKD2_seed42] [epoch 2/100] batch 300/300 (100%) loss=1451230.2979 elapsed=114s eta=0s
+[dual_kd_classaware_DKD2_seed42] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[dual_kd_classaware_DKD2_seed42] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[dual_kd_classaware_DKD2_seed42] [epoch 002/100] remain=98 epochs ep_eta=197.1min (avg 121s/ep)
+[dual_kd_classaware_DKD2_seed42] [epoch 002/100] lr=0.000024  dt=114.2s
+  train loss=1451230.2979  ce=0.7266 dice=0.9036  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 5)
+[dual_kd_classaware_DKD2_seed42] [curriculum] epoch 3: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [dual_kd_classaware_DKD2_seed42] [epoch 3/100] batch 30/300 (10%) loss=1158863.2458 elapsed=12s eta=104s
+  [dual_kd_classaware_DKD2_seed42] [epoch 3/100] batch 60/300 (20%) loss=1117161.6687 elapsed=23s eta=91s
+  [dual_kd_classaware_DKD2_seed42] [epoch 3/100] batch 90/300 (30%) loss=1077360.0076 elapsed=34s eta=79s
+  [dual_kd_classaware_DKD2_seed42] [epoch 3/100] batch 120/300 (40%) loss=1043486.5323 elapsed=45s eta=67s
