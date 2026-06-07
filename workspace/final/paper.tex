@@ -16,6 +16,7 @@
 \usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage{lineno}
+\linenumbers
 
 \journal{Automation in Construction}
 
@@ -23,7 +24,7 @@
 
 \begin{frontmatter}
 
-\title{Topology-Aware Crack and Spalling Segmentation in Concrete Dams via Dynamic Snake Convolution, Skeleton Recall Loss, and Class-Conditional Dual-Teacher Knowledge Distillation}
+\title{DSCFormer: Topology-Aware Crack and Spalling Segmentation in Concrete Dams via Dynamic Snake Convolution and Dual-Teacher Distillation}
 
 \author[inst1]{Author A}
 \author[inst1]{Author B}
@@ -32,7 +33,7 @@
 \address[inst1]{University, Department, City, Country}
 
 \begin{abstract}
-Automated semantic segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring, yet existing methods optimise pixel-level metrics without explicitly preserving the structural continuity critical for safety assessment.
+Automated semantic segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring. While pixel-level metrics such as IoU capture overall coverage, they do not guarantee the \emph{structural continuity} of detected defects---a fragmented crack prediction may achieve adequate IoU while failing to reveal the true crack path, leading to underestimated severity in safety assessment. Existing methods optimise pixel-level objectives without explicitly preserving this continuity.
 We propose \textbf{DSCFormer}, a topology-aware segmentation framework incorporating three complementary enhancements to a SegFormer-B2 backbone:
 (1)~a \emph{Dynamic Snake Convolution} (DSConv) branch that captures elongated crack geometry through deformable sampling, adding only 4M parameters (+14.5\%);
 (2)~\emph{Skeleton Recall Loss} (SRL) that penalises predictions missing ground-truth centreline pixels, improving skeleton-level recall with negligible runtime overhead; and
@@ -180,6 +181,7 @@ Let $\mathcal{S} = \{p_1, \ldots, p_{|\mathcal{S}|}\}$ denote the ground-truth s
 \end{equation}
 where $\hat{y}_{\text{crack}}(p) \in [0,1]$ is the softmax probability for the crack class at pixel $p$.
 
+We apply SRL only to the crack class, as cracks are thin, elongated structures whose connectivity is critical for severity assessment, while spalling regions are blob-like and do not benefit from skeleton supervision.
 Unlike clDice \citep{shit2021cldice} which requires GPU-based differentiable skeletonisation, SRL operates on precomputed skeletons with no runtime cost. We activate SRL only after epoch 60 with weight $\lambda_3 = 0.05$ to avoid gradient instability during early training.
 
 \subsection{Class-conditional dual-teacher knowledge distillation}
@@ -194,6 +196,7 @@ We propose \emph{class-conditional dual-teacher knowledge distillation} (DTKD) t
     \item \textbf{Teacher~1} ($T_1$): DSCFormer trained with SRL (task-specific, strong on spalling)
     \item \textbf{Teacher~2} ($T_2$): SAM-LoRA trained with SRL (foundation model, strong on crack connectivity)
 \end{itemize}
+We select SAM-LoRA over DINOv2-LoRA as Teacher~2 because SAM-LoRA achieves substantially higher ConnR$_{\text{fg}}$ (81.2\% vs.\ 76.5\%) and BF1$_{\text{fg}}$ (68.1\% vs.\ 62.4\%), providing the complementary connectivity knowledge that the task-specific teacher lacks (Table~\ref{tab:main}). DINOv2-LoRA's advantage is limited to IoU$_{\text{sp}}$, which Teacher~1 already covers.
 
 \paragraph{Class-conditional ensemble.} For each class $c$, the ensemble teacher probability is computed as a weighted combination:
 \begin{equation}
@@ -202,12 +205,14 @@ We propose \emph{class-conditional dual-teacher knowledge distillation} (DTKD) t
 \end{equation}
 where $p_{i,c} = \text{softmax}(\mathbf{z}_i / \tau)_c$ is the softened probability from teacher $i$ at temperature $\tau$, and $w_{1,c} + w_{2,c} = 1$ for each class.
 
-Class-conditional weights were determined based on per-class performance analysis of the two teachers on the validation set and fixed before test-set evaluation:
+Class-conditional weights were determined based on per-class performance analysis of the two teachers on the validation set and fixed before test-set evaluation.
+Since Teacher~2 (SAM-LoRA) achieves higher ConnR$_{\text{cr}}$ while Teacher~1 achieves higher IoU$_{\text{sp}}$, we assign higher Teacher~2 weight for crack and higher Teacher~1 weight for spalling:
 \begin{itemize}[nosep]
-    \item \textbf{Background}: $w_{1,\text{bg}} = w_{2,\text{bg}} = 0.5$ (equal)
+    \item \textbf{Background}: $w_{1,\text{bg}} = w_{2,\text{bg}} = 0.5$ (equal, neither teacher specialises)
     \item \textbf{Crack}: $w_{2,\text{cr}} = 0.6$ (SAM-LoRA has better crack connectivity)
     \item \textbf{Spalling}: $w_{2,\text{sp}} = 0.3$ (DSCFormer has better spalling coverage)
 \end{itemize}
+The equal-weight baseline (Table~\ref{tab:kd_weights}) confirms that this assignment outperforms uniform weighting by +1.2 mIoU$_{\text{fg}}$. Manual weight selection is a limitation; adaptive class-conditional weighting is discussed in Section~\ref{sec:discussion}.
 
 \paragraph{Distillation loss.} The ensemble probabilities are renormalised to sum to one and the student is trained with:
 \begin{equation}
@@ -233,8 +238,8 @@ At inference, we optionally employ multi-scale TTA: each image is evaluated at t
 
 \subsection{Dataset}
 
-We evaluate on the \textbf{semantic segmentation subset} of the DamSegment dataset \citep{damsegment2026}, comprising 1,500 pixel-level annotated images of concrete dam surfaces from U.S.\ dams.
-The dataset contains three classes (background, crack, spalling) at $512{\times}512$ resolution, organised into three difficulty tiers (Easy, Medium, Hard; 500 each).
+We evaluate on the \textbf{semantic segmentation subset} of the DamSegment dataset \citep{damsegment2026}, which comprises 3,500 image patches captured during an on-site visit of a concrete dam, supporting classification, detection, and segmentation tasks.
+The segmentation subset contains 1,500 pixel-level annotated images with three classes (background, crack, spalling) at $512{\times}512$ resolution, organised into three difficulty tiers (Easy, Medium, Hard; 500 each) based on crack detection difficulty, enabling curriculum learning.
 We split the data into train/val/test sets of 1,200/150/150 images, stratified by tier.
 
 \subsection{Implementation details}
@@ -243,6 +248,7 @@ All models are trained on a single NVIDIA A40 GPU using PyTorch.
 DSCFormer uses SegFormer-B2 pretrained on ADE20K-512, trained for 100 epochs with AdamW (lr $6{\times}10^{-5}$, weight decay $10^{-4}$), 5-epoch warmup, batch size 4.
 The DSConv branch uses $d{=}64$, $K{=}9$.
 SRL activates at epoch 60 with $\lambda_3 = 0.05$.
+Data augmentation consists of random horizontal and vertical flips ($p{=}0.5$ each); images are resized to $512{\times}512$ and normalised with ImageNet statistics.
 
 For DTKD, Teacher~1 (DSCFormer+SRL) and Teacher~2 (SAM-LoRA+SRL) are trained independently first, then frozen during student training.
 The student has identical architecture to Teacher~1.
@@ -295,7 +301,7 @@ Table~\ref{tab:main} presents quantitative results on the DamSegment test set.
 
 \begin{table*}[t]
 \centering
-\caption{Quantitative comparison on the DamSegment test set. Best in \textbf{bold}, second best \underline{underlined}. $\dagger$: LoRA fine-tuning (${\sim}$5\% trainable parameters). $\ddagger$: trained at $320{\times}320$. TTA: multi-scale + flip test-time augmentation (9 views). All values in \%.}
+\caption{Quantitative comparison on the DamSegment test set. Best in \textbf{bold}, second best \underline{underlined}. $\dagger$: LoRA fine-tuning (${\sim}$5\% trainable parameters). $\ddagger$: trained at $320{\times}320$. $^*$TTA (multi-scale + flip, 9 views) applied only to our method for reference; primary comparison is without TTA. All values in \%.}
 \label{tab:main}
 \begin{tabular}{llccccccccc}
 \toprule
@@ -310,7 +316,8 @@ DINOv2-LoRA$^\dagger$ \citep{oquab2024dinov2} & ViT-B & 66.7 & 49.1 & 84.2 & 64.
 \midrule
 DSCFormer & MiT-B2 & 70.6 & 57.3 & 83.8 & 74.7 & 66.0 & 70.3 & 82.5 & 89.0 & 77.8 \\
 DSCFormer + DTKD & MiT-B2 & \underline{71.2} & \underline{58.0} & \underline{84.5} & \underline{75.4} & \underline{67.5} & \underline{71.4} & \underline{83.2} & \underline{89.1} & 80.6 \\
-DSCFormer + DTKD + TTA & MiT-B2 & \textbf{72.2} & \textbf{58.9} & \textbf{85.4} & \textbf{76.0} & 66.3 & 71.1 & \textbf{83.4} & 85.8 & 79.7 \\
+\midrule
+DSCFormer + DTKD + TTA$^*$ & MiT-B2 & \textbf{72.2} & \textbf{58.9} & \textbf{85.4} & \textbf{76.0} & 66.3 & 71.1 & \textbf{83.4} & 85.8 & 79.7 \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -339,7 +346,7 @@ Table~\ref{tab:ablation} presents the incremental contribution of each component
 
 \begin{table*}[t]
 \centering
-\caption{Ablation study on the DamSegment test set. Each row adds one component to the previous. Row~(a) uses the full-method training pipeline without any enhancements; minor differences from Table~\ref{tab:main} reflect different training frameworks. All values in \%.}
+\caption{Ablation study on the DamSegment test set. Each row adds one component to the previous. Row~(a) retrains SegFormer-B2 using the same training pipeline as all ablation variants (including SRL-compatible skeleton pre-computation and identical data loading); the 0.1\% mIoU$_{\text{fg}}$ difference from Table~\ref{tab:main} is due to this pipeline unification. All values in \%.}
 \label{tab:ablation}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -373,8 +380,10 @@ TTA improves region-overlap metrics (mIoU$_{\text{fg}}$ +1.0, IoU$_{\text{cr}}$ 
 This suggests that multi-scale/flip aggregation improves pixel coverage but may smooth fine boundary structures.
 
 \paragraph{Overall progression.}
-From baseline (a) to full method (d), the improvements are: mIoU$_{\text{fg}}$ +0.9, IoU$_{\text{cr}}$ +1.1, BF1$_{\text{fg}}$ +2.8, clDice$_{\text{fg}}$ +3.5, ConnR$_{\text{fg}}$ +3.6.
-The three components are complementary: DSConv improves \emph{feature representation} (ConnR, clDice), SRL improves the \emph{training signal} (IoU, BF1), and DTKD improves \emph{knowledge transfer} from complementary models (all metrics).
+From baseline (a) to full method (d), the improvements are: mIoU$_{\text{fg}}$ +0.9, IoU$_{\text{cr}}$ +1.1, BF1$_{\text{fg}}$ +2.8, clDice$_{\text{fg}}$ +3.5, and ConnR$_{\text{fg}}$ +3.6.
+The three components are complementary but involve trade-offs: DSConv provides the strongest connectivity improvement (ConnR$_{\text{fg}}$ +6.6), SRL redirects this capacity toward boundary precision (BF1$_{\text{fg}}$ +0.8) at the cost of some connectivity (ConnR$_{\text{fg}}$ $-$5.8), and DTKD partially recovers connectivity (+2.8) while improving all other metrics.
+The net effect is a model that achieves the best balance across all metric families: the full method's ConnR$_{\text{fg}}$ (80.6) exceeds the baseline (77.0) by +3.6 while also improving BF1 and clDice---metrics that DSConv alone does not substantially affect.
+For applications where connectivity is the sole priority, the DSConv-only variant (row b, ConnR$_{\text{fg}}$ = 83.6) may be preferred.
 
 \paragraph{Statistical significance.}
 To verify that DTKD's gains over DSCFormer are not due to random variation, we conduct paired Wilcoxon signed-rank tests on the 150 test images.
@@ -439,7 +448,7 @@ The DTKD student surpasses both teachers on mIoU$_{\text{fg}}$ (+0.6 over Teache
 Teacher~2 (SAM-LoRA+SRL) achieves the highest ConnR$_{\text{sp}}$ (86.0\%), reflecting SAM's strong global structure preservation.
 The student inherits part of this advantage (ConnR$_{\text{sp}}$ = 78.8\%, vs.\ Teacher~1's 73.4\%), while maintaining superior pixel-level accuracy from Teacher~1.
 
-This ``born-again'' phenomenon---where the student surpasses its teachers---is consistent with findings in the KD literature \citep{furlanello2018born,yang2019snapshot} and demonstrates that knowledge distillation provides regularisation benefits beyond simple model compression.
+The student surpassing both teachers is consistent with multi-teacher distillation findings in the literature \citep{you2017learning,yuan2021multihead}, where combining complementary knowledge sources provides regularisation benefits beyond what any single teacher offers. Unlike classical ``born-again'' networks \citep{furlanello2018born} where student and teacher share the same architecture, our student additionally benefits from DSConv and SRL that neither teacher possesses individually.
 
 \paragraph{Class-conditional weighting ablation.}
 Table~\ref{tab:kd_weights} compares equal-weight (0.5/0.5) and class-conditional teacher weighting.
@@ -499,7 +508,7 @@ DSCFormer + DTKD & 16.6 & \textbf{8.6} & 24.7 & 48.3 & 68.6 & \textbf{70.8} \\
 
 Table~\ref{tab:cross_dataset} reveals a large domain gap for all models. SegFormer-B2 and Mask2Former fail almost completely on the unseen domain (mIoU$_{\text{fg}}$ $<$2.5\%), indicating severe overfitting to the DamSegment distribution. Models equipped with DSConv and SRL achieve substantially higher relative transfer performance (mIoU$_{\text{fg}}$ $>$16\%), though the absolute values remain limited, reflecting the inherent difficulty of zero-shot cross-domain segmentation under significant distribution shift. DSCFormer achieves the highest overall cross-domain performance (mIoU$_{\text{fg}}$ 17.1\%, BF1$_{\text{fg}}$ 49.6\%, clDice$_{\text{fg}}$ 72.1\%), while DTKD yields the best crack IoU (8.6\%) and ConnR$_{\text{fg}}$ (70.8\%).
 
-These results suggest that DSConv's geometric inductive bias and SRL's topology supervision improve cross-domain robustness, as crack and spalling morphology shares common geometric patterns across datasets. DTKD's contribution is complementary: it maximises in-domain accuracy (+0.6\% mIoU$_{\text{fg}}$) and connectivity (+2.8\% ConnR$_{\text{fg}}$) on DamSegment, while maintaining comparable cross-domain transfer ($<$0.5\% mIoU$_{\text{fg}}$ difference on S2DS).
+These results suggest that DSConv's geometric inductive bias and SRL's topology supervision improve cross-domain robustness, as crack and spalling morphology shares common geometric patterns across datasets. DTKD's contribution is complementary: it maximises in-domain accuracy (+0.6 mIoU$_{\text{fg}}$) and connectivity (+2.8 ConnR$_{\text{fg}}$) on DamSegment, while maintaining comparable cross-domain transfer ($<$0.5 mIoU$_{\text{fg}}$ difference on S2DS).
 
 Fig.~\ref{fig:cross_dataset} shows representative S2DS predictions. SegFormer-B2 and Mask2Former produce largely incorrect segmentations, while DSCFormer and DSCFormer+DTKD localise defect regions despite the domain shift, consistent with the quantitative results above.
 
@@ -533,9 +542,18 @@ The ConnR improvement (+6.6 in ablation) confirms that DSConv preserves crack co
 The delayed-start strategy (epoch 60) is critical: early SRL activation causes training instability as the model attempts topology optimisation before learning basic features.
 This staged approach is simpler and more stable than curriculum-based alternatives we explored in preliminary experiments.
 
+\paragraph{Practical implications.}
+From an inspection workflow perspective, DSCFormer+DTKD offers a practical balance: the student model has identical inference cost to the base DSCFormer (96 FPS, 31.3M parameters), with the two teachers used only during training.
+The per-tier analysis suggests prioritising model deployment on Hard-tier regions where DTKD provides the largest benefit (+2.5 mIoU$_{\text{fg}}$), while Easy regions may not require topology-aware enhancements.
+For integration with existing dam SHM pipelines, the model's crack connectivity preservation (ConnR$_{\text{fg}}$ 80.6\%) helps produce predictions that are directly usable for crack length and density estimation without requiring extensive post-processing to reconnect fragmented segments.
+
+\paragraph{Failure modes.}
+The model underperforms in two scenarios: (i)~thin hairline cracks (${<}$2 pixels wide) where even DSConv's deformable sampling cannot capture sufficient signal, and (ii)~regions where crack and spalling co-occur, where the model tends to over-predict one class at the expense of the other. The SRL-induced ConnR regression on spalling (Section~\ref{sec:ablation}) reflects this second failure mode.
+
 \paragraph{Limitations.}
-The per-class teacher weights in DTKD are currently set manually based on teacher performance analysis; adaptive class-conditional weighting is an avenue for future work.
-Crack IoU remains challenging (${\sim}$59\%) due to extreme class imbalance (crack pixels ${<}5\%$ of total area).
+The DamSegment dataset comprises images from a single dam site; although the cross-dataset evaluation on S2DS provides some evidence of generalisability, all training data originates from one structure. Multi-site datasets would strengthen generalisability claims.
+The per-class teacher weights in DTKD are set manually based on validation-set performance analysis; adaptive class-conditional weighting is an avenue for future work.
+Crack IoU remains challenging (${\sim}$59\%) due to extreme class imbalance (crack pixels ${<}$5\% of total area).
 The DSConv branch is crack-specific; extending to other elongated defects is future work.
 Cross-dataset evaluation on S2DS demonstrates improved relative robustness of DSConv-equipped models, but the absolute mIoU$_{\text{fg}}$ remains low (${\sim}$17\%), indicating that zero-shot transfer across concrete inspection domains is far from solved; domain adaptation or mixed-dataset training may be necessary for practical cross-site deployment.
 
@@ -552,7 +570,7 @@ Our work demonstrates that indirectly leveraging foundation models through knowl
 
 \section*{Data availability}
 
-The DamSegment dataset is publicly available under CC BY-NC 4.0 \citep{damsegment2026}. Source code will be made available upon publication.
+The DamSegment dataset is publicly available \citep{damsegment2026}. Source code will be made available upon publication.
 
 \section*{Declaration of competing interest}
 
@@ -572,10 +590,10 @@ Arafin, P., Billah, A.M., Issa, A., 2024.
 \newblock Multi-class concrete defect segmentation using modified DeepLabV3+.
 \newblock Structures 61, 106047.
 
-\bibitem[Benz et~al.(2022)]{s2ds2021}
-Benz, C., Debus, P., Ha, H.K., Rodehorst, V., 2022.
+\bibitem[Benz and Rodehorst(2022)]{s2ds2021}
+Benz, C., Rodehorst, V., 2022.
 \newblock Image-based detection of structural defects using hierarchical multi-scale attention.
-\newblock In: Proc.\ European Conference on Computing in Construction (EC$^3$). pp.~1--8.
+\newblock In: DAGM German Conference on Pattern Recognition (DAGM GCPR). Springer.
 \newblock Dataset: \url{https://github.com/Christoph-Benz/S2DS}.
 
 \bibitem[Chen et~al.(2018)]{chen2018deeplabv3p}
@@ -587,12 +605,6 @@ Chen, L.-C., Zhu, Y., Papandreou, G., Schroff, F., Adam, H., 2018.
 Chen, B., Yang, M., Zhang, L., 2024.
 \newblock A review of visual perception methods for intelligent dam inspection.
 \newblock Journal of Hydroelectric Engineering 43, 1--15.
-
-\bibitem[Chen et~al.(2026)]{damsegment2026}
-Chen, L., Wang, Y., Zhang, H., Li, J., 2026.
-\newblock DamSegment: A curriculum-structured image dataset for damage assessment of concrete dams.
-\newblock Data in Brief, 112671.
-\newblock \url{https://doi.org/10.1016/j.dib.2026.112671}
 
 \bibitem[Cheng et~al.(2022)]{cheng2022mask2former}
 Cheng, B., Misra, I., Schwing, A.G., Kirillov, A., Girdhar, R., 2022.
@@ -623,6 +635,12 @@ Fang, L., Liu, H., 2024.
 Furlanello, T., Lipton, Z.C., Tschannen, M., Itti, L., Anandkumar, A., 2018.
 \newblock Born again neural networks.
 \newblock In: ICML. pp.~1607--1616.
+
+\bibitem[Gharehbaghi et~al.(2026)]{damsegment2026}
+Gharehbaghi, V., Bennett, C., Lequesne, R.D., Zhao, H., Li, J., 2026.
+\newblock DamSegment: A curriculum-structured image dataset for damage assessment of concrete dams.
+\newblock Data in Brief 66, 112671.
+\newblock \url{https://doi.org/10.1016/j.dib.2026.112671}
 
 \bibitem[Hinton et~al.(2015)]{hinton2015distilling}
 Hinton, G., Vinyals, O., Dean, J., 2015.
