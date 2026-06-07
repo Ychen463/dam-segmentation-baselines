@@ -37,31 +37,40 @@ for SEED in "${SEEDS[@]}"; do
     echo "=========================================="
 
     # (a) SegFormer-B2 baseline (P0)
-    echo "[seed=$SEED] Training SegFormer-B2 (P0) ..."
-    python -m full_method.train \
-        --ablation P0 \
-        --name "plain_segformer_P0_seed${SEED}" \
-        --seed "$SEED" \
-        2>&1 | tee "logs/P0_seed${SEED}.log"
+    if [[ -f "full_method/runs/plain_segformer_P0_seed${SEED}/best.pt" ]]; then
+        echo "[seed=$SEED] P0 already trained, skipping."
+    else
+        echo "[seed=$SEED] Training SegFormer-B2 (P0) ..."
+        python -m full_method.train \
+            --ablation P0 \
+            --name "plain_segformer_P0_seed${SEED}" \
+            --seed "$SEED" \
+            2>&1 | tee "logs/P0_seed${SEED}.log"
+    fi
 
-    # (b) DSCFormer + SRL (G1) — needs G0 first as base? No, G1 is standalone
-    echo "[seed=$SEED] Training DSCFormer+SRL (G1) ..."
-    python -m full_method.train \
-        --ablation G1 \
-        --name "dscformer_srl_G1_seed${SEED}" \
-        --seed "$SEED" \
-        2>&1 | tee "logs/G1_seed${SEED}.log"
+    # (b) DSCFormer + SRL (G1)
+    if [[ -f "full_method/runs/dscformer_srl_G1_seed${SEED}/best.pt" ]]; then
+        echo "[seed=$SEED] G1 already trained, skipping."
+    else
+        echo "[seed=$SEED] Training DSCFormer+SRL (G1) ..."
+        python -m full_method.train \
+            --ablation G1 \
+            --name "dscformer_srl_G1_seed${SEED}" \
+            --seed "$SEED" \
+            2>&1 | tee "logs/G1_seed${SEED}.log"
+    fi
 
     # (c) DSCFormer + DTKD (DKD2)
-    # Note: DKD2 uses frozen teacher checkpoints from G1 and SAM2.
-    # Teacher checkpoints are shared across seeds (they are the seed=42 teachers).
-    # Only the student training varies by seed.
-    echo "[seed=$SEED] Training DSCFormer+DTKD (DKD2) ..."
-    python -m full_method.train \
-        --ablation DKD2 \
-        --name "dual_kd_classaware_DKD2_seed${SEED}" \
-        --seed "$SEED" \
-        2>&1 | tee "logs/DKD2_seed${SEED}.log"
+    if [[ -f "full_method/runs/dual_kd_classaware_DKD2_seed${SEED}/best.pt" ]]; then
+        echo "[seed=$SEED] DKD2 already trained, skipping."
+    else
+        echo "[seed=$SEED] Training DSCFormer+DTKD (DKD2) ..."
+        python -m full_method.train \
+            --ablation DKD2 \
+            --name "dual_kd_classaware_DKD2_seed${SEED}" \
+            --seed "$SEED" \
+            2>&1 | tee "logs/DKD2_seed${SEED}.log"
+    fi
 
 done
 
