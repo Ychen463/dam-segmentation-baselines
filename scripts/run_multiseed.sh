@@ -27,6 +27,7 @@ fi
 
 if [[ "$EVAL_ONLY" == "false" ]]; then
 
+mkdir -p logs results/multiseed
 echo "=== Multi-seed training ==="
 
 for SEED in "${SEEDS[@]}"; do
@@ -87,6 +88,7 @@ for SEED in "${SEEDS[@]}"; do
         python -m shared_eval.eval_all \
             --model "$MODEL" \
             --split test \
+            --per-tier \
             --per-image \
             --output-dir results/multiseed/ \
             2>&1 || echo "[WARN] eval failed for $MODEL"
@@ -107,6 +109,22 @@ python scripts/aggregate_multiseed.py \
 # ============================================================================
 # Step 4: Run paired bootstrap tests (DSCFormer+DTKD vs SegFormer-B2)
 # ============================================================================
+
+# Also evaluate the original seed=42 models with per-tier
+echo ""
+echo "=== Per-tier eval for original models ==="
+for ORIG_MODEL in "dscformer_srl_G1" "dual_kd_classaware_DKD2"; do
+    CKPT="full_method/runs/${ORIG_MODEL}/best.pt"
+    if [[ -f "$CKPT" ]]; then
+        echo "[eval] ${ORIG_MODEL} (per-tier) ..."
+        python -m shared_eval.eval_all \
+            --model "$ORIG_MODEL" \
+            --split test \
+            --per-tier \
+            --output-dir results/ \
+            2>&1 || echo "[WARN] eval failed for $ORIG_MODEL"
+    fi
+done
 
 echo ""
 echo "=== Paired bootstrap significance tests ==="
