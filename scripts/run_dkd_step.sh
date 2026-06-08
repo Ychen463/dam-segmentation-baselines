@@ -86,14 +86,14 @@ echo ""
 echo "=== Evaluating ${NAME} ==="
 
 python -m full_method.eval_tta \
+    --run "$NAME" \
     --ablation "$PRESET" \
-    --name "$NAME" \
     --no-tta \
     2>&1 || echo "[WARN] eval failed"
 
 python -m full_method.eval_tta \
+    --run "$NAME" \
     --ablation "$PRESET" \
-    --name "$NAME" \
     2>&1 || echo "[WARN] TTA eval failed"
 
 # ============================================================================

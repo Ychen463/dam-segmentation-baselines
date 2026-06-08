@@ -103,15 +103,15 @@ for i in "${!PRESETS[@]}"; do
 
     # Standard eval
     python -m full_method.eval_tta \
+        --run "$NAME" \
         --ablation "$PRESET" \
-        --name "$NAME" \
         --no-tta \
         2>&1 || echo "[WARN] eval failed for $NAME"
 
     # TTA eval
     python -m full_method.eval_tta \
+        --run "$NAME" \
         --ablation "$PRESET" \
-        --name "$NAME" \
         2>&1 || echo "[WARN] TTA eval failed for $NAME"
 done
 
