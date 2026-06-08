@@ -1,0 +1,45 @@
+Some weights of SegformerForSemanticSegmentation were not initialized from the model checkpoint at nvidia/segformer-b2-finetuned-ade-512-512 and are newly initialized because the shapes did not match:
+- decode_head.classifier.weight: found shape torch.Size([150, 768, 1, 1]) in the checkpoint and torch.Size([3, 768, 1, 1]) in the model instantiated
+- decode_head.classifier.bias: found shape torch.Size([150]) in the checkpoint and torch.Size([3]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[eval] Device: cuda
+
+============================================================
+  Model: dkd10_no_srl
+============================================================
+[eval] Loading model: dkd10_no_srl
+[eval] Split 'test': 150 images
+[eval] Running overall evaluation ...
+[eval] Tier 'Easy': 50 images
+[eval] Tier 'Medium': 50 images
+[eval] Tier 'Hard': 50 images
+
+=== overall ===
+  IoU     bg=0.9774  crack=0.5854  spalling=0.8615  | mIoU_fg=0.7234
+  Dice    bg=0.9886  crack=0.7385  spalling=0.9256
+  BF1     crack=0.7556  spalling=0.6562  | BF1_fg_mean=0.7059
+  clDice  crack=0.8329  spalling=0.8961  | clDice_fg_mean=0.8645
+  ConnR   crack=0.8212  spalling=0.8378  | ConnR_fg_mean=0.8295
+
+=== Easy ===
+  IoU     bg=0.9884  crack=0.6526  spalling=0.8779  | mIoU_fg=0.7652
+  Dice    bg=0.9942  crack=0.7898  spalling=0.9350
+  BF1     crack=0.7481  spalling=0.6098  | BF1_fg_mean=0.6790
+  clDice  crack=0.8551  spalling=0.9142  | clDice_fg_mean=0.8847
+  ConnR   crack=0.8909  spalling=0.8889  | ConnR_fg_mean=0.8899
+
+=== Medium ===
+  IoU     bg=0.9805  crack=0.6154  spalling=0.8411  | mIoU_fg=0.7283
+  Dice    bg=0.9902  crack=0.7619  spalling=0.9137
+  BF1     crack=0.7600  spalling=0.7115  | BF1_fg_mean=0.7357
+  clDice  crack=0.8517  spalling=0.8760  | clDice_fg_mean=0.8639
+  ConnR   crack=0.8168  spalling=0.6667  | ConnR_fg_mean=0.7417
+
+=== Hard ===
+  IoU     bg=0.9633  crack=0.5448  spalling=0.8131  | mIoU_fg=0.6790
+  Dice    bg=0.9813  crack=0.7054  spalling=0.8969
+  BF1     crack=0.7582  spalling=0.6964  | BF1_fg_mean=0.7273
+  clDice  crack=0.7937  spalling=0.8793  | clDice_fg_mean=0.8365
+  ConnR   crack=0.7614  spalling=0.9000  | ConnR_fg_mean=0.8307
+
+[eval] Saved: results/w1/dkd10_no_srl_test.json
