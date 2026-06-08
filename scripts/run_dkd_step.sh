@@ -43,12 +43,13 @@ declare -A PRESET_NAMES=(
     [DKD10]=dkd10_no_srl
     [DKD11]=dkd11_weak_srl
     [DKD12]=dkd12_late_srl
+    [DKD13]=dkd13_g0_no_srl
 )
 
 NAME="${PRESET_NAMES[$PRESET]:-}"
 if [[ -z "$NAME" ]]; then
     echo "ERROR: Unknown preset '$PRESET'"
-    echo "  Available: DKD7 DKD8 DKD9 DKD10 DKD11 DKD12"
+    echo "  Available: DKD7 DKD8 DKD9 DKD10 DKD11 DKD12 DKD13"
     exit 1
 fi
 

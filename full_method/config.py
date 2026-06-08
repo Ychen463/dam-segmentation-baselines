@@ -1600,6 +1600,28 @@ ABLATION_PRESETS = {
               "cldice_start_epoch": 80, "cldice_iters": 7,
               "use_soft_boundary_schedule": False},
 
+    # DKD13: DKD10 (no SRL) + G0 as Teacher 1 (no SRL teacher)
+    #         Tests whether a teacher without SRL provides cleaner KD signal
+    #         G0 ConnR_fg=83.6 vs G1's 77.8; student also has no SRL
+    "DKD13": {"name": "dkd13_g0_no_srl",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_plain_G0/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": True,
+              "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False,
+              "use_srl_loss": False,
+              "use_soft_boundary_schedule": False},
+
     # Set CAL: Crack-Aware Adaptive LoRA (MoE-LoRA + crack-complexity router)
     # CAL1: CALoRA-SAM baseline (CE + Dice, no SRL)
     "CAL1": {"name": "calora_sam_CAL1",
