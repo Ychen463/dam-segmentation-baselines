@@ -1622,6 +1622,26 @@ ABLATION_PRESETS = {
               "use_srl_loss": False,
               "use_soft_boundary_schedule": False},
 
+    # DKD14: DKD10 but equal teacher weights (no class-conditional weighting)
+    #         Ablation: does class-conditional T2 weighting (0.6/0.3) help?
+    "DKD14": {"name": "dkd14_equal_weight",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": False,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False,
+              "use_srl_loss": False,
+              "use_soft_boundary_schedule": False},
+
     # Set CAL: Crack-Aware Adaptive LoRA (MoE-LoRA + crack-complexity router)
     # CAL1: CALoRA-SAM baseline (CE + Dice, no SRL)
     "CAL1": {"name": "calora_sam_CAL1",
