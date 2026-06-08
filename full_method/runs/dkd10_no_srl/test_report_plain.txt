@@ -1,0 +1,26 @@
+run: dkd10_no_srl
+ablation_preset: DKD10
+mode: plain (no TTA)
+test set metrics (plain):
+  IoU_background: 0.977429651320297
+  IoU_crack: 0.5853986570630673
+  IoU_spalling: 0.8615177778804066
+  Dice_background: 0.9885860168706213
+  Dice_crack: 0.7384876408909182
+  Dice_spalling: 0.9256078970799438
+  mIoU_fg: 0.723458217471737
+  mIoU_all: 0.8081153620879237
+  pixel_acc: 0.9781477101643881
+  BF1_crack: 0.7556565122096452
+  BF1_spalling: 0.6559880361277306
+  BF1_fg_mean: 0.7058222741686879
+  clDice_crack: 0.8328611996911776
+  clDice_spalling: 0.8955030921114128
+  clDice_fg_mean: 0.8641821459012952
+  ConnR_crack: 0.8211923367404815
+  ConnR_spalling: 0.8378378378378378
+  ConnR_fg_mean: 0.8295150872891597
+confusion matrix (rows=gt, cols=pred):
+[[36847879   497972    34617]
+ [  280334  1110784     2292]
+ [   37951     6101   503670]]
