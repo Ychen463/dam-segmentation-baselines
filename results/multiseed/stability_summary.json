@@ -1,0 +1,182 @@
+{
+  "plain_segformer_P0": {
+    "paper_label": "SegFormer-B2",
+    "n_seeds": 3,
+    "metrics": {
+      "mIoU_fg": {
+        "mean": 69.21,
+        "std": 1.47,
+        "values": [
+          67.53,
+          70.27,
+          69.83
+        ]
+      },
+      "IoU_crack": {
+        "mean": 56.93,
+        "std": 0.31,
+        "values": [
+          56.59,
+          57.2,
+          56.99
+        ]
+      },
+      "IoU_spalling": {
+        "mean": 81.5,
+        "std": 2.64,
+        "values": [
+          78.47,
+          83.34,
+          82.67
+        ]
+      },
+      "BF1_fg_mean": {
+        "mean": 69.4,
+        "std": 2.11,
+        "values": [
+          67.13,
+          71.31,
+          69.76
+        ]
+      },
+      "clDice_fg_mean": {
+        "mean": 84.83,
+        "std": 1.0,
+        "values": [
+          83.68,
+          85.45,
+          85.34
+        ]
+      },
+      "ConnR_fg_mean": {
+        "mean": 79.31,
+        "std": 3.3,
+        "values": [
+          83.1,
+          77.04,
+          77.79
+        ]
+      }
+    }
+  },
+  "dscformer_srl_G1": {
+    "paper_label": "DSCFormer",
+    "n_seeds": 3,
+    "metrics": {
+      "mIoU_fg": {
+        "mean": 67.91,
+        "std": 2.42,
+        "values": [
+          65.12,
+          69.1,
+          69.49
+        ]
+      },
+      "IoU_crack": {
+        "mean": 55.94,
+        "std": 0.93,
+        "values": [
+          54.87,
+          56.36,
+          56.6
+        ]
+      },
+      "IoU_spalling": {
+        "mean": 79.87,
+        "std": 3.9,
+        "values": [
+          75.37,
+          81.85,
+          82.39
+        ]
+      },
+      "BF1_fg_mean": {
+        "mean": 67.67,
+        "std": 1.55,
+        "values": [
+          67.09,
+          69.42,
+          66.49
+        ]
+      },
+      "clDice_fg_mean": {
+        "mean": 84.14,
+        "std": 0.29,
+        "values": [
+          83.84,
+          84.16,
+          84.43
+        ]
+      },
+      "ConnR_fg_mean": {
+        "mean": 81.88,
+        "std": 2.89,
+        "values": [
+          84.3,
+          78.68,
+          82.67
+        ]
+      }
+    }
+  },
+  "dual_kd_classaware_DKD2": {
+    "paper_label": "DSCFormer+DTKD",
+    "n_seeds": 3,
+    "metrics": {
+      "mIoU_fg": {
+        "mean": 70.81,
+        "std": 0.48,
+        "values": [
+          71.08,
+          71.09,
+          70.26
+        ]
+      },
+      "IoU_crack": {
+        "mean": 58.06,
+        "std": 0.4,
+        "values": [
+          58.24,
+          58.35,
+          57.6
+        ]
+      },
+      "IoU_spalling": {
+        "mean": 83.55,
+        "std": 0.56,
+        "values": [
+          83.92,
+          83.83,
+          82.91
+        ]
+      },
+      "BF1_fg_mean": {
+        "mean": 69.68,
+        "std": 1.06,
+        "values": [
+          70.82,
+          68.72,
+          69.51
+        ]
+      },
+      "clDice_fg_mean": {
+        "mean": 85.36,
+        "std": 1.45,
+        "values": [
+          86.08,
+          83.69,
+          86.31
+        ]
+      },
+      "ConnR_fg_mean": {
+        "mean": 79.12,
+        "std": 0.87,
+        "values": [
+          79.2,
+          78.21,
+          79.95
+        ]
+      }
+    }
+  }
+}

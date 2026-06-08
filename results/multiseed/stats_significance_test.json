@@ -1,847 +1,847 @@
 [
   {
-    "model_a": "dual_kd_classaware_DKD2",
-    "model_b": "dscformer_srl_G1",
+    "model_a": "dual_kd_classaware_DKD2_seed42",
+    "model_b": "dscformer_srl_G1_seed42",
     "tier": "overall",
     "metrics": {
       "IoU_crack": {
         "n_pairs": 148,
-        "mean_a": 0.57689,
+        "mean_a": 0.58153,
         "ci95_a": [
-          0.55292,
-          0.59888
+          0.55748,
+          0.6039
         ],
-        "mean_b": 0.57025,
+        "mean_b": 0.54358,
         "ci95_b": [
-          0.54631,
-          0.59223
+          0.51948,
+          0.56605
         ],
-        "mean_diff": 0.00664,
+        "mean_diff": 0.03795,
         "ci95_diff": [
-          0.00032,
-          0.01282
+          0.02677,
+          0.04937
         ],
-        "wilcoxon_stat": 4009.0,
-        "p_value": 0.011298,
+        "wilcoxon_stat": 1753.0,
+        "p_value": 0.0,
         "significant_005": true
       },
       "IoU_spalling": {
         "n_pairs": 42,
-        "mean_a": 0.6142,
+        "mean_a": 0.60843,
         "ci95_a": [
-          0.49615,
-          0.72866
+          0.48713,
+          0.72396
         ],
-        "mean_b": 0.58709,
+        "mean_b": 0.64092,
         "ci95_b": [
-          0.46403,
-          0.70719
+          0.53076,
+          0.74936
         ],
-        "mean_diff": 0.02712,
+        "mean_diff": -0.0325,
         "ci95_diff": [
-          -0.0225,
-          0.08538
+          -0.10876,
+          0.03156
         ],
-        "wilcoxon_stat": 184.0,
-        "p_value": 0.134676,
+        "wilcoxon_stat": 261.0,
+        "p_value": 0.376441,
         "significant_005": false
       },
       "Dice_crack": {
         "n_pairs": 148,
-        "mean_a": 0.71924,
+        "mean_a": 0.72301,
         "ci95_a": [
-          0.69496,
-          0.74034
+          0.69874,
+          0.74428
         ],
-        "mean_b": 0.71375,
+        "mean_b": 0.6909,
         "ci95_b": [
-          0.6895,
-          0.73508
+          0.66609,
+          0.71331
         ],
-        "mean_diff": 0.00549,
+        "mean_diff": 0.0321,
         "ci95_diff": [
-          1e-05,
-          0.01099
+          0.02215,
+          0.04243
         ],
-        "wilcoxon_stat": 4027.0,
-        "p_value": 0.012496,
+        "wilcoxon_stat": 1811.0,
+        "p_value": 0.0,
         "significant_005": true
       },
       "Dice_spalling": {
         "n_pairs": 42,
-        "mean_a": 0.66714,
+        "mean_a": 0.65894,
         "ci95_a": [
-          0.54451,
-          0.78243
+          0.53064,
+          0.77834
         ],
-        "mean_b": 0.6312,
+        "mean_b": 0.70183,
         "ci95_b": [
-          0.50167,
-          0.75737
+          0.58775,
+          0.80945
         ],
-        "mean_diff": 0.03594,
+        "mean_diff": -0.0429,
         "ci95_diff": [
-          -0.01506,
-          0.10011
+          -0.12934,
+          0.03173
         ],
-        "wilcoxon_stat": 184.0,
-        "p_value": 0.134676,
+        "wilcoxon_stat": 263.0,
+        "p_value": 0.394372,
         "significant_005": false
       },
       "BF1_crack": {
         "n_pairs": 145,
-        "mean_a": 0.75415,
+        "mean_a": 0.7609,
         "ci95_a": [
-          0.73716,
-          0.77052
+          0.74406,
+          0.77753
         ],
-        "mean_b": 0.74653,
+        "mean_b": 0.69906,
         "ci95_b": [
-          0.72924,
-          0.76375
+          0.68005,
+          0.71771
         ],
-        "mean_diff": 0.00762,
+        "mean_diff": 0.06184,
         "ci95_diff": [
-          0.00117,
-          0.01392
+          0.04958,
+          0.07422
         ],
-        "wilcoxon_stat": 3885.0,
-        "p_value": 0.005468,
+        "wilcoxon_stat": 824.0,
+        "p_value": 0.0,
         "significant_005": true
       },
       "BF1_spalling": {
-        "n_pairs": 29,
-        "mean_a": 0.68402,
+        "n_pairs": 31,
+        "mean_a": 0.67037,
         "ci95_a": [
-          0.61088,
-          0.75681
+          0.59322,
+          0.74146
         ],
-        "mean_b": 0.6833,
+        "mean_b": 0.63963,
         "ci95_b": [
-          0.61656,
-          0.74752
+          0.5761,
+          0.70362
         ],
-        "mean_diff": 0.00072,
+        "mean_diff": 0.03073,
         "ci95_diff": [
-          -0.03095,
-          0.02924
+          -0.0169,
+          0.07435
         ],
-        "wilcoxon_stat": 174.0,
-        "p_value": 0.357853,
-        "significant_005": false
+        "wilcoxon_stat": 146.0,
+        "p_value": 0.04563,
+        "significant_005": true
       },
       "clDice_crack": {
         "n_pairs": 145,
-        "mean_a": 0.83237,
+        "mean_a": 0.83792,
         "ci95_a": [
-          0.81537,
-          0.84912
+          0.82149,
+          0.85422
         ],
-        "mean_b": 0.82472,
+        "mean_b": 0.80011,
         "ci95_b": [
-          0.80799,
-          0.84113
+          0.77954,
+          0.81958
         ],
-        "mean_diff": 0.00765,
+        "mean_diff": 0.0378,
         "ci95_diff": [
-          0.00164,
-          0.01356
+          0.02712,
+          0.04927
         ],
-        "wilcoxon_stat": 3337.0,
-        "p_value": 0.000173,
+        "wilcoxon_stat": 1403.0,
+        "p_value": 0.0,
         "significant_005": true
       },
       "clDice_spalling": {
-        "n_pairs": 29,
-        "mean_a": 0.91014,
+        "n_pairs": 31,
+        "mean_a": 0.89059,
         "ci95_a": [
-          0.8466,
-          0.96034
+          0.81269,
+          0.95048
         ],
-        "mean_b": 0.92051,
+        "mean_b": 0.88904,
         "ci95_b": [
-          0.88218,
-          0.95451
+          0.832,
+          0.93784
         ],
-        "mean_diff": -0.01036,
+        "mean_diff": 0.00155,
         "ci95_diff": [
-          -0.06796,
-          0.02661
+          -0.0476,
+          0.03973
         ],
-        "wilcoxon_stat": 80.0,
-        "p_value": 0.217241,
+        "wilcoxon_stat": 106.0,
+        "p_value": 0.077537,
         "significant_005": false
       },
       "ConnR_crack": {
         "n_pairs": 146,
-        "mean_a": 0.82315,
+        "mean_a": 0.82274,
         "ci95_a": [
-          0.79267,
-          0.85172
+          0.7911,
+          0.85168
         ],
-        "mean_b": 0.82274,
+        "mean_b": 0.83008,
         "ci95_b": [
-          0.79251,
-          0.85101
+          0.79885,
+          0.8592
         ],
-        "mean_diff": 0.00041,
+        "mean_diff": -0.00734,
         "ci95_diff": [
-          -0.01498,
-          0.01493
+          -0.03037,
+          0.0157
         ],
-        "wilcoxon_stat": 646.0,
-        "p_value": 0.695294,
+        "wilcoxon_stat": 1206.0,
+        "p_value": 0.426892,
         "significant_005": false
       },
       "ConnR_spalling": {
         "n_pairs": 37,
-        "mean_a": 0.78829,
+        "mean_a": 0.76126,
         "ci95_a": [
-          0.66205,
-          0.9009
+          0.63514,
+          0.87838
         ],
-        "mean_b": 0.73423,
+        "mean_b": 0.85586,
         "ci95_b": [
-          0.59459,
-          0.85586
+          0.75225,
+          0.94595
         ],
-        "mean_diff": 0.05405,
+        "mean_diff": -0.09459,
         "ci95_diff": [
-          -0.04054,
-          0.14865
+          -0.2027,
+          0.0
         ],
-        "wilcoxon_stat": 5.5,
-        "p_value": 0.279485,
+        "wilcoxon_stat": 2.0,
+        "p_value": 0.068365,
         "significant_005": false
       }
     }
   },
   {
-    "model_a": "dual_kd_classaware_DKD2",
-    "model_b": "dscformer_srl_G1",
+    "model_a": "dual_kd_classaware_DKD2_seed42",
+    "model_b": "dscformer_srl_G1_seed42",
     "tier": "Easy",
     "metrics": {
       "IoU_crack": {
         "n_pairs": 48,
-        "mean_a": 0.59371,
+        "mean_a": 0.60081,
         "ci95_a": [
-          0.52977,
-          0.64991
+          0.53787,
+          0.65594
         ],
-        "mean_b": 0.58466,
+        "mean_b": 0.54837,
         "ci95_b": [
-          0.52001,
-          0.64109
+          0.48491,
+          0.60456
         ],
-        "mean_diff": 0.00906,
+        "mean_diff": 0.05244,
         "ci95_diff": [
-          -0.00244,
-          0.02089
+          0.02418,
+          0.08023
         ],
-        "wilcoxon_stat": 352.0,
-        "p_value": 0.06175,
-        "significant_005": false
+        "wilcoxon_stat": 166.0,
+        "p_value": 4.3e-05,
+        "significant_005": true
       },
       "IoU_spalling": {
-        "n_pairs": 20,
-        "mean_a": 0.64444,
+        "n_pairs": 21,
+        "mean_a": 0.63723,
         "ci95_a": [
-          0.4783,
-          0.79289
+          0.46866,
+          0.78679
         ],
-        "mean_b": 0.66961,
+        "mean_b": 0.65199,
         "ci95_b": [
-          0.50731,
-          0.81022
+          0.49274,
+          0.79573
         ],
-        "mean_diff": -0.02517,
+        "mean_diff": -0.01475,
         "ci95_diff": [
-          -0.09368,
-          0.01899
+          -0.12658,
+          0.08566
         ],
-        "wilcoxon_stat": 64.0,
-        "p_value": 0.836139,
+        "wilcoxon_stat": 75.0,
+        "p_value": 0.647471,
         "significant_005": false
       },
       "Dice_crack": {
         "n_pairs": 48,
-        "mean_a": 0.71602,
+        "mean_a": 0.7225,
         "ci95_a": [
-          0.64635,
-          0.77354
+          0.6543,
+          0.77874
         ],
-        "mean_b": 0.70845,
+        "mean_b": 0.67835,
         "ci95_b": [
-          0.63843,
-          0.76606
+          0.60864,
+          0.73805
         ],
-        "mean_diff": 0.00757,
+        "mean_diff": 0.04416,
         "ci95_diff": [
-          -0.00311,
-          0.01927
+          0.01834,
+          0.07069
         ],
-        "wilcoxon_stat": 347.0,
-        "p_value": 0.054288,
-        "significant_005": false
+        "wilcoxon_stat": 183.0,
+        "p_value": 9.4e-05,
+        "significant_005": true
       },
       "Dice_spalling": {
-        "n_pairs": 20,
-        "mean_a": 0.70161,
+        "n_pairs": 21,
+        "mean_a": 0.68908,
         "ci95_a": [
-          0.52826,
-          0.85093
+          0.51191,
+          0.84406
         ],
-        "mean_b": 0.72525,
+        "mean_b": 0.71199,
         "ci95_b": [
-          0.55117,
-          0.87252
+          0.54775,
+          0.85757
         ],
-        "mean_diff": -0.02364,
+        "mean_diff": -0.02291,
         "ci95_diff": [
-          -0.08016,
-          0.01086
+          -0.15212,
+          0.09469
         ],
-        "wilcoxon_stat": 63.0,
-        "p_value": 0.795987,
+        "wilcoxon_stat": 77.0,
+        "p_value": 0.71125,
         "significant_005": false
       },
       "BF1_crack": {
         "n_pairs": 45,
-        "mean_a": 0.75677,
+        "mean_a": 0.76329,
         "ci95_a": [
-          0.71183,
-          0.79893
+          0.7199,
+          0.80476
         ],
-        "mean_b": 0.7441,
+        "mean_b": 0.66431,
         "ci95_b": [
-          0.69867,
-          0.7877
+          0.61367,
+          0.7121
         ],
-        "mean_diff": 0.01268,
+        "mean_diff": 0.09898,
         "ci95_diff": [
-          0.00078,
-          0.02372
+          0.06766,
+          0.13137
         ],
-        "wilcoxon_stat": 298.0,
-        "p_value": 0.012438,
+        "wilcoxon_stat": 83.0,
+        "p_value": 0.0,
         "significant_005": true
       },
       "BF1_spalling": {
         "n_pairs": 16,
-        "mean_a": 0.60123,
+        "mean_a": 0.61361,
         "ci95_a": [
-          0.50881,
-          0.6954
+          0.49686,
+          0.71743
         ],
-        "mean_b": 0.61719,
+        "mean_b": 0.56872,
         "ci95_b": [
-          0.53754,
-          0.70026
+          0.49115,
+          0.64971
         ],
-        "mean_diff": -0.01596,
+        "mean_diff": 0.04489,
         "ci95_diff": [
-          -0.0673,
-          0.02933
+          -0.0422,
+          0.11773
         ],
-        "wilcoxon_stat": 67.0,
-        "p_value": 0.97995,
+        "wilcoxon_stat": 36.0,
+        "p_value": 0.104584,
         "significant_005": false
       },
       "clDice_crack": {
         "n_pairs": 45,
-        "mean_a": 0.86265,
+        "mean_a": 0.87417,
         "ci95_a": [
-          0.82151,
-          0.90004
+          0.83644,
+          0.90804
         ],
-        "mean_b": 0.8517,
+        "mean_b": 0.82778,
         "ci95_b": [
-          0.81046,
-          0.88891
+          0.77372,
+          0.87541
         ],
-        "mean_diff": 0.01095,
+        "mean_diff": 0.04639,
         "ci95_diff": [
-          -0.00113,
-          0.02298
+          0.01777,
+          0.07855
         ],
-        "wilcoxon_stat": 289.0,
-        "p_value": 0.016214,
+        "wilcoxon_stat": 179.0,
+        "p_value": 0.000226,
         "significant_005": true
       },
       "clDice_spalling": {
         "n_pairs": 16,
-        "mean_a": 0.87597,
+        "mean_a": 0.86528,
         "ci95_a": [
-          0.76716,
-          0.95974
+          0.72487,
+          0.96012
         ],
-        "mean_b": 0.9066,
+        "mean_b": 0.88311,
         "ci95_b": [
-          0.85048,
-          0.95411
+          0.80269,
+          0.95132
         ],
-        "mean_diff": -0.03063,
+        "mean_diff": -0.01783,
         "ci95_diff": [
-          -0.13253,
-          0.03488
+          -0.11223,
+          0.05517
         ],
-        "wilcoxon_stat": 52.0,
-        "p_value": 0.97496,
+        "wilcoxon_stat": 59.0,
+        "p_value": 0.954708,
         "significant_005": false
       },
       "ConnR_crack": {
         "n_pairs": 46,
-        "mean_a": 0.89457,
+        "mean_a": 0.89638,
         "ci95_a": [
-          0.83007,
-          0.94964
+          0.83188,
+          0.95072
         ],
-        "mean_b": 0.90181,
+        "mean_b": 0.89312,
         "ci95_b": [
-          0.83659,
-          0.95652
+          0.82572,
+          0.95145
         ],
-        "mean_diff": -0.00725,
+        "mean_diff": 0.00326,
         "ci95_diff": [
-          -0.02174,
-          0.0
+          -0.05,
+          0.05797
         ],
-        "wilcoxon_stat": 0.0,
-        "p_value": 0.317311,
+        "wilcoxon_stat": 26.0,
+        "p_value": 0.876885,
         "significant_005": false
       },
       "ConnR_spalling": {
         "n_pairs": 18,
         "mean_a": 0.78704,
         "ci95_a": [
-          0.60185,
-          0.94444
-        ],
-        "mean_b": 0.78704,
-        "ci95_b": [
           0.62037,
           0.92593
         ],
-        "mean_diff": 0.0,
-        "ci95_diff": [
-          -0.13889,
-          0.11111
+        "mean_b": 0.89815,
+        "ci95_b": [
+          0.76852,
+          1.0
         ],
-        "wilcoxon_stat": 3.0,
-        "p_value": 1.0,
+        "mean_diff": -0.11111,
+        "ci95_diff": [
+          -0.27778,
+          0.02778
+        ],
+        "wilcoxon_stat": 1.5,
+        "p_value": 0.193646,
         "significant_005": false
       }
     }
   },
   {
-    "model_a": "dual_kd_classaware_DKD2",
-    "model_b": "dscformer_srl_G1",
+    "model_a": "dual_kd_classaware_DKD2_seed42",
+    "model_b": "dscformer_srl_G1_seed42",
     "tier": "Medium",
     "metrics": {
       "IoU_crack": {
         "n_pairs": 50,
-        "mean_a": 0.60343,
+        "mean_a": 0.60859,
         "ci95_a": [
-          0.58128,
-          0.62561
+          0.58544,
+          0.6316
         ],
-        "mean_b": 0.60157,
+        "mean_b": 0.58238,
         "ci95_b": [
-          0.58061,
-          0.62275
+          0.55789,
+          0.60661
         ],
-        "mean_diff": 0.00185,
+        "mean_diff": 0.02621,
         "ci95_diff": [
-          -0.01058,
-          0.01415
+          0.00957,
+          0.04308
         ],
-        "wilcoxon_stat": 595.0,
-        "p_value": 0.687682,
-        "significant_005": false
+        "wilcoxon_stat": 339.0,
+        "p_value": 0.003428,
+        "significant_005": true
       },
       "IoU_spalling": {
-        "n_pairs": 12,
-        "mean_a": 0.48503,
+        "n_pairs": 11,
+        "mean_a": 0.45943,
         "ci95_a": [
-          0.23915,
-          0.72131
+          0.20626,
+          0.71255
         ],
-        "mean_b": 0.37991,
+        "mean_b": 0.5331,
         "ci95_b": [
-          0.14565,
-          0.6258
+          0.27712,
+          0.7733
         ],
-        "mean_diff": 0.10512,
+        "mean_diff": -0.07367,
         "ci95_diff": [
-          0.00126,
-          0.27582
+          -0.24464,
+          0.0199
         ],
-        "wilcoxon_stat": 4.0,
-        "p_value": 0.090969,
+        "wilcoxon_stat": 13.0,
+        "p_value": 0.865772,
         "significant_005": false
       },
       "Dice_crack": {
         "n_pairs": 50,
-        "mean_a": 0.7495,
+        "mean_a": 0.75327,
         "ci95_a": [
-          0.73181,
-          0.76711
+          0.73456,
+          0.77143
         ],
-        "mean_b": 0.74831,
+        "mean_b": 0.73195,
         "ci95_b": [
-          0.73126,
-          0.76514
+          0.71151,
+          0.75189
         ],
-        "mean_diff": 0.00119,
+        "mean_diff": 0.02132,
         "ci95_diff": [
-          -0.00908,
-          0.01112
+          0.00791,
+          0.03536
         ],
-        "wilcoxon_stat": 595.0,
-        "p_value": 0.687682,
-        "significant_005": false
+        "wilcoxon_stat": 342.0,
+        "p_value": 0.003786,
+        "significant_005": true
       },
       "Dice_spalling": {
-        "n_pairs": 12,
-        "mean_a": 0.52004,
+        "n_pairs": 11,
+        "mean_a": 0.49288,
         "ci95_a": [
-          0.27229,
-          0.76451
+          0.23035,
+          0.75667
         ],
-        "mean_b": 0.39694,
+        "mean_b": 0.57173,
         "ci95_b": [
-          0.15516,
-          0.64503
+          0.30869,
+          0.82684
         ],
-        "mean_diff": 0.1231,
+        "mean_diff": -0.07885,
         "ci95_diff": [
-          0.00071,
-          0.3112
+          -0.25775,
+          0.01819
         ],
-        "wilcoxon_stat": 4.0,
-        "p_value": 0.090969,
+        "wilcoxon_stat": 12.0,
+        "p_value": 0.735317,
         "significant_005": false
       },
       "BF1_crack": {
         "n_pairs": 50,
-        "mean_a": 0.75254,
+        "mean_a": 0.76433,
         "ci95_a": [
-          0.73228,
-          0.77205
+          0.74256,
+          0.78432
         ],
-        "mean_b": 0.7467,
+        "mean_b": 0.71612,
         "ci95_b": [
-          0.72595,
-          0.76655
+          0.69397,
+          0.7378
         ],
-        "mean_diff": 0.00584,
+        "mean_diff": 0.04821,
         "ci95_diff": [
-          -0.00717,
-          0.01862
+          0.03205,
+          0.0645
         ],
-        "wilcoxon_stat": 525.0,
-        "p_value": 0.282293,
-        "significant_005": false
+        "wilcoxon_stat": 160.0,
+        "p_value": 1e-06,
+        "significant_005": true
       },
       "BF1_spalling": {
-        "n_pairs": 5,
-        "mean_a": 0.80908,
+        "n_pairs": 6,
+        "mean_a": 0.73664,
         "ci95_a": [
-          0.72429,
-          0.90657
+          0.61976,
+          0.84872
         ],
-        "mean_b": 0.78523,
+        "mean_b": 0.73601,
         "ci95_b": [
-          0.67013,
-          0.90033
+          0.61272,
+          0.85741
         ],
-        "mean_diff": 0.02385,
+        "mean_diff": 0.00063,
         "ci95_diff": [
-          -0.01928,
-          0.06361
+          -0.05294,
+          0.04863
         ],
-        "wilcoxon_stat": 4.0,
-        "p_value": 0.4375,
+        "wilcoxon_stat": 10.0,
+        "p_value": 1.0,
         "significant_005": false
       },
       "clDice_crack": {
         "n_pairs": 50,
-        "mean_a": 0.84561,
+        "mean_a": 0.85168,
         "ci95_a": [
-          0.82508,
-          0.86508
+          0.83101,
+          0.87141
         ],
-        "mean_b": 0.84527,
+        "mean_b": 0.81468,
         "ci95_b": [
-          0.82758,
-          0.86195
+          0.79073,
+          0.83733
         ],
-        "mean_diff": 0.00034,
+        "mean_diff": 0.037,
         "ci95_diff": [
-          -0.01189,
-          0.01157
+          0.02252,
+          0.05177
         ],
-        "wilcoxon_stat": 590.0,
-        "p_value": 0.652772,
-        "significant_005": false
+        "wilcoxon_stat": 193.0,
+        "p_value": 6e-06,
+        "significant_005": true
       },
       "clDice_spalling": {
-        "n_pairs": 5,
-        "mean_a": 0.95745,
+        "n_pairs": 6,
+        "mean_a": 0.9221,
         "ci95_a": [
-          0.89328,
-          0.99721
+          0.82321,
+          0.99744
         ],
-        "mean_b": 0.94929,
+        "mean_b": 0.89094,
         "ci95_b": [
-          0.86187,
-          0.99953
+          0.77194,
+          0.97999
         ],
-        "mean_diff": 0.00815,
+        "mean_diff": 0.03116,
         "ci95_diff": [
-          -0.01396,
-          0.03145
+          0.01239,
+          0.05194
         ],
-        "wilcoxon_stat": 2.0,
-        "p_value": 0.59298,
-        "significant_005": false
+        "wilcoxon_stat": 0.0,
+        "p_value": 0.043114,
+        "significant_005": true
       },
       "ConnR_crack": {
         "n_pairs": 50,
-        "mean_a": 0.81633,
+        "mean_a": 0.81519,
         "ci95_a": [
-          0.76574,
-          0.86387
+          0.76149,
+          0.86507
         ],
-        "mean_b": 0.82147,
+        "mean_b": 0.84666,
         "ci95_b": [
-          0.77351,
-          0.86711
+          0.7958,
+          0.89487
         ],
-        "mean_diff": -0.00514,
+        "mean_diff": -0.03148,
         "ci95_diff": [
-          -0.04131,
-          0.02966
+          -0.07436,
+          0.01076
         ],
-        "wilcoxon_stat": 81.0,
-        "p_value": 0.844446,
+        "wilcoxon_stat": 79.5,
+        "p_value": 0.074992,
         "significant_005": false
       },
       "ConnR_spalling": {
         "n_pairs": 9,
-        "mean_a": 0.72222,
+        "mean_a": 0.61111,
         "ci95_a": [
+          0.33194,
+          0.88889
+        ],
+        "mean_b": 0.72222,
+        "ci95_b": [
           0.44444,
           1.0
         ],
-        "mean_b": 0.55556,
-        "ci95_b": [
-          0.22222,
-          0.88889
-        ],
-        "mean_diff": 0.16667,
+        "mean_diff": -0.11111,
         "ci95_diff": [
-          0.0,
-          0.38889
+          -0.33333,
+          0.0
         ],
         "wilcoxon_stat": 0.0,
-        "p_value": 0.179712,
+        "p_value": 0.317311,
         "significant_005": false
       }
     }
   },
   {
-    "model_a": "dual_kd_classaware_DKD2",
-    "model_b": "dscformer_srl_G1",
+    "model_a": "dual_kd_classaware_DKD2_seed42",
+    "model_b": "dscformer_srl_G1_seed42",
     "tier": "Hard",
     "metrics": {
       "IoU_crack": {
         "n_pairs": 50,
-        "mean_a": 0.5342,
+        "mean_a": 0.53596,
         "ci95_a": [
-          0.5098,
-          0.55896
+          0.51058,
+          0.56182
         ],
-        "mean_b": 0.52511,
+        "mean_b": 0.50018,
         "ci95_b": [
-          0.50046,
-          0.54951
+          0.47481,
+          0.52596
         ],
-        "mean_diff": 0.00909,
+        "mean_diff": 0.03578,
         "ci95_diff": [
-          0.00167,
-          0.01646
+          0.0255,
+          0.04625
         ],
-        "wilcoxon_stat": 397.0,
-        "p_value": 0.019588,
+        "wilcoxon_stat": 91.0,
+        "p_value": 0.0,
         "significant_005": true
       },
       "IoU_spalling": {
         "n_pairs": 10,
-        "mean_a": 0.70872,
+        "mean_a": 0.71182,
         "ci95_a": [
-          0.50211,
-          0.88249
+          0.50815,
+          0.88034
         ],
-        "mean_b": 0.67064,
+        "mean_b": 0.73629,
         "ci95_b": [
-          0.43534,
-          0.87115
+          0.58434,
+          0.86719
         ],
-        "mean_diff": 0.03808,
+        "mean_diff": -0.02446,
         "ci95_diff": [
-          0.00177,
-          0.09705
+          -0.10409,
+          0.02249
         ],
-        "wilcoxon_stat": 8.0,
-        "p_value": 0.085831,
+        "wilcoxon_stat": 16.0,
+        "p_value": 0.275391,
         "significant_005": false
       },
       "Dice_crack": {
         "n_pairs": 50,
-        "mean_a": 0.69206,
+        "mean_a": 0.69323,
         "ci95_a": [
-          0.67086,
-          0.71339
+          0.6713,
+          0.71505
         ],
-        "mean_b": 0.68427,
+        "mean_b": 0.66192,
         "ci95_b": [
-          0.66266,
-          0.70547
+          0.63933,
+          0.68474
         ],
-        "mean_diff": 0.00779,
+        "mean_diff": 0.03131,
         "ci95_diff": [
-          0.00123,
-          0.01439
+          0.02239,
+          0.0405
         ],
-        "wilcoxon_stat": 409.0,
-        "p_value": 0.026849,
+        "wilcoxon_stat": 93.0,
+        "p_value": 0.0,
         "significant_005": true
       },
       "Dice_spalling": {
         "n_pairs": 10,
-        "mean_a": 0.77472,
+        "mean_a": 0.7783,
         "ci95_a": [
-          0.5693,
-          0.93388
+          0.5746,
+          0.93236
         ],
-        "mean_b": 0.72423,
+        "mean_b": 0.82361,
         "ci95_b": [
-          0.46833,
-          0.92664
+          0.70368,
+          0.92524
         ],
-        "mean_diff": 0.05049,
+        "mean_diff": -0.04531,
         "ci95_diff": [
-          0.00129,
-          0.14025
+          -0.15733,
+          0.01568
         ],
-        "wilcoxon_stat": 8.0,
-        "p_value": 0.085831,
+        "wilcoxon_stat": 16.0,
+        "p_value": 0.275391,
         "significant_005": false
       },
       "BF1_crack": {
         "n_pairs": 50,
-        "mean_a": 0.75339,
+        "mean_a": 0.75532,
         "ci95_a": [
-          0.73184,
-          0.77412
+          0.73296,
+          0.77645
         ],
-        "mean_b": 0.74855,
+        "mean_b": 0.71328,
         "ci95_b": [
-          0.72677,
-          0.7694
+          0.69169,
+          0.73472
         ],
-        "mean_diff": 0.00485,
+        "mean_diff": 0.04204,
         "ci95_diff": [
-          -0.00284,
-          0.01247
+          0.03322,
+          0.0506
         ],
-        "wilcoxon_stat": 509.0,
-        "p_value": 0.218662,
-        "significant_005": false
+        "wilcoxon_stat": 45.0,
+        "p_value": 0.0,
+        "significant_005": true
       },
       "BF1_spalling": {
-        "n_pairs": 8,
-        "mean_a": 0.77143,
+        "n_pairs": 9,
+        "mean_a": 0.72708,
         "ci95_a": [
-          0.64583,
-          0.89703
+          0.60493,
+          0.8554
         ],
-        "mean_b": 0.7518,
+        "mean_b": 0.70144,
         "ci95_b": [
-          0.62834,
-          0.87049
+          0.5826,
+          0.81764
         ],
-        "mean_diff": 0.01964,
+        "mean_diff": 0.02564,
         "ci95_diff": [
-          -0.01743,
-          0.05573
+          -0.01615,
+          0.07168
         ],
-        "wilcoxon_stat": 9.0,
-        "p_value": 0.25,
+        "wilcoxon_stat": 17.0,
+        "p_value": 0.570312,
         "significant_005": false
       },
       "clDice_crack": {
         "n_pairs": 50,
-        "mean_a": 0.79188,
+        "mean_a": 0.79153,
         "ci95_a": [
-          0.77112,
-          0.81189
+          0.76943,
+          0.81273
         ],
-        "mean_b": 0.77988,
+        "mean_b": 0.76065,
         "ci95_b": [
-          0.75862,
-          0.80055
+          0.73846,
+          0.78251
         ],
-        "mean_diff": 0.012,
+        "mean_diff": 0.03088,
         "ci95_diff": [
-          0.00589,
-          0.01812
+          0.02275,
+          0.03936
         ],
-        "wilcoxon_stat": 239.0,
-        "p_value": 6.2e-05,
+        "wilcoxon_stat": 80.0,
+        "p_value": 0.0,
         "significant_005": true
       },
       "clDice_spalling": {
-        "n_pairs": 8,
-        "mean_a": 0.94893,
+        "n_pairs": 9,
+        "mean_a": 0.91458,
         "ci95_a": [
-          0.89535,
-          0.9907
+          0.8187,
+          0.98275
         ],
-        "mean_b": 0.93032,
+        "mean_b": 0.89832,
         "ci95_b": [
-          0.86506,
-          0.98294
+          0.79359,
+          0.97794
         ],
-        "mean_diff": 0.0186,
+        "mean_diff": 0.01626,
         "ci95_diff": [
-          0.00485,
-          0.03285
+          0.0043,
+          0.03213
         ],
         "wilcoxon_stat": 0.0,
-        "p_value": 0.067889,
-        "significant_005": false
+        "p_value": 0.027708,
+        "significant_005": true
       },
       "ConnR_crack": {
         "n_pairs": 50,
-        "mean_a": 0.76427,
+        "mean_a": 0.76254,
         "ci95_a": [
-          0.72671,
-          0.80111
+          0.72095,
+          0.80071
         ],
-        "mean_b": 0.75127,
+        "mean_b": 0.7555,
         "ci95_b": [
-          0.71161,
-          0.78976
+          0.71609,
+          0.79268
         ],
-        "mean_diff": 0.013,
+        "mean_diff": 0.00704,
         "ci95_diff": [
-          -0.00658,
-          0.03425
+          -0.01142,
+          0.02579
         ],
-        "wilcoxon_stat": 223.5,
-        "p_value": 0.308234,
+        "wilcoxon_stat": 355.5,
+        "p_value": 0.463797,
         "significant_005": false
       },
       "ConnR_spalling": {
@@ -851,15 +851,15 @@
           0.65,
           1.0
         ],
-        "mean_b": 0.8,
+        "mean_b": 0.9,
         "ci95_b": [
-          0.5,
+          0.75,
           1.0
         ],
-        "mean_diff": 0.05,
+        "mean_diff": -0.05,
         "ci95_diff": [
-          0.0,
-          0.15
+          -0.15,
+          0.0
         ],
         "wilcoxon_stat": 0.0,
         "p_value": 0.317311,
