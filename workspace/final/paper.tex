@@ -36,7 +36,7 @@
 \item Dual-teacher distillation boosts mIoU by +1.9 at zero inference overhead.
 \item SRL benefits teacher training but harms student under distillation.
 \item DTKD reduces cross-seed variance by \textasciitilde{}3$\times$, acting as a training regulariser.
-\item DSConv enables XX.X\% cross-dataset mIoU vs.\ 0.1\% for vanilla SegFormer (18.6\% with TTA). %% TODO: update XX.X
+\item DSConv enables 18.7\% cross-dataset mIoU vs.\ 0.1\% for vanilla SegFormer.
 \end{highlights}
 
 \begin{abstract}
@@ -49,7 +49,7 @@ Ablation experiments confirm complementary gains: DSConv drives crack connectivi
 We also investigate Skeleton Recall Loss (SRL), finding that while it improves crack boundary accuracy in isolation, it degrades the overall pipeline when combined with DTKD ($-$1.1 mIoU$_{\text{fg}}$), revealing a negative interaction between skeleton-level supervision and soft-label distillation.
 Multi-seed experiments reveal that DTKD also acts as a strong regulariser, reducing cross-seed variance by ${\sim}$3$\times$ compared to the baseline (mIoU$_{\text{fg}}$ std: 0.52 vs.\ 1.47).
 Class-conditional teacher weighting provides marginal gains over equal weighting (+0.1 mIoU$_{\text{fg}}$) but improves topology metrics (clDice$_{\text{fg}}$ +0.6, ConnR$_{\text{cr}}$ +1.1).
-Zero-shot cross-dataset evaluation on S2DS demonstrates that DSCFormer+DTKD achieves XX.X\% mIoU$_{\text{fg}}$ (18.6\% with TTA), compared to 0.1\% for SegFormer-B2 and 2.5\% for Mask2Former, indicating that the geometric inductive bias substantially improves cross-domain robustness. %% TODO: update XX.X after running non-TTA experiment
+Zero-shot cross-dataset evaluation on S2DS demonstrates that DSCFormer+DTKD achieves 18.7\% mIoU$_{\text{fg}}$, compared to 0.1\% for SegFormer-B2 and 2.5\% for Mask2Former, indicating that the geometric inductive bias substantially improves cross-domain robustness.
 \end{abstract}
 
 \begin{keyword}
@@ -534,16 +534,16 @@ Model & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text
 SegFormer-B2 & 0.1 & 0.1 & 0.0 & 2.8 & 1.3 & 49.9 \\
 Mask2Former & 2.5 & 0.1 & 4.8 & 5.5 & 21.2 & 49.7 \\
 DSCFormer$^\S$ & 17.1 & 7.6 & 26.7 & \textbf{49.6} & \textbf{72.1} & \textbf{69.3} \\
-DSCFormer + DTKD & \textbf{XX.X} & \textbf{X.X} & \textbf{XX.X} & XX.X & XX.X & XX.X \\
+DSCFormer + DTKD & \textbf{18.7} & \textbf{8.6} & \textbf{28.9} & 46.6 & 68.4 & 70.1 \\
 \midrule
 DSCFormer + DTKD + TTA$^*$ & 18.6 & 8.4 & 28.9 & 45.3 & 69.0 & 69.0 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:cross_dataset} reveals a large domain gap for all models. SegFormer-B2 and Mask2Former fail almost completely on the unseen domain (mIoU$_{\text{fg}}$ $<$2.5\%), indicating severe overfitting to the DamSegment distribution. Models equipped with DSConv achieve substantially higher relative transfer performance (mIoU$_{\text{fg}}$ $>$17\%), though the absolute values remain limited, reflecting the inherent difficulty of zero-shot cross-domain segmentation under significant distribution shift. DSCFormer+DTKD achieves the highest mIoU$_{\text{fg}}$ (XX.X\% without TTA; 18.6\% with TTA), while DSCFormer (Teacher~1, with SRL) achieves the highest BF1$_{\text{fg}}$ (49.6\%) and clDice$_{\text{fg}}$ (72.1\%). %% TODO: update XX.X after running non-TTA experiment
+Table~\ref{tab:cross_dataset} reveals a large domain gap for all models. SegFormer-B2 and Mask2Former fail almost completely on the unseen domain (mIoU$_{\text{fg}}$ $<$2.5\%), indicating severe overfitting to the DamSegment distribution. Models equipped with DSConv achieve substantially higher relative transfer performance (mIoU$_{\text{fg}}$ $>$17\%), though the absolute values remain limited, reflecting the inherent difficulty of zero-shot cross-domain segmentation under significant distribution shift. DSCFormer+DTKD achieves the highest mIoU$_{\text{fg}}$ (18.7\%; TTA does not improve this, yielding 18.6\%), while DSCFormer (Teacher~1, with SRL) achieves the highest BF1$_{\text{fg}}$ (49.6\%) and clDice$_{\text{fg}}$ (72.1\%).
 
-These results suggest that DSConv's geometric inductive bias improves cross-domain robustness, as crack and spalling morphology shares common geometric patterns across datasets. DTKD further improves cross-domain transfer over DSCFormer alone, while also maximising in-domain accuracy (+1.9 mIoU$_{\text{fg}}$ on DamSegment). TTA provides an additional boost on cross-dataset evaluation (XX.X\%$\to$18.6\%), consistent with its in-domain effect. %% TODO: update XX.X after running non-TTA experiment
+These results suggest that DSConv's geometric inductive bias improves cross-domain robustness, as crack and spalling morphology shares common geometric patterns across datasets. DTKD further improves cross-domain transfer (+1.6 mIoU$_{\text{fg}}$ over DSCFormer alone), while also maximising in-domain accuracy (+1.9 mIoU$_{\text{fg}}$ on DamSegment). Unlike in-domain evaluation, TTA does not improve cross-dataset performance (18.7\%$\to$18.6\%), suggesting that multi-scale aggregation offers diminishing returns under large domain shift.
 
 Fig.~\ref{fig:cross_dataset} shows representative S2DS predictions. SegFormer-B2 and Mask2Former produce largely incorrect segmentations, while DSCFormer and DSCFormer+DTKD localise defect regions despite the domain shift, consistent with the quantitative results above.
 
@@ -606,7 +606,7 @@ Dynamic Snake Convolution drives crack connectivity (ConnR$_{\text{fg}}$ +6.6) w
 We also investigated Skeleton Recall Loss and found an asymmetric effect: SRL benefits teacher training (producing richer representations for distillation) but harms student training when combined with DTKD ($-$1.1 mIoU$_{\text{fg}}$), highlighting that optimal training recipes differ between teachers and distillation students.
 The full framework achieves 72.3\% foreground mIoU (72.7\% with TTA), the highest among all compared methods on the DamSegment benchmark. ConnR$_{\text{fg}}$ (83.0\%) primarily reflects DSConv's contribution; the DSConv-only variant achieves a slightly higher 83.6\%.
 Class-conditional teacher weighting modestly improves crack topology (clDice$_{\text{fg}}$ +0.6, ConnR$_{\text{cr}}$ +1.1) over equal weighting, serving as a practical design choice within DTKD rather than a core contribution.
-Zero-shot cross-dataset evaluation on S2DS confirms that DSConv's geometric inductive bias substantially improves cross-domain robustness (XX.X\% vs.\ 0.1\% mIoU$_{\text{fg}}$ without TTA; 18.6\% with TTA), though absolute performance remains limited, motivating future work on domain adaptation. %% TODO: update XX.X after running non-TTA experiment
+Zero-shot cross-dataset evaluation on S2DS confirms that DSConv's geometric inductive bias substantially improves cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$), though absolute performance remains limited, motivating future work on domain adaptation.
 Our work demonstrates that indirectly leveraging foundation models through knowledge distillation is more effective than direct parameter-efficient fine-tuning on small-scale industrial datasets, providing practical guidance for deploying deep learning in data-scarce inspection scenarios.
 
 \section*{Data availability}
