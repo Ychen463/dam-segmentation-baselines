@@ -33,7 +33,7 @@
 
 \begin{highlights}
 \item Dynamic Snake Convolution improves crack connectivity by +6.6 ConnR points.
-\item Dual-teacher distillation boosts mIoU by +1.9 at zero inference overhead.
+\item Dual-teacher distillation with confidence-aware KD boosts mIoU by +1.9 and BF1 by +0.8 at zero inference overhead.
 \item SRL benefits teacher training but harms student under distillation.
 \item DTKD reduces cross-seed variance by \textasciitilde{}3$\times$, acting as a training regulariser.
 \item DSConv enables 18.7\% cross-dataset mIoU vs.\ 0.1\% for vanilla SegFormer.
@@ -43,7 +43,7 @@
 Automated semantic segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring. While pixel-level metrics such as IoU capture overall coverage, they do not guarantee the \emph{structural continuity} of detected defects---a fragmented crack prediction may achieve adequate IoU while failing to reveal the true crack path, leading to underestimated severity in safety assessment. Existing methods optimise pixel-level objectives without explicitly preserving this continuity.
 We propose \textbf{DSCFormer}, a topology-aware segmentation framework incorporating two complementary enhancements to a SegFormer-B2 backbone:
 (1)~a \emph{Dynamic Snake Convolution} (DSConv) branch that captures elongated crack geometry through deformable sampling, adding only 4M parameters (+14.5\%); and
-(2)~\emph{Class-Conditional Dual-Teacher Knowledge Distillation} (DTKD) that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher with per-class weighting, \emph{at zero additional inference cost}.
+(2)~\emph{Class-Conditional Dual-Teacher Knowledge Distillation} (DTKD) that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher with per-class weighting and pixel-level confidence modulation based on teacher agreement, \emph{at zero additional inference cost}.
 On the \textbf{DamSegment} dataset \citep{damsegment2026} (1,500 images, 3~classes), DSCFormer+DTKD achieves 72.3\% foreground mIoU (72.7\% with TTA), the highest among all compared methods, with 86.4\% centreline Dice.
 Ablation experiments confirm complementary gains: DSConv drives crack connectivity (ConnR$_{\text{fg}}$ +6.6), while DTKD drives pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9 over DSConv alone) at a modest cost to crack connectivity (ConnR$_{\text{cr}}$ $-$2.6), with improvements concentrated on Hard-tier images.
 We also investigate Skeleton Recall Loss (SRL), finding that while it improves crack boundary accuracy in isolation, it degrades the overall pipeline when combined with DTKD ($-$1.1 mIoU$_{\text{fg}}$), revealing a negative interaction between skeleton-level supervision and soft-label distillation.
@@ -53,7 +53,7 @@ Zero-shot cross-dataset evaluation on S2DS demonstrates that DSCFormer+DTKD achi
 \end{abstract}
 
 \begin{keyword}
-Crack segmentation \sep Concrete dam inspection \sep Dynamic snake convolution \sep Skeleton recall loss \sep Knowledge distillation \sep Structural health monitoring
+Crack segmentation \sep Concrete dam inspection \sep Dynamic snake convolution \sep Knowledge distillation \sep Confidence-aware distillation \sep Structural health monitoring
 \end{keyword}
 
 \end{frontmatter}
@@ -85,7 +85,7 @@ In this paper we propose \textbf{DSCFormer}, a framework that augments SegFormer
 We evaluate on the semantic segmentation subset of the DamSegment dataset \citep{damsegment2026}, comprising 1,500 annotated dam surface images.
 Our contributions are:
 \begin{enumerate}
-    \item A topology-aware segmentation framework with two complementary enhancements: a parallel Dynamic Snake Convolution branch that drives crack connectivity (ConnR$_{\text{fg}}$ +6.6) through geometry-aware sampling, and a dual-teacher knowledge distillation scheme (DTKD) that drives pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9 over DSConv alone) by transferring complementary knowledge from a task-specific teacher and a foundation-model teacher. Class-conditional per-class weighting within DTKD is a practical design choice that provides marginal mIoU gain (+0.1) but modestly improves crack topology (clDice$_{\text{fg}}$ +0.6, ConnR$_{\text{cr}}$ +1.1). The framework adds only 4M parameters with no inference-time overhead from distillation.
+    \item A topology-aware segmentation framework with two complementary enhancements: a parallel Dynamic Snake Convolution branch that drives crack connectivity (ConnR$_{\text{fg}}$ +6.6) through geometry-aware sampling, and a dual-teacher knowledge distillation scheme (DTKD) that drives pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9 over DSConv alone) by transferring complementary knowledge from a task-specific teacher and a foundation-model teacher. DTKD incorporates confidence-aware distillation that modulates the KD loss at pixel level based on teacher agreement, improving boundary quality (BF1$_{\text{cr}}$ +0.8, clDice$_{\text{cr}}$ +0.6) at no additional inference cost. The framework adds only 4M parameters with no inference-time overhead from distillation.
     \item An empirical finding that Skeleton Recall Loss (SRL) exhibits an \emph{asymmetric} effect in knowledge distillation: SRL benefits \emph{teacher} training (producing richer representations that improve student performance by +1.2 mIoU$_{\text{fg}}$) but harms \emph{student} training when combined with DTKD ($-$1.1 mIoU$_{\text{fg}}$), revealing that optimal training recipes differ between teachers and distillation students.
     \item A comprehensive evaluation including comparison with six baselines (including SAM-LoRA and DINOv2-LoRA), per-tier difficulty analysis, statistical significance testing, and zero-shot cross-dataset transfer on S2DS, demonstrating that task-specific design with knowledge distillation outperforms direct foundation-model fine-tuning on small-scale industrial datasets and that DSConv's geometric inductive bias substantially improves cross-domain robustness.
 \end{enumerate}
@@ -216,6 +216,21 @@ The equal-weight baseline (Table~\ref{tab:kd_weights}) shows that this assignmen
 \end{equation}
 where $\tilde{\mathbf{p}}$ denotes the renormalised class-conditional ensemble probability and $\mathbf{z}_s$ the student logits.
 
+\paragraph{Confidence-aware distillation.}
+When two teachers with different architectures and training recipes are combined, their predictions inevitably disagree at certain pixels---particularly at ambiguous crack--background boundaries and thin structures. At such pixels the ensemble soft label is unreliable, and forcing the student to match it may introduce noise.
+We quantify per-pixel teacher agreement using the KL divergence between the two softened teacher distributions:
+\begin{equation}
+    d(i) = \text{KL}\!\left(\text{softmax}(\mathbf{z}_{T_1}^{(i)} / \tau) \,\|\, \text{softmax}(\mathbf{z}_{T_2}^{(i)} / \tau)\right)
+    \label{eq:teacher_disagree}
+\end{equation}
+where $i$ indexes spatial positions. An agreement map is derived as $a(i) = 1 - d(i) / \max_j d(j)$, ranging from 1 (full agreement) to 0 (maximum disagreement). The confidence-aware distillation loss modulates the per-pixel KD contribution:
+\begin{equation}
+    \mathcal{L}_{\text{KD}}^{\text{conf}} = \tau^2 \cdot \frac{1}{N} \sum_{i} a(i) \cdot \text{KL}\!\left(\tilde{\mathbf{p}}^{(i)} \,\|\, \text{softmax}(\mathbf{z}_s^{(i)} / \tau)\right)
+    \label{eq:conf_kd}
+\end{equation}
+This ensures the student learns strongly from the ensemble where both teachers concur, but falls back on the ground-truth supervised loss at ambiguous pixels. The agreement map is computed within the existing forward pass (no additional inference cost).
+We empirically validate that teacher disagreement correlates with sample difficulty: the mean per-sample KL divergence between teachers is 43\% higher on Hard-tier images than on Easy-tier images (Section~\ref{sec:ablation}).
+
 \paragraph{Total loss.} The final training objective balances the segmentation loss and distillation loss:
 \begin{equation}
     \mathcal{L} = (1-\alpha) \left[\lambda_1 \mathcal{L}_{\text{CE}} + \lambda_2 \mathcal{L}_{\text{Dice}}\right] + \alpha \, \mathcal{L}_{\text{KD}}
@@ -340,7 +355,7 @@ Table~\ref{tab:ablation} presents the incremental contribution of each component
 
 \begin{table*}[t]
 \centering
-\caption{Ablation study on the DamSegment test set. Rows~(a)--(d) show the main pipeline progression; rows~(e)--(f) show the effect of adding SRL. Row~(a) retrains SegFormer-B2 using the same training pipeline as all ablation variants. All values in \%.}
+\caption{Ablation study on the DamSegment test set. Rows~(a)--(d) show the main pipeline progression; row~(g) adds confidence-aware KD to the best model; rows~(e)--(f) show the effect of adding SRL. Row~(a) retrains SegFormer-B2 using the same training pipeline as all ablation variants. All values in \%.}
 \label{tab:ablation}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -348,8 +363,9 @@ Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1
 \midrule
 (a) SegFormer-B2 & 70.3 & 56.9 & 83.7 & 74.0 & 68.6 & 81.8 & 82.7 & 81.0 & 77.0 \\
 (b) + DSConv & 70.4 & 56.9 & 84.0 & 73.7 & 69.5 & 82.0 & 85.5 & \textbf{84.7} & \textbf{83.6} \\
-(c) + DTKD & \underline{72.3} & \underline{58.5} & \underline{86.2} & \underline{75.6} & \underline{70.6} & \underline{83.3} & \underline{86.4} & 82.1 & \underline{83.0} \\
-(d) + TTA & \textbf{72.7} & \textbf{59.3} & \textbf{86.0} & \textbf{76.3} & \textbf{71.8} & \textbf{83.7} & \textbf{86.2} & 79.4 & 80.2 \\
+(c) + DTKD & 72.3 & 58.5 & 86.2 & 75.6 & 70.6 & 83.3 & 86.4 & 82.1 & 83.0 \\
+(g) + conf-aware KD & \underline{72.5} & \underline{58.7} & \underline{86.3} & \underline{76.4} & \underline{71.1} & \underline{83.9} & \underline{86.1} & 81.4 & \underline{82.6} \\
+(d) (c) + TTA & \textbf{72.7} & \textbf{59.3} & \textbf{86.0} & \textbf{76.3} & \textbf{71.8} & \textbf{83.7} & \textbf{86.2} & 79.4 & 80.2 \\
 \midrule
 (e) (b) + SRL & 70.6 & 57.3 & 83.8 & 74.7 & 70.3 & 82.5 & 85.7 & 82.2 & 77.8 \\
 (f) (e) + DTKD & 71.2 & 58.0 & 84.5 & 75.4 & \textbf{71.4} & 83.2 & \textbf{86.2} & 82.3 & 80.6 \\
@@ -365,6 +381,17 @@ The deformable snake-shaped sampling captures elongated crack geometry that fixe
 DTKD provides substantial pixel-level improvement: mIoU$_{\text{fg}}$ +1.9, IoU$_{\text{cr}}$ +1.6, IoU$_{\text{sp}}$ +2.2, clDice$_{\text{cr}}$ +1.3, and BF1$_{\text{cr}}$ +1.9.
 However, ConnR$_{\text{cr}}$ decreases from 84.7 to 82.1 ($-$2.6), as DTKD's soft-label supervision slightly smooths fine crack structures; this is partially offset by improved spalling connectivity, yielding a net ConnR$_{\text{fg}}$ change of only $-$0.6 (83.6$\to$83.0).
 The class-conditional weighting ensures that the student receives the most informative teacher guidance for each defect type (Section~\ref{sec:dtkd}).
+
+\paragraph{(c)$\to$(g): Confidence-aware KD.}
+Replacing the standard KD loss with confidence-aware distillation (Eq.~\ref{eq:conf_kd}) improves boundary quality: BF1$_{\text{cr}}$ +0.8 (75.6$\to$76.4) and clDice$_{\text{cr}}$ +0.6 (83.3$\to$83.9), with a small mIoU$_{\text{fg}}$ gain (+0.2).
+This confirms that down-weighting the distillation signal at high-disagreement pixels reduces noise from unreliable ensemble labels.
+ConnR$_{\text{cr}}$ decreases modestly (82.1$\to$81.4), as the reduced KD weight at ambiguous boundary pixels allows the student to rely more on ground truth---which improves pixel precision but slightly reduces connectivity.
+
+To isolate the contribution of confidence-aware KD from difficulty-guided sample reweighting (an alternative use of teacher disagreement), we conducted an ablation using disagreement-based per-sample loss reweighting \emph{without} pixel-level confidence modulation.
+This variant degraded performance (mIoU$_{\text{fg}}$ 72.1, BF1$_{\text{fg}}$ 70.0), indicating that on small datasets, per-sample reweighting introduces training instability, while pixel-level modulation of the distillation signal is the effective mechanism.
+
+Analysis of teacher disagreement across difficulty tiers reveals that the mean per-sample KL divergence between teachers is 0.046 on Hard-tier images vs.\ 0.032 on Easy-tier images (+43\%), confirming that disagreement is an informative proxy for sample difficulty.
+However, this correlation does not translate into effective sample-level curriculum learning---consistent with prior findings that data-restricting or reweighting curriculum strategies underperform on small datasets where every sample matters.
 
 \paragraph{(c)$\to$(d): Test-time augmentation.}
 TTA provides modest additional gains (mIoU$_{\text{fg}}$ +0.4, IoU$_{\text{cr}}$ +0.8) but reduces connectivity metrics (ConnR$_{\text{fg}}$ 83.0$\to$80.2), suggesting that multi-scale/flip aggregation improves pixel coverage but may smooth fine structural details.
@@ -384,8 +411,8 @@ This demonstrates that SRL's gradient interference with DTKD's soft-label superv
 Multi-seed experiments (Table~\ref{tab:multiseed}) further confirm that the SRL path is unstable (mIoU$_{\text{fg}}$ std 2.42 vs.\ 0.52 for DTKD alone).
 
 \paragraph{Overall progression.}
-From baseline (a) to full method (c), the improvements are: mIoU$_{\text{fg}}$ +2.0, IoU$_{\text{cr}}$ +1.6, IoU$_{\text{sp}}$ +2.2, BF1$_{\text{fg}}$ +2.0, clDice$_{\text{fg}}$ +3.7, and ConnR$_{\text{fg}}$ +6.0.
-The two components are complementary: DSConv provides the geometric inductive bias for connectivity (ConnR$_{\text{fg}}$ +6.6), while DTKD adds pixel-level accuracy across all metrics at a modest cost to crack connectivity (ConnR$_{\text{cr}}$ $-$2.6, net ConnR$_{\text{fg}}$ $-$0.6).
+From baseline (a) to the full method with confidence-aware KD (g), the improvements are: mIoU$_{\text{fg}}$ +2.2, IoU$_{\text{cr}}$ +1.8, IoU$_{\text{sp}}$ +2.6, BF1$_{\text{fg}}$ +2.5, clDice$_{\text{fg}}$ +3.4, and ConnR$_{\text{fg}}$ +5.6.
+The three components are complementary: DSConv provides the geometric inductive bias for connectivity (ConnR$_{\text{fg}}$ +6.6), DTKD adds pixel-level accuracy across all metrics at a modest cost to crack connectivity (ConnR$_{\text{cr}}$ $-$2.6, net ConnR$_{\text{fg}}$ $-$0.6), and confidence-aware KD further refines boundary quality (BF1$_{\text{cr}}$ +0.8) by suppressing noisy distillation at ambiguous pixels.
 DTKD also acts as a strong regulariser: multi-seed experiments (Table~\ref{tab:multiseed}) show it reduces cross-seed variance by ${\sim}$3$\times$ (mIoU$_{\text{fg}}$ std: 0.52 vs.\ 1.47 for the baseline), confirming that distillation is the critical component for both performance and reliability.
 
 \paragraph{Statistical significance.}
@@ -566,6 +593,13 @@ The class-conditional weighting steers the distillation signal toward better cra
 Beyond metric improvement, DTKD serves as a powerful training regulariser: multi-seed experiments (Table~\ref{tab:multiseed}) show that DTKD reduces cross-seed variance by ${\sim}$3--5$\times$ (mIoU$_{\text{fg}}$ std: 0.52 vs.\ 1.47 for the baseline, vs.\ 2.42 for DSCFormer+SRL).
 The soft-label supervision from two pretrained teachers smooths the loss landscape, making convergence less sensitive to random initialisation---a practical advantage for deployment scenarios where retraining reliability matters.
 
+\paragraph{Teacher disagreement as a quality signal.}
+An advantage of multi-teacher distillation is that the \emph{disagreement} between teachers provides a free quality signal.
+We find that per-pixel KL divergence between teachers is 43\% higher on Hard-tier images than Easy-tier images, confirming that disagreement correlates with sample difficulty.
+Leveraging this signal at the pixel level (confidence-aware KD) is effective: down-weighting distillation at high-disagreement pixels improves BF1$_{\text{cr}}$ by +0.8 and clDice$_{\text{cr}}$ by +0.6.
+However, using the same signal for \emph{sample-level} curriculum learning (reweighting entire samples by their aggregate disagreement) degrades performance, consistent with prior findings that curriculum strategies that alter per-sample training intensity are counterproductive on small datasets where every sample is needed for generalisation.
+This distinction---pixel-level modulation helps, sample-level modulation hurts---suggests that the granularity of the intervention matters more than the quality of the difficulty signal.
+
 \paragraph{SRL: useful for teachers, harmful for students.}
 An intriguing finding is that SRL plays opposite roles depending on where it is applied.
 As a \emph{teacher training} component, SRL is beneficial: Teacher~1 (trained with SRL) produces a better DTKD student (72.3\%) than a teacher trained without SRL (71.1\%), despite the SRL teacher's own lower ConnR$_{\text{fg}}$ (77.8\% vs.\ 83.6\%).
@@ -602,7 +636,7 @@ Cross-dataset evaluation on S2DS demonstrates improved relative robustness of DS
 \label{sec:conclusion}
 
 We presented DSCFormer, a topology-aware segmentation framework for concrete dam defect analysis incorporating two complementary enhancements to a SegFormer-B2 backbone.
-Dynamic Snake Convolution drives crack connectivity (ConnR$_{\text{fg}}$ +6.6) with only 4M additional parameters, and dual-teacher knowledge distillation (DTKD) drives pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9 over DSConv alone) at zero additional inference cost, while reducing cross-seed variance by ${\sim}$3--5$\times$. DTKD trades modest crack connectivity (ConnR$_{\text{cr}}$ $-$2.6) for substantial pixel-level gains; the net ConnR$_{\text{fg}}$ ($-$0.6) reflects improved spalling connectivity partially offsetting the crack regression.
+Dynamic Snake Convolution drives crack connectivity (ConnR$_{\text{fg}}$ +6.6) with only 4M additional parameters, and dual-teacher knowledge distillation (DTKD) drives pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9 over DSConv alone) at zero additional inference cost, while reducing cross-seed variance by ${\sim}$3--5$\times$. Confidence-aware distillation, which modulates KD intensity based on pixel-level teacher agreement, further improves boundary quality (BF1$_{\text{cr}}$ +0.8, clDice$_{\text{cr}}$ +0.6). DTKD trades modest crack connectivity (ConnR$_{\text{cr}}$ $-$2.6) for substantial pixel-level gains; the net ConnR$_{\text{fg}}$ ($-$0.6) reflects improved spalling connectivity partially offsetting the crack regression.
 We also investigated Skeleton Recall Loss and found an asymmetric effect: SRL benefits teacher training (producing richer representations for distillation) but harms student training when combined with DTKD ($-$1.1 mIoU$_{\text{fg}}$), highlighting that optimal training recipes differ between teachers and distillation students.
 The full framework achieves 72.3\% foreground mIoU (72.7\% with TTA), the highest among all compared methods on the DamSegment benchmark. ConnR$_{\text{fg}}$ (83.0\%) primarily reflects DSConv's contribution; the DSConv-only variant achieves a slightly higher 83.6\%.
 Class-conditional teacher weighting modestly improves crack topology (clDice$_{\text{fg}}$ +0.6, ConnR$_{\text{cr}}$ +1.1) over equal weighting, serving as a practical design choice within DTKD rather than a core contribution.
