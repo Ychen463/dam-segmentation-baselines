@@ -35,6 +35,7 @@ torch.backends.cudnn.enabled = False
 
 from baseline_unet.dataset import (
     build_transforms,
+    build_tier_transforms,
     compute_class_weights,
     read_split_file,
 )
@@ -83,10 +84,17 @@ def pick_device(pref: str) -> str:
 
 def build_train_loader(records: List[Dict], sampler: TierAwareDynamicSampler,
                        cfg: C.RunCfg, device: str) -> DataLoader:
+    # TCA: tier-specific augmentation
+    tier_tfms = None
+    if getattr(cfg, 'use_tca', False):
+        tier_tfms = build_tier_transforms(cfg.img_size)
+
     ds = FullMethodDataset(C.DATA_ROOT, records,
                            build_transforms(cfg.img_size, train=True,
                                           aug_level=getattr(cfg, 'aug_level', 'basic')),
-                           compute_skel=cfg.use_srl_loss or getattr(cfg, 'use_sdwl', False))
+                           compute_skel=cfg.use_srl_loss or getattr(cfg, 'use_sdwl', False),
+                           load_bbox=getattr(cfg, 'use_bbox_guided', False),
+                           tier_transforms=tier_tfms)
     pin = (device == "cuda")
     return DataLoader(ds, batch_size=cfg.batch_size, sampler=sampler,
                       num_workers=4, pin_memory=pin, drop_last=False,
@@ -230,6 +238,11 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
         if crack_skel is not None:
             crack_skel = crack_skel.to(device, non_blocking=True).float()
 
+        # Bbox mask for bbox-guided loss (if available)
+        bbox_masks = batch.get("bbox_mask")
+        if bbox_masks is not None:
+            bbox_masks = bbox_masks.to(device, non_blocking=True).float()
+
         with torch.amp.autocast("cuda", enabled=use_amp):
             outputs = model(imgs)
 
@@ -247,7 +260,8 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                                          sample_weights=sample_weights,
                                          crack_skel=crack_skel,
                                          mac_ce_multipliers=mac_ce_multipliers,
-                                         mac_topo_multiplier=mac_topo_multiplier)
+                                         mac_topo_multiplier=mac_topo_multiplier,
+                                         bbox_masks=bbox_masks)
 
             # Knowledge distillation: blend hard loss with soft teacher loss
             if teacher_model is not None and cfg is not None and cfg.use_kd:

@@ -140,6 +140,89 @@ def build_transforms(img_size: int, train: bool, aug_level: str = "basic"):
     ])
 
 
+def build_tier_transforms(img_size: int):
+    """Build tier-conditional augmentation transforms (TCA).
+
+    Easy → strong augmentation (samples can afford distortion, become pseudo-Hard)
+    Medium → moderate augmentation (standard)
+    Hard → gentle augmentation (preserve thin cracks, avoid destroying topology)
+
+    Returns:
+        dict mapping tier int (0=Easy, 1=Medium, 2=Hard) → albumentations Compose.
+    """
+    if A is None:
+        raise RuntimeError("albumentations is required but not installed")
+
+    # Shared tail: normalize + to tensor
+    tail = [
+        A.RandomBrightnessContrast(p=0.3),
+        A.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+        ToTensorV2(),
+    ]
+
+    # Easy: strong aug — elastic deform, large rotation, aggressive crop
+    easy = A.Compose([
+        A.Resize(img_size, img_size,
+                 interpolation=cv2.INTER_LINEAR,
+                 mask_interpolation=cv2.INTER_NEAREST),
+        A.HorizontalFlip(p=0.5),
+        A.VerticalFlip(p=0.5),
+        A.RandomRotate90(p=0.5),
+        A.ShiftScaleRotate(
+            shift_limit=0.08, scale_limit=0.20, rotate_limit=45,
+            border_mode=cv2.BORDER_REFLECT_101,
+            interpolation=cv2.INTER_LINEAR,
+            mask_interpolation=cv2.INTER_NEAREST,
+            p=0.6,
+        ),
+        A.ElasticTransform(
+            alpha=120, sigma=12,
+            border_mode=cv2.BORDER_REFLECT_101,
+            interpolation=cv2.INTER_LINEAR,
+            mask_interpolation=cv2.INTER_NEAREST,
+            p=0.3,
+        ),
+        A.RandomResizedCrop(
+            size=(img_size, img_size),
+            scale=(0.7, 1.0), ratio=(0.8, 1.2),
+            interpolation=cv2.INTER_LINEAR,
+            p=0.3,
+        ),
+        *tail,
+    ])
+
+    # Medium: moderate aug
+    medium = A.Compose([
+        A.Resize(img_size, img_size,
+                 interpolation=cv2.INTER_LINEAR,
+                 mask_interpolation=cv2.INTER_NEAREST),
+        A.HorizontalFlip(p=0.5),
+        A.VerticalFlip(p=0.5),
+        A.RandomRotate90(p=0.5),
+        A.ShiftScaleRotate(
+            shift_limit=0.03, scale_limit=0.10, rotate_limit=15,
+            border_mode=cv2.BORDER_REFLECT_101,
+            interpolation=cv2.INTER_LINEAR,
+            mask_interpolation=cv2.INTER_NEAREST,
+            p=0.3,
+        ),
+        *tail,
+    ])
+
+    # Hard: gentle aug — minimal geometric distortion, preserve thin structures
+    hard = A.Compose([
+        A.Resize(img_size, img_size,
+                 interpolation=cv2.INTER_LINEAR,
+                 mask_interpolation=cv2.INTER_NEAREST),
+        A.HorizontalFlip(p=0.5),
+        A.VerticalFlip(p=0.5),
+        A.RandomRotate90(p=0.5),
+        *tail,
+    ])
+
+    return {0: easy, 1: medium, 2: hard}
+
+
 # ----------------------------------------------------------------------------
 # Dataset
 # ----------------------------------------------------------------------------

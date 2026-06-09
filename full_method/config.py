@@ -222,6 +222,20 @@ class RunCfg:
     topo_kd_weight: float = 0.10              # weight for topo-KD loss
     topo_kd_iters: int = 5                    # soft skeleton iterations
 
+    # Morphology-Aware Pixel Weighting (MAPW) — inverse-width crack loss
+    use_mapw: bool = False                        # enable MAPW per-pixel weights
+    mapw_alpha: float = 2.0                       # scaling for inverse-width weight
+    mapw_width_threshold: float = 10.0            # pixels wider than this → weight=1
+    mapw_junction_bonus: float = 1.5              # extra weight at crack junctions
+    mapw_boundary_bonus: float = 1.5              # extra weight for crack near spalling
+
+    # Bbox-Guided Loss (detection bboxes as attention prior)
+    use_bbox_guided: bool = False                 # enable bbox-guided pixel weights
+    bbox_fn_weight: float = 2.0                   # weight for BG pixels inside damage bboxes
+
+    # Tier-Conditional Augmentation (TCA)
+    use_tca: bool = False                         # tier-specific augmentation
+
     # Morphology-Aware Curriculum (MAC)
     use_mac: bool = False                         # master MAC switch
     use_mac_morph_difficulty: bool = False         # replace generic difficulty with morph features
@@ -1930,6 +1944,139 @@ ABLATION_PRESETS = {
               "use_boundary_loss": False, "use_tversky_loss": False,
               "use_cldice_loss": False, "use_srl_loss": False,
               "use_soft_boundary_schedule": False},
+
+    # ===================================================================
+    # Set T: Tier-Leveraging approaches (MAPW, TCA, BBox-guided)
+    # Base: DKD10 (DSCformerDam + DTKD, mIoU_fg=72.35%)
+    # ===================================================================
+
+    # T1: MAPW only (width-aware pixel weighting for thin cracks)
+    "T1": {"name": "t1_mapw",
+           "model_type": "dscformer",
+           "use_kd": True, "use_dual_kd": True,
+           "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+           "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+           "kd_teacher2_model_type": "sam_lora",
+           "kd_alpha": 0.5, "kd_temperature": 4.0,
+           "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+           "kd_class_weights": True,
+           "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_srl_loss": False,
+           "use_soft_boundary_schedule": False,
+           "use_mapw": True, "mapw_alpha": 2.0,
+           "mapw_width_threshold": 10.0,
+           "mapw_junction_bonus": 1.5, "mapw_boundary_bonus": 1.5},
+    # T2: TCA only (tier-conditional augmentation)
+    "T2": {"name": "t2_tca",
+           "model_type": "dscformer",
+           "use_kd": True, "use_dual_kd": True,
+           "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+           "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+           "kd_teacher2_model_type": "sam_lora",
+           "kd_alpha": 0.5, "kd_temperature": 4.0,
+           "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+           "kd_class_weights": True,
+           "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_srl_loss": False,
+           "use_soft_boundary_schedule": False,
+           "use_tca": True},
+    # T3: Bbox-guided loss only
+    "T3": {"name": "t3_bbox",
+           "model_type": "dscformer",
+           "use_kd": True, "use_dual_kd": True,
+           "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+           "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+           "kd_teacher2_model_type": "sam_lora",
+           "kd_alpha": 0.5, "kd_temperature": 4.0,
+           "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+           "kd_class_weights": True,
+           "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_srl_loss": False,
+           "use_soft_boundary_schedule": False,
+           "use_bbox_guided": True, "bbox_fn_weight": 2.0},
+    # T4: MAPW + TCA combined
+    "T4": {"name": "t4_mapw_tca",
+           "model_type": "dscformer",
+           "use_kd": True, "use_dual_kd": True,
+           "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+           "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+           "kd_teacher2_model_type": "sam_lora",
+           "kd_alpha": 0.5, "kd_temperature": 4.0,
+           "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+           "kd_class_weights": True,
+           "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_srl_loss": False,
+           "use_soft_boundary_schedule": False,
+           "use_mapw": True, "mapw_alpha": 2.0,
+           "mapw_width_threshold": 10.0,
+           "mapw_junction_bonus": 1.5, "mapw_boundary_bonus": 1.5,
+           "use_tca": True},
+    # T5: MAPW + Bbox combined
+    "T5": {"name": "t5_mapw_bbox",
+           "model_type": "dscformer",
+           "use_kd": True, "use_dual_kd": True,
+           "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+           "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+           "kd_teacher2_model_type": "sam_lora",
+           "kd_alpha": 0.5, "kd_temperature": 4.0,
+           "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+           "kd_class_weights": True,
+           "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_srl_loss": False,
+           "use_soft_boundary_schedule": False,
+           "use_mapw": True, "mapw_alpha": 2.0,
+           "mapw_width_threshold": 10.0,
+           "mapw_junction_bonus": 1.5, "mapw_boundary_bonus": 1.5,
+           "use_bbox_guided": True, "bbox_fn_weight": 2.0},
+    # T6: All three (MAPW + TCA + Bbox)
+    "T6": {"name": "t6_mapw_tca_bbox",
+           "model_type": "dscformer",
+           "use_kd": True, "use_dual_kd": True,
+           "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+           "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+           "kd_teacher2_model_type": "sam_lora",
+           "kd_alpha": 0.5, "kd_temperature": 4.0,
+           "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+           "kd_class_weights": True,
+           "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+           "no_curriculum": True,
+           "use_soft_curriculum": False, "use_softmax_sampling": False,
+           "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+           "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+           "use_boundary_loss": False, "use_tversky_loss": False,
+           "use_cldice_loss": False, "use_srl_loss": False,
+           "use_soft_boundary_schedule": False,
+           "use_mapw": True, "mapw_alpha": 2.0,
+           "mapw_width_threshold": 10.0,
+           "mapw_junction_bonus": 1.5, "mapw_boundary_bonus": 1.5,
+           "use_tca": True,
+           "use_bbox_guided": True, "bbox_fn_weight": 2.0},
+
     # ACCW2: Adaptive weighting without confidence-aware KD (ablation)
     "ACCW2": {"name": "accw2_adaptive_only",
               "model_type": "dscformer",

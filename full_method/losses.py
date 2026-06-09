@@ -234,6 +234,104 @@ def skeleton_distance_weights(targets, crack_skel, w_skel=3.0, w_near=2.0,
     return weights
 
 
+def width_aware_pixel_weights(targets, alpha=2.0, width_threshold=10.0,
+                               junction_bonus=1.5, boundary_bonus=1.5,
+                               boundary_radius=5):
+    """Per-pixel loss weights based on local crack width (MAPW).
+
+    Thin crack pixels get higher weights. Junction pixels and crack pixels
+    near spalling boundaries get additional bonuses.
+
+    Computed online from GT masks using distance transform (no skeleton cache
+    needed). Uses erosion-based width estimation for efficiency.
+
+    Args:
+        targets: (B, H, W) ground truth masks (0=bg, 1=crack, 2=spalling).
+        alpha: scaling factor for inverse-width weighting.
+        width_threshold: pixels wider than this get weight=1 (no boost).
+        junction_bonus: extra weight for junction-like pixels.
+        boundary_bonus: extra weight for crack pixels near spalling.
+        boundary_radius: dilation radius for spalling boundary zone.
+
+    Returns:
+        (B, H, W) per-pixel weight map.
+    """
+    B, H, W = targets.shape
+    weights = torch.ones_like(targets, dtype=torch.float32)
+
+    crack_mask = (targets == 1).float()  # (B, H, W)
+    spalling_mask = (targets == 2).float()  # (B, H, W)
+
+    if crack_mask.sum() < 1:
+        return weights
+
+    # Width estimation via distance transform approximation:
+    # Erode crack mask at different radii; thin regions disappear first.
+    # Use max-pool-based erosion: -maxpool(-x) = minpool(x) = erosion.
+    crack_4d = crack_mask.unsqueeze(1)  # (B,1,H,W)
+
+    # Multi-scale erosion to estimate local width
+    # Width ~ 2 * max erosion radius that doesn't remove the pixel
+    width_map = torch.zeros_like(crack_mask)  # (B, H, W)
+    for r in [1, 2, 3, 5, 7, 10]:
+        ks = 2 * r + 1
+        eroded = -F.max_pool2d(-crack_4d, ks, stride=1, padding=r)  # (B,1,H,W)
+        # Pixels that survive erosion at radius r have width >= 2*r
+        width_map = width_map + eroded[:, 0] * 2.0
+
+    # Clamp to reasonable range
+    width_map = width_map.clamp(min=1.0)
+
+    # Inverse-width weighting: thin cracks get higher weight
+    # w(x,y) = 1 + alpha * max(0, 1 - width(x,y) / threshold)
+    inv_width_w = 1.0 + alpha * F.relu(1.0 - width_map / width_threshold)
+    weights = torch.where(crack_mask > 0.5, inv_width_w, weights)
+
+    # Junction bonus: crack pixels with many crack neighbors in different directions
+    # Approximate: dilate in 4 directions, sum; junctions have high sum
+    if junction_bonus > 1.0:
+        # Horizontal and vertical "arms" of crack
+        h_arm = -F.max_pool2d(-crack_4d, (1, 5), stride=1, padding=(0, 2))  # (B,1,H,W)
+        v_arm = -F.max_pool2d(-crack_4d, (5, 1), stride=1, padding=(2, 0))  # (B,1,H,W)
+        # Junction = pixel where both H and V arms are present
+        junction = (h_arm[:, 0] > 0.5) & (v_arm[:, 0] > 0.5) & (crack_mask > 0.5)
+        weights = torch.where(junction, weights * junction_bonus, weights)
+
+    # Crack-spalling boundary bonus
+    if boundary_bonus > 1.0 and spalling_mask.sum() > 0:
+        ks_b = 2 * boundary_radius + 1
+        spalling_dilated = F.max_pool2d(
+            spalling_mask.unsqueeze(1), ks_b, stride=1, padding=boundary_radius
+        )[:, 0]  # (B, H, W)
+        near_spalling = (spalling_dilated > 0.5) & (crack_mask > 0.5)
+        weights = torch.where(near_spalling, weights * boundary_bonus, weights)
+
+    return weights
+
+
+def bbox_guided_pixel_weights(targets, bbox_masks, w_fn_in_bbox=2.0):
+    """Per-pixel weight map using detection bounding boxes.
+
+    Pixels inside damage bboxes that are predicted as background get higher
+    penalty — the detection model says there's damage here, so false negatives
+    are especially bad.
+
+    Args:
+        targets: (B, H, W) ground truth masks.
+        bbox_masks: (B, H, W) binary tensor, 1 = inside any detection bbox.
+        w_fn_in_bbox: weight for background pixels inside bboxes (false negative penalty).
+
+    Returns:
+        (B, H, W) per-pixel weight map.
+    """
+    weights = torch.ones_like(targets, dtype=torch.float32)
+    # Background pixels inside bboxes get higher weight
+    # (these are regions where detection says damage exists but segmentation says BG)
+    bg_in_bbox = (targets == 0) & (bbox_masks > 0.5)
+    weights = torch.where(bg_in_bbox, w_fn_in_bbox, weights)
+    return weights
+
+
 def skeleton_recall_loss(pred_prob, skel_gt, eps=1e-6):
     """Skeleton Recall Loss: mean predicted probability at GT skeleton pixels.
 
@@ -546,7 +644,8 @@ class CompositeLoss(nn.Module):
                 sample_weights: torch.Tensor = None,
                 crack_skel: torch.Tensor = None,
                 mac_ce_multipliers: tuple = None,
-                mac_topo_multiplier: float = 1.0) -> tuple:
+                mac_topo_multiplier: float = 1.0,
+                bbox_masks: torch.Tensor = None) -> tuple:
         seg_logits = F.interpolate(outputs["seg_logits"], targets.shape[-2:],
                                    mode="bilinear", align_corners=False)
         bd_logits = F.interpolate(outputs["boundary_logits"], targets.shape[-2:],
@@ -560,7 +659,24 @@ class CompositeLoss(nn.Module):
             ce_w[1] = ce_w[1] * crack_mult
             ce_w[2] = ce_w[2] * spalling_mult
 
-        # CE loss: OHEM, SDWL-weighted, per-sample weighted, or standard
+        # Build per-pixel weight map from MAPW and/or bbox-guided weights
+        pixel_w = None
+        if self.cfg.use_mapw:
+            pixel_w = width_aware_pixel_weights(
+                targets,
+                alpha=self.cfg.mapw_alpha,
+                width_threshold=self.cfg.mapw_width_threshold,
+                junction_bonus=self.cfg.mapw_junction_bonus,
+                boundary_bonus=self.cfg.mapw_boundary_bonus,
+            )
+        if self.cfg.use_bbox_guided and bbox_masks is not None:
+            bw = bbox_guided_pixel_weights(
+                targets, bbox_masks,
+                w_fn_in_bbox=self.cfg.bbox_fn_weight,
+            )
+            pixel_w = pixel_w * bw if pixel_w is not None else bw
+
+        # CE loss: OHEM, SDWL-weighted, pixel-weighted (MAPW/bbox), per-sample weighted, or standard
         if self.cfg.use_ohem:
             loss_ce = ohem_cross_entropy(seg_logits, targets, ce_w,
                                          ratio=self.cfg.ohem_ratio)
@@ -581,6 +697,10 @@ class CompositeLoss(nn.Module):
                 loss_ce = (ce_unreduced * sdw).mean()
             else:
                 loss_ce = F.cross_entropy(seg_logits, targets, weight=ce_w)
+        elif pixel_w is not None:
+            ce_unreduced = F.cross_entropy(seg_logits, targets, weight=ce_w,
+                                           reduction='none')  # (B,H,W)
+            loss_ce = (ce_unreduced * pixel_w).mean()
         elif sample_weights is not None:
             ce_unreduced = F.cross_entropy(seg_logits, targets, weight=ce_w,
                                            reduction='none')  # (B,H,W)
