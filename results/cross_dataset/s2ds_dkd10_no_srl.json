@@ -1,5 +1,5 @@
 {
-  "dkd10_no_srl": {
+  "s2ds": {
     "IoU_background": 0.9488436096447969,
     "Dice_background": 0.9737503871003138,
     "IoU_crack": 0.08568262776125368,
