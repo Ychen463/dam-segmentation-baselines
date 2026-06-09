@@ -50,12 +50,12 @@ def decode_mask(mask_rgb):
 def overlay(img, label, alpha=0.45):
     """Blend semi-transparent colored mask onto image."""
     vis = img.copy()
-    # crack = red, spalling = blue
+    # crack = red, spalling = green
     crack_mask = label == 1
     spalling_mask = label == 2
     vis[crack_mask] = (np.array([255, 60, 60]) * alpha +
                        vis[crack_mask] * (1 - alpha)).astype(np.uint8)
-    vis[spalling_mask] = (np.array([60, 60, 255]) * alpha +
+    vis[spalling_mask] = (np.array([60, 200, 60]) * alpha +
                           vis[spalling_mask] * (1 - alpha)).astype(np.uint8)
     return vis
 
@@ -125,7 +125,7 @@ def main():
     # Legend
     legend_patches = [
         mpatches.Patch(color=(1, 0.24, 0.24), label="Crack"),
-        mpatches.Patch(color=(0.24, 0.24, 1), label="Spalling"),
+        mpatches.Patch(color=(0.24, 0.78, 0.24), label="Spalling"),
     ]
     fig.legend(handles=legend_patches, loc="lower center", ncol=2,
                fontsize=12, frameon=True, bbox_to_anchor=(0.5, -0.01))

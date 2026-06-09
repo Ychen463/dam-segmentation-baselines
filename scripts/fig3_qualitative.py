@@ -54,7 +54,7 @@ def decode_mask(mask_rgb):
 PALETTE = np.array([
     [0, 0, 0],        # background — black
     [255, 60, 60],     # crack — red
-    [60, 60, 255],     # spalling — blue
+    [60, 200, 60],     # spalling — green
 ], dtype=np.uint8)
 
 def colorize(label):
@@ -63,7 +63,7 @@ def colorize(label):
 
 def overlay(img, label, alpha=0.5):
     vis = img.copy()
-    for cid, color in [(1, [255, 60, 60]), (2, [60, 60, 255])]:
+    for cid, color in [(1, [255, 60, 60]), (2, [60, 200, 60])]:
         mask = label == cid
         if mask.any():
             vis[mask] = (np.array(color) * alpha + vis[mask] * (1 - alpha)).astype(np.uint8)
@@ -99,9 +99,10 @@ DISPLAY_NAMES = {
     "segformer_b2_plain_512": "SegFormer",
     "segformer_b2_staticcurr_512": "SegFormer+Curr",
     "mask2former_swin_small_512": "Mask2Former",
-    "dscformer_plain_G0": "DSCformer",
-    "dscformer_srl_G1": "DSCformer+SRL",
-    "dataopt_baseline_N0": "Ours (DSCformer+SRL)",
+    "dscformer_plain_G0": "DSCFormer",
+    "dscformer_srl_G1": "DSCFormer+SRL",
+    "dkd10_no_srl": "DSCFormer+DTKD",
+    "dataopt_baseline_N0": "DSCFormer+SRL (T1)",
 }
 
 
@@ -131,10 +132,9 @@ def pick_diverse_samples(split_file, n=4, seed=42):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--models", nargs="+",
-                        default=["deeplabv3p_r50_512",
-                                 "segformer_b2_plain_512",
-                                 "mask2former_swin_small_512",
-                                 "dataopt_baseline_N0"])
+                        default=["segformer_b2_plain_512",
+                                 "dscformer_plain_G0",
+                                 "dkd10_no_srl"])
     parser.add_argument("--samples", nargs="+", default=None,
                         help="Specific sample rel paths (e.g. 'Hard/H (184).jpg')")
     parser.add_argument("--n-samples", type=int, default=4)
@@ -230,7 +230,7 @@ def main():
     # Legend
     legend_patches = [
         mpatches.Patch(color=(1, 0.24, 0.24), label="Crack"),
-        mpatches.Patch(color=(0.24, 0.24, 1), label="Spalling"),
+        mpatches.Patch(color=(0.24, 0.78, 0.24), label="Spalling"),
     ]
     fig.legend(handles=legend_patches, loc="lower center", ncol=2,
                fontsize=11, frameon=True, bbox_to_anchor=(0.5, -0.01))

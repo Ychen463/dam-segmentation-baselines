@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-"""Method overview architecture diagram using matplotlib.
+"""Method overview architecture diagram — vertical (portrait) layout.
+
+Matches the paper's final method:
+  (a) DSCFormer: SegFormer-B2 + parallel DSConv branch
+  (b) DTKD: class-conditional dual-teacher KD with confidence-aware distillation
 
 Usage:
     python scripts/fig_architecture.py [--output figures/fig_architecture.pdf]
@@ -16,41 +20,43 @@ from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
 CODES_DIR = Path(__file__).resolve().parent.parent
 
-# Colors
-C_ENC = "#4A90D9"
-C_DEC = "#27AE60"
-C_SEG = "#E74C3C"
-C_BD  = "#E67E22"
-C_LOSS = "#F1C40F"
-C_DIFF = "#8E44AD"
-C_SAMP = "#16A085"
-C_SCHED = "#7F8C8D"
-C_INPUT = "#95A5A6"
-C_BG1 = "#D6EAF8"
-C_BG2 = "#E8DAEF"
+# ── Colour palette ──────────────────────────────────────────────────
+C_ENC   = "#4A90D9"   # encoder
+C_DSC   = "#E67E22"   # DSConv branch
+C_DEC   = "#27AE60"   # decoder
+C_SEG   = "#E74C3C"   # seg head / logits
+C_T1    = "#2980B9"   # teacher 1
+C_T2    = "#8E44AD"   # teacher 2
+C_ENS   = "#16A085"   # ensemble / DTKD
+C_CONF  = "#D4AC0D"   # confidence-aware KD
+C_LOSS  = "#F1C40F"   # loss
+C_INPUT = "#95A5A6"   # input / GT
+C_BG_A  = "#D6EAF8"   # bg region (a)
+C_BG_B  = "#E8DAEF"   # bg region (b)
 
 
-def draw_box(ax, x, y, w, h, text, color, fontsize=8, alpha=0.3, lw=1.2,
-             textcolor="black", fontstyle="normal", fontweight="normal"):
-    box = FancyBboxPatch((x - w/2, y - h/2), w, h,
-                          boxstyle="round,pad=0.05",
+def draw_box(ax, x, y, w, h, text, color, fontsize=8, alpha=0.30, lw=1.2,
+             textcolor="black", fontweight="normal", fontstyle="normal",
+             zorder=2):
+    box = FancyBboxPatch((x - w / 2, y - h / 2), w, h,
+                          boxstyle="round,pad=0.06",
                           facecolor=color, edgecolor="black",
-                          alpha=alpha, linewidth=lw, zorder=2)
+                          alpha=alpha, linewidth=lw, zorder=zorder)
     ax.add_patch(box)
     ax.text(x, y, text, ha="center", va="center", fontsize=fontsize,
             color=textcolor, fontweight=fontweight, fontstyle=fontstyle,
-            zorder=3, family="sans-serif")
+            zorder=zorder + 1, family="sans-serif")
     return box
 
 
 def draw_arrow(ax, x1, y1, x2, y2, color="black", lw=1.0, style="-",
-               alpha=0.7, connectionstyle="arc3,rad=0"):
+               alpha=0.7, connectionstyle="arc3,rad=0", zorder=1):
     ls = "-" if style == "-" else "--"
     arr = FancyArrowPatch((x1, y1), (x2, y2),
                            arrowstyle="->,head_width=3,head_length=3",
                            connectionstyle=connectionstyle,
                            color=color, linewidth=lw, linestyle=ls,
-                           alpha=alpha, zorder=1)
+                           alpha=alpha, zorder=zorder)
     ax.add_patch(arr)
 
 
@@ -62,227 +68,289 @@ def main():
     out_path = CODES_DIR / args.output
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    fig, ax = plt.subplots(1, 1, figsize=(16, 9))
-    ax.set_xlim(-1, 17)
-    ax.set_ylim(-1, 10)
+    # Portrait canvas
+    fig, ax = plt.subplots(1, 1, figsize=(10, 16))
+    ax.set_xlim(-0.5, 10.5)
+    ax.set_ylim(-1.0, 17.0)
     ax.set_aspect("equal")
     ax.axis("off")
 
-    # ============================================================
-    # Background regions
-    # ============================================================
-    # Network architecture bg
-    bg1 = FancyBboxPatch((-0.3, 3.2), 14.8, 6.5, boxstyle="round,pad=0.2",
-                          facecolor=C_BG1, edgecolor=C_ENC, alpha=0.25,
-                          linewidth=1.5, linestyle="--", zorder=0)
-    ax.add_patch(bg1)
-    ax.text(0.2, 9.4, "Network Architecture", fontsize=11, fontweight="bold",
-            color=C_ENC, family="sans-serif", alpha=0.8)
+    # ==================================================================
+    # Background region (a): Network Architecture  (upper half)
+    # ==================================================================
+    bg_a = FancyBboxPatch((0.0, 7.5), 10.0, 8.8,
+                           boxstyle="round,pad=0.25",
+                           facecolor=C_BG_A, edgecolor=C_ENC, alpha=0.20,
+                           linewidth=1.5, linestyle="--", zorder=0)
+    ax.add_patch(bg_a)
+    ax.text(0.6, 16.0, "(a) DSCFormer Architecture", fontsize=12,
+            fontweight="bold", color=C_ENC, family="sans-serif", alpha=0.85)
 
-    # Training dynamics bg
-    bg2 = FancyBboxPatch((-0.3, -0.8), 16.5, 3.8, boxstyle="round,pad=0.2",
-                          facecolor=C_BG2, edgecolor=C_DIFF, alpha=0.2,
-                          linewidth=1.5, linestyle="--", zorder=0)
-    ax.add_patch(bg2)
-    ax.text(13.5, -0.5, "Training Dynamics", fontsize=11, fontweight="bold",
-            color=C_DIFF, family="sans-serif", alpha=0.8)
+    # Background region (b): Training / DTKD  (lower half)
+    bg_b = FancyBboxPatch((0.0, -0.6), 10.0, 7.8,
+                           boxstyle="round,pad=0.25",
+                           facecolor=C_BG_B, edgecolor=C_T2, alpha=0.18,
+                           linewidth=1.5, linestyle="--", zorder=0)
+    ax.add_patch(bg_b)
+    ax.text(0.6, 6.9, "(b) Class-Conditional Dual-Teacher KD (DTKD)",
+            fontsize=12, fontweight="bold", color=C_T2,
+            family="sans-serif", alpha=0.85)
 
-    # ============================================================
-    # INPUT
-    # ============================================================
-    draw_box(ax, 0.8, 6.5, 1.4, 2.4, "Input\nImage\n$H{\\times}W$",
+    # ==================================================================
+    # INPUT IMAGE (top)
+    # ==================================================================
+    inp_x, inp_y = 2.5, 15.2
+    draw_box(ax, inp_x, inp_y, 1.6, 1.2, "Input\nImage\n$H{\\times}W$",
              C_INPUT, fontsize=9, alpha=0.35)
 
-    # ============================================================
-    # ENCODER STAGES
-    # ============================================================
-    enc_x = 3.5
+    # ==================================================================
+    # ENCODER (left column)
+    # ==================================================================
+    enc_x = 2.5
+    ax.text(enc_x, 14.2, "SegFormer-B2 Encoder", fontsize=10,
+            fontweight="bold", ha="center", color=C_ENC, family="sans-serif")
+
     enc_stages = [
-        ("Stage 1\nH/4, 64ch", 8.0, 0.20),
-        ("Stage 2\nH/8, 128ch", 6.9, 0.30),
-        ("Stage 3\nH/16, 320ch", 5.8, 0.40),
-        ("Stage 4\nH/32, 512ch", 4.7, 0.50),
+        ("Stage 1\n$H/4$, 64ch",  13.4, 0.25),
+        ("Stage 2\n$H/8$, 128ch", 12.4, 0.35),
+        ("Stage 3\n$H/16$, 320ch", 11.4, 0.45),
+        ("Stage 4\n$H/32$, 512ch", 10.4, 0.55),
     ]
-    ax.text(enc_x, 9.0, "SegFormer Encoder", fontsize=10, fontweight="bold",
-            ha="center", color=C_ENC, family="sans-serif")
-
     for text, y, a in enc_stages:
-        draw_box(ax, enc_x, y, 1.8, 0.7, text, C_ENC, fontsize=7, alpha=a)
+        draw_box(ax, enc_x, y, 2.2, 0.7, text, C_ENC, fontsize=7, alpha=a)
 
-    # Input → Encoder arrows
-    for _, y, _ in enc_stages:
-        draw_arrow(ax, 1.5, 6.5, enc_x - 0.9, y, color=C_INPUT, lw=0.8)
+    # Input → each encoder stage
+    draw_arrow(ax, inp_x, inp_y - 0.6, enc_x, enc_stages[0][1] + 0.35,
+               color=C_INPUT, lw=0.9)
+    # Vertical chain between stages
+    for i in range(len(enc_stages) - 1):
+        draw_arrow(ax, enc_x, enc_stages[i][1] - 0.35,
+                   enc_x, enc_stages[i + 1][1] + 0.35,
+                   color=C_ENC, lw=0.8)
 
-    # ============================================================
+    # ==================================================================
+    # DSConv BRANCH (right of encoder, parallel)
+    # ==================================================================
+    dsc_x = 6.5
+    dsc_y = 12.9
+    ax.text(dsc_x, 14.2, "CrackSnake Branch", fontsize=10,
+            fontweight="bold", ha="center", color=C_DSC, family="sans-serif")
+
+    draw_box(ax, dsc_x, dsc_y, 2.6, 1.8, "", C_DSC, fontsize=8, alpha=0.18)
+    # Sub-boxes inside DSConv
+    draw_box(ax, dsc_x - 0.6, dsc_y + 0.4, 1.2, 0.55,
+             "DSConv-$x$\n$K{=}9$", C_DSC, fontsize=6.5, alpha=0.40)
+    draw_box(ax, dsc_x + 0.6, dsc_y + 0.4, 1.2, 0.55,
+             "DSConv-$y$\n$K{=}9$", C_DSC, fontsize=6.5, alpha=0.40)
+    draw_box(ax, dsc_x, dsc_y - 0.45, 1.6, 0.45,
+             "Proj → $\\mathbf{E}_{\\mathrm{crack}}$",
+             C_DSC, fontsize=7, alpha=0.45)
+
+    # Encoder Stage 1,2 → DSConv branch
+    draw_arrow(ax, enc_x + 1.1, enc_stages[0][1],
+               dsc_x - 1.3, dsc_y + 0.4,
+               color=C_DSC, lw=0.9)
+    draw_arrow(ax, enc_x + 1.1, enc_stages[1][1],
+               dsc_x - 1.3, dsc_y + 0.4,
+               color=C_DSC, lw=0.9)
+    ax.text(4.5, 13.5, "Stage 1, 2", fontsize=6.5, ha="center",
+            color=C_DSC, alpha=0.7, family="sans-serif")
+
+    # ==================================================================
     # DECODER
-    # ============================================================
-    dec_x = 6.8
-    dec_y = 6.5
-    draw_box(ax, dec_x, dec_y, 2.0, 1.2, "MLP Decoder\nLinear Fuse\n768ch",
+    # ==================================================================
+    dec_x, dec_y = 2.5, 9.2
+    draw_box(ax, dec_x, dec_y, 2.4, 0.8, "MLP Decoder\nLinear Fuse",
              C_DEC, fontsize=8, alpha=0.35)
-    ax.text(dec_x, 7.5, "Decoder", fontsize=10, fontweight="bold",
-            ha="center", color=C_DEC, family="sans-serif")
+    # Encoder stages → Decoder (all four stages feed into MLP decoder)
+    draw_arrow(ax, enc_x, enc_stages[-1][1] - 0.35,
+               dec_x, dec_y + 0.4, color=C_ENC, lw=0.9)
+    # Small annotation
+    ax.text(enc_x + 1.15, (enc_stages[-1][1] + dec_y) / 2 + 0.15,
+            "All 4\nstages", fontsize=5.5, color=C_ENC, alpha=0.55,
+            family="sans-serif", ha="center", va="center")
 
-    # Encoder → Decoder
-    for _, y, _ in enc_stages:
-        draw_arrow(ax, enc_x + 0.9, y, dec_x - 1.0, dec_y, color=C_ENC, lw=0.8)
-
-    # ============================================================
-    # SEGMENTATION HEAD
-    # ============================================================
-    seg_x, seg_y = 10.2, 7.4
-    draw_box(ax, seg_x, seg_y, 2.0, 0.8, "Segmentation Head",
+    # ==================================================================
+    # SEGMENTATION HEAD + CRACK ENHANCEMENT
+    # ==================================================================
+    seg_x, seg_y = 5.5, 9.2
+    draw_box(ax, seg_x, seg_y, 2.0, 0.8, "Seg Head\n3-class logits",
              C_SEG, fontsize=8, alpha=0.30)
+    draw_arrow(ax, dec_x + 1.2, dec_y, seg_x - 1.0, seg_y,
+               color=C_DEC, lw=0.9)
 
-    # BOUNDARY HEAD
-    bd_x, bd_y = 10.2, 5.6
-    draw_box(ax, bd_x, bd_y, 2.0, 0.8, "Boundary Head",
-             C_BD, fontsize=8, alpha=0.30)
+    # DSConv → additive enhancement on crack channel
+    draw_arrow(ax, dsc_x, dsc_y - 0.9, seg_x + 0.6, seg_y + 0.4,
+               color=C_DSC, lw=1.0, style="--",
+               connectionstyle="arc3,rad=0.2")
+    ax.text(6.8, 10.3, "$\\hat{y}_{\\mathrm{cr}} = z_{\\mathrm{cr}} "
+            "+ \\mathbf{E}_{\\mathrm{crack}}$",
+            fontsize=7, ha="center", color=C_DSC, family="sans-serif",
+            alpha=0.85,
+            bbox=dict(boxstyle="round,pad=0.15", facecolor="white",
+                      edgecolor=C_DSC, alpha=0.5, linewidth=0.8))
 
-    # Decoder → Heads
-    draw_arrow(ax, dec_x + 1.0, dec_y + 0.3, seg_x - 1.0, seg_y, color=C_DEC, lw=0.9)
-    draw_arrow(ax, dec_x + 1.0, dec_y - 0.3, bd_x - 1.0, bd_y, color=C_DEC, lw=0.9)
+    # Student logits output
+    slog_x, slog_y = 8.5, 9.2
+    draw_box(ax, slog_x, slog_y, 1.6, 0.7, "Student\nLogits $\\mathbf{z}_s$",
+             C_SEG, fontsize=7.5, alpha=0.22)
+    draw_arrow(ax, seg_x + 1.0, seg_y, slog_x - 0.8, slog_y,
+               color=C_SEG, lw=0.9)
 
-    # ============================================================
-    # OUTPUTS
-    # ============================================================
-    out_x = 13.0
-    draw_box(ax, out_x, seg_y, 1.8, 0.7, "Seg Logits\n3 classes",
-             C_SEG, fontsize=7, alpha=0.20)
-    draw_box(ax, out_x, bd_y, 1.8, 0.7, "Boundary\nMap",
-             C_BD, fontsize=7, alpha=0.20)
+    # ==================================================================
+    # SEPARATOR — dashed line between (a) and (b)
+    # ==================================================================
 
-    draw_arrow(ax, seg_x + 1.0, seg_y, out_x - 0.9, seg_y, color=C_SEG, lw=0.9)
-    draw_arrow(ax, bd_x + 1.0, bd_y, out_x - 0.9, bd_y, color=C_BD, lw=0.9)
-
-    # ============================================================
-    # GROUND TRUTH
-    # ============================================================
-    draw_box(ax, 0.8, 3.8, 1.4, 0.8, "Ground\nTruth",
-             C_INPUT, fontsize=8, alpha=0.35)
-
-    # ============================================================
-    # COMPOSITE LOSS
-    # ============================================================
-    loss_x, loss_y = 7.5, 1.8
-    loss_w, loss_h = 9.0, 1.2
-    draw_box(ax, loss_x, loss_y, loss_w, loss_h, "",
-             C_LOSS, fontsize=8, alpha=0.25)
-    ax.text(loss_x, 2.6, "Composite Loss  $\\mathcal{L}$", fontsize=10,
-            fontweight="bold", ha="center", color="#7D6608", family="sans-serif")
-
-    # Loss sub-components
-    loss_names = ["$\\mathcal{L}_{CE}$", "$\\mathcal{L}_{Dice}$",
-                  "$\\mathcal{L}_{Tversky}$", "$\\mathcal{L}_{Bd}$",
-                  "$\\mathcal{L}_{SRL}$"]
-    loss_colors = [C_LOSS]*5
-    for i, (name, lc) in enumerate(zip(loss_names, loss_colors)):
-        lx = loss_x - 3.2 + i * 1.6
-        draw_box(ax, lx, loss_y - 0.05, 1.2, 0.55, name, lc,
-                 fontsize=9, alpha=0.50)
-
-    # Formula below
-    ax.text(loss_x, 0.9,
-            "$\\mathcal{L} = \\lambda_1\\mathcal{L}_{CE} + \\lambda_2\\mathcal{L}_{Dice}"
-            " + \\lambda_3\\mathcal{L}_{Tversky} + \\lambda_4\\mathcal{L}_{Bd}"
-            " + \\lambda_5\\mathcal{L}_{SRL}$",
-            ha="center", va="center", fontsize=8, color="black",
+    # ==================================================================
+    # TEACHER 1  (left)
+    # ==================================================================
+    t1_x, t1_y = 1.8, 5.8
+    draw_box(ax, t1_x, t1_y, 2.4, 1.2, "Teacher 1\nDSCFormer\n(frozen)",
+             C_T1, fontsize=8, alpha=0.30, fontweight="bold")
+    ax.text(t1_x, 5.0, "Strong on spalling", fontsize=6.5,
+            ha="center", color=C_T1, fontstyle="italic",
             family="sans-serif", alpha=0.7)
 
-    # Seg out → Loss
-    draw_arrow(ax, out_x, seg_y - 0.35, out_x, loss_y + 0.6,
-               color=C_SEG, lw=0.9)
-    # Bd out → Loss
-    draw_arrow(ax, out_x, bd_y - 0.35, out_x, loss_y + 0.6,
-               color=C_BD, lw=0.9)
-    # GT → Loss
-    draw_arrow(ax, 1.5, 3.8, loss_x - loss_w/2 + 0.2, loss_y,
+    # TEACHER 2  (right)
+    t2_x, t2_y = 6.0, 5.8
+    draw_box(ax, t2_x, t2_y, 2.4, 1.2, "Teacher 2\nSAM-LoRA\n(frozen)",
+             C_T2, fontsize=8, alpha=0.30, fontweight="bold")
+    ax.text(t2_x, 5.0, "Strong on crack connectivity", fontsize=6.5,
+            ha="center", color=C_T2, fontstyle="italic",
+            family="sans-serif", alpha=0.7)
+
+    # ==================================================================
+    # CLASS-CONDITIONAL ENSEMBLE
+    # ==================================================================
+    ens_x, ens_y = 3.9, 3.8
+    draw_box(ax, ens_x, ens_y, 3.8, 1.0, "", C_ENS, fontsize=8, alpha=0.20)
+    ax.text(ens_x, 4.5, "Class-Conditional Ensemble", fontsize=9,
+            fontweight="bold", ha="center", color=C_ENS, family="sans-serif")
+
+    # Weight boxes inside
+    w_labels = [("bg\n$w_2{=}0.5$", ens_x - 1.2),
+                ("cr\n$w_2{=}0.6$", ens_x),
+                ("sp\n$w_2{=}0.3$", ens_x + 1.2)]
+    for label, wx in w_labels:
+        draw_box(ax, wx, ens_y, 0.95, 0.6, label, C_ENS,
+                 fontsize=6.5, alpha=0.45)
+
+    # T1, T2 → Ensemble
+    draw_arrow(ax, t1_x, t1_y - 0.6, ens_x - 1.0, ens_y + 0.5,
+               color=C_T1, lw=0.9)
+    draw_arrow(ax, t2_x, t2_y - 0.6, ens_x + 1.0, ens_y + 0.5,
+               color=C_T2, lw=0.9)
+
+    # Ensemble output label
+    ax.text(ens_x, 3.1,
+            "$\\tilde{p}_c = w_{1,c}\\,p_{1,c} + w_{2,c}\\,p_{2,c}$",
+            fontsize=8, ha="center", color=C_ENS, family="sans-serif",
+            alpha=0.8)
+
+    # ==================================================================
+    # TEACHER DISAGREEMENT → AGREEMENT MAP
+    # ==================================================================
+    dis_x, dis_y = 8.2, 5.1
+    draw_box(ax, dis_x, dis_y, 2.2, 1.6, "", C_CONF, fontsize=7, alpha=0.18)
+    ax.text(dis_x, 5.7, "Teacher\nDisagreement", fontsize=7.5,
+            fontweight="bold", ha="center", color=C_CONF, family="sans-serif")
+    ax.text(dis_x, 4.8, "$d(i) = \\mathrm{KL}(p_1^{(i)} \\| p_2^{(i)})$",
+            fontsize=6.5, ha="center", color=C_CONF, family="sans-serif")
+    ax.text(dis_x, 4.4, "$a(i) = 1 - d(i)/\\max d$",
+            fontsize=6.5, ha="center", color=C_CONF, family="sans-serif")
+
+    # T1, T2 → Disagreement
+    draw_arrow(ax, t1_x + 1.2, t1_y - 0.3, dis_x - 1.1, dis_y + 0.3,
+               color=C_CONF, lw=0.8, style="--",
+               connectionstyle="arc3,rad=-0.15")
+    draw_arrow(ax, t2_x + 1.2, t2_y - 0.3, dis_x - 1.1, dis_y + 0.1,
+               color=C_CONF, lw=0.8, style="--")
+
+    # ==================================================================
+    # CONFIDENCE-AWARE KD LOSS
+    # ==================================================================
+    kd_x, kd_y = 5.5, 1.8
+    draw_box(ax, kd_x, kd_y, 5.5, 1.0, "", C_CONF, fontsize=8, alpha=0.22)
+    ax.text(kd_x, 2.5, "Confidence-Aware KD Loss", fontsize=9.5,
+            fontweight="bold", ha="center", color="#7D6608",
+            family="sans-serif")
+    ax.text(kd_x, kd_y,
+            "$\\mathcal{L}_{\\mathrm{KD}}^{\\mathrm{conf}} = "
+            "\\tau^2 \\cdot \\frac{1}{N}\\sum_i a(i)\\,"
+            "\\mathrm{KL}(\\tilde{\\mathbf{p}}^{(i)} \\| "
+            "\\mathrm{softmax}(\\mathbf{z}_s^{(i)}/\\tau))$",
+            fontsize=7, ha="center", color="black",
+            family="sans-serif", alpha=0.8)
+
+    # Ensemble → KD loss
+    draw_arrow(ax, ens_x, ens_y - 0.5, kd_x - 1.5, kd_y + 0.5,
+               color=C_ENS, lw=0.9)
+    # Agreement map → KD loss
+    draw_arrow(ax, dis_x, dis_y - 0.8, kd_x + 1.5, kd_y + 0.5,
+               color=C_CONF, lw=0.9)
+    ax.text(7.5, 3.1, "$a(i)$", fontsize=7.5, ha="center",
+            color=C_CONF, fontweight="bold", family="sans-serif")
+    # Student logits → KD loss (route along right side)
+    draw_arrow(ax, slog_x + 0.3, slog_y - 0.35, kd_x + 2.5, kd_y + 0.5,
+               color=C_SEG, lw=0.9, connectionstyle="arc3,rad=0.25")
+
+    # ==================================================================
+    # TOTAL LOSS
+    # ==================================================================
+    tot_x, tot_y = 5.5, 0.2
+    draw_box(ax, tot_x, tot_y, 7.0, 0.7, "", C_LOSS, fontsize=8, alpha=0.25)
+    ax.text(tot_x, tot_y,
+            "$\\mathcal{L} = (1{-}\\alpha)"
+            "[\\lambda_1\\mathcal{L}_{\\mathrm{CE}}"
+            " + \\lambda_2\\mathcal{L}_{\\mathrm{Dice}}]"
+            " + \\alpha\\,\\mathcal{L}_{\\mathrm{KD}}^{\\mathrm{conf}}$"
+            "      ($\\alpha{=}0.5,\\;\\tau{=}4$)",
+            fontsize=7.5, ha="center", color="black",
+            family="sans-serif", fontweight="bold")
+    ax.text(tot_x, tot_y + 0.6, "Total Loss $\\mathcal{L}$", fontsize=9.5,
+            fontweight="bold", ha="center", color="#7D6608",
+            family="sans-serif")
+
+    # GT → Total loss
+    gt_x, gt_y = 0.8, 2.5
+    draw_box(ax, gt_x, gt_y, 1.4, 0.8, "Ground\nTruth",
+             C_INPUT, fontsize=8, alpha=0.35)
+    draw_arrow(ax, gt_x + 0.7, gt_y - 0.2, tot_x - 3.5, tot_y + 0.35,
                color=C_INPUT, lw=0.9)
+    # Student logits → Total loss (CE+Dice part) — route along right edge
+    draw_arrow(ax, slog_x + 0.4, slog_y - 0.35, tot_x + 3.0, tot_y + 0.35,
+               color=C_SEG, lw=0.7, alpha=0.45,
+               connectionstyle="arc3,rad=0.4")
+    ax.text(9.7, 5.5, "$\\mathbf{z}_s$", fontsize=6.5, color=C_SEG,
+            alpha=0.55, family="sans-serif")
+    # KD loss → Total loss
+    draw_arrow(ax, kd_x, kd_y - 0.5, tot_x, tot_y + 0.35,
+               color=C_CONF, lw=0.9)
 
-    # ============================================================
-    # DIFFICULTY ESTIMATOR (below loss, left)
-    # ============================================================
-    diff_x, diff_y = 4.5, -0.1
-    draw_box(ax, diff_x, diff_y, 5.0, 1.0, "", C_DIFF, fontsize=8, alpha=0.20)
-    ax.text(diff_x, 0.55, "Online Difficulty Estimator", fontsize=9,
-            fontweight="bold", ha="center", color=C_DIFF, family="sans-serif")
+    # ==================================================================
+    # LEGEND (bottom-right)
+    # ==================================================================
+    legend_items = [
+        (C_ENC, "SegFormer Encoder"),
+        (C_DSC, "DSConv Branch"),
+        (C_DEC, "Decoder"),
+        (C_T1,  "Teacher 1 (task-specific)"),
+        (C_T2,  "Teacher 2 (foundation model)"),
+        (C_ENS, "Ensemble / DTKD"),
+        (C_CONF, "Confidence-aware KD"),
+    ]
+    handles = [mpatches.Patch(facecolor=c, edgecolor="black", alpha=0.4,
+                               label=l) for c, l in legend_items]
+    ax.legend(handles=handles, loc="lower right", fontsize=7,
+              framealpha=0.5, edgecolor="gray",
+              bbox_to_anchor=(1.0, -0.05))
 
-    # Sub-components
-    diff_labels = ["Loss $\\ell_i$", "Uncert $u_i$",
-                   "Boundary $b_i$", "Sparsity $s_i$"]
-    for i, dl in enumerate(diff_labels):
-        dx = diff_x - 1.8 + i * 1.2
-        draw_box(ax, dx, diff_y - 0.05, 1.0, 0.40, dl, C_DIFF,
-                 fontsize=6, alpha=0.40)
-
-    # Formula
-    ax.text(diff_x, -0.75,
-            "$d_i = \\alpha\\hat{\\ell}_i + \\beta\\hat{u}_i"
-            " + \\gamma\\hat{b}_i + \\delta\\hat{s}_i$  (EMA + z-score)",
-            ha="center", va="center", fontsize=7, color=C_DIFF,
-            family="sans-serif", alpha=0.8)
-
-    # Loss → Difficulty (dashed)
-    draw_arrow(ax, loss_x - 2.0, loss_y - 0.6, diff_x, diff_y + 0.5,
-               color=C_DIFF, lw=0.8, style="--")
-
-    # ============================================================
-    # DYNAMIC CURRICULUM SAMPLER (below loss, right)
-    # ============================================================
-    samp_x, samp_y = 11.0, -0.1
-    draw_box(ax, samp_x, samp_y, 4.0, 1.0, "", C_SAMP, fontsize=8, alpha=0.20)
-    ax.text(samp_x, 0.55, "Dynamic Curriculum Sampler", fontsize=9,
-            fontweight="bold", ha="center", color=C_SAMP, family="sans-serif")
-
-    tier_labels = ["Easy", "Medium", "Hard"]
-    tier_alphas = [0.30, 0.45, 0.60]
-    for i, (tl, ta) in enumerate(zip(tier_labels, tier_alphas)):
-        tx = samp_x - 1.2 + i * 1.2
-        draw_box(ax, tx, samp_y - 0.05, 0.9, 0.40, tl, C_SAMP,
-                 fontsize=7, alpha=ta)
-
-    ax.text(samp_x, -0.75, "Softmax-weighted tier-gated sampling",
-            ha="center", va="center", fontsize=7, color=C_SAMP,
-            family="sans-serif", alpha=0.8)
-
-    # Difficulty → Sampler
-    draw_arrow(ax, diff_x + 2.5, diff_y, samp_x - 2.0, samp_y,
-               color=C_DIFF, lw=1.0)
-    ax.text(7.8, 0.2, "$d_i$ scores", fontsize=7, ha="center",
-            color=C_DIFF, family="sans-serif", alpha=0.7)
-
-    # ============================================================
-    # STAGE SCHEDULER
-    # ============================================================
-    sched_x, sched_y = 15.0, -0.1
-    draw_box(ax, sched_x, sched_y, 1.5, 1.0, "Stage\nScheduler\n0-30-70%",
-             C_SCHED, fontsize=7, alpha=0.25)
-    draw_arrow(ax, sched_x - 0.75, sched_y, samp_x + 2.0, samp_y,
-               color=C_SCHED, lw=0.8)
-
-    # ============================================================
-    # FEEDBACK LOOP: Sampler → Input (next epoch)
-    # ============================================================
-    draw_arrow(ax, samp_x - 1.5, samp_y - 0.5, 0.8, 3.4,
-               color=C_SAMP, lw=0.8, style="--",
-               connectionstyle="arc3,rad=-0.3")
-    ax.text(4.5, 2.0, "Next epoch\nsample selection", fontsize=7,
-            ha="center", color=C_SAMP, family="sans-serif", alpha=0.6,
-            rotation=0)
-
-    # ============================================================
-    # TITLE
-    # ============================================================
-    ax.text(7.5, 9.8,
-            "Dynamic Difficulty-Aware Curriculum Learning with Boundary Refinement",
-            ha="center", va="center", fontsize=13, fontweight="bold",
-            family="sans-serif", color="black")
-
+    # ==================================================================
     fig.tight_layout()
-    fig.savefig(str(out_path), dpi=250, bbox_inches="tight")
+    fig.savefig(str(out_path), dpi=300, bbox_inches="tight")
     print(f"Saved: {out_path}")
     png_path = out_path.with_suffix(".png")
-    fig.savefig(str(png_path), dpi=250, bbox_inches="tight")
+    fig.savefig(str(png_path), dpi=300, bbox_inches="tight")
     print(f"Saved: {png_path}")
     plt.close(fig)
 
