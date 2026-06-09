@@ -547,15 +547,15 @@ Teacher quality for KD is not simply a function of the teacher's own test metric
 
 \subsection{Qualitative results}
 
-Fig.~\ref{fig:qualitative} presents representative predictions comparing SegFormer-B2, DSCFormer, and DSCFormer+DTKD.
-The baseline frequently fragments continuous cracks, DSCFormer improves connectivity, and DTKD further refines boundary quality, consistent with the quantitative improvements.
+Fig.~\ref{fig:qualitative} presents representative predictions across all three difficulty tiers, comparing SegFormer-B2, DSCFormer, and DSCFormer+DTKD.
+SegFormer-B2 produces severe over-segmentation (especially on Easy and Hard samples), while DSCFormer substantially improves crack localisation. DSCFormer+DTKD further refines both crack connectivity and spalling coverage, with per-image IoU scores consistently higher than DSCFormer alone.
 
-\begin{figure}[t]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=\columnwidth]{figures/fig3_qualitative.png}
-    \caption{Qualitative comparison on Hard-tier test samples. Left to right: input, ground truth, SegFormer-B2, DSCFormer, DSCFormer+DTKD. Red: crack, green: spalling.}
+    \includegraphics[width=0.95\textwidth]{figures/fig3_qualitative.png}
+    \caption{Qualitative comparison on test samples across difficulty tiers. Left to right: input, ground truth, SegFormer-B2, DSCFormer, DSCFormer+DTKD. Per-image crack (Cr) and spalling (Sp) IoU scores are shown above each prediction. Red: crack, green: spalling. SegFormer-B2 exhibits severe over-segmentation; DSCFormer improves localisation; DTKD further refines boundary quality.}
     \label{fig:qualitative}
-\end{figure}
+\end{figure*}
 
 \subsection{Cross-dataset evaluation}
 \label{sec:cross_dataset}
