@@ -385,7 +385,7 @@ Multi-seed experiments (Table~\ref{tab:multiseed}) further confirm that the SRL 
 
 \paragraph{Overall progression.}
 From baseline (a) to full method (c), the improvements are: mIoU$_{\text{fg}}$ +2.0, IoU$_{\text{cr}}$ +1.6, IoU$_{\text{sp}}$ +2.2, BF1$_{\text{fg}}$ +2.0, clDice$_{\text{fg}}$ +3.7, and ConnR$_{\text{fg}}$ +6.0.
-The two components are complementary: DSConv provides the geometric inductive bias for connectivity (ConnR$_{\text{fg}}$ +6.6), while DTKD adds pixel-level accuracy across all metrics without eroding connectivity.
+The two components are complementary: DSConv provides the geometric inductive bias for connectivity (ConnR$_{\text{fg}}$ +6.6), while DTKD adds pixel-level accuracy across all metrics at a modest cost to crack connectivity (ConnR$_{\text{cr}}$ $-$2.6, net ConnR$_{\text{fg}}$ $-$0.6).
 DTKD also acts as a strong regulariser: multi-seed experiments (Table~\ref{tab:multiseed}) show it reduces cross-seed variance by ${\sim}$3$\times$ (mIoU$_{\text{fg}}$ std: 0.52 vs.\ 1.47 for the baseline), confirming that distillation is the critical component for both performance and reliability.
 
 \paragraph{Statistical significance.}
@@ -471,7 +471,7 @@ Student (DTKD) & \textbf{72.3} & \textbf{58.5} & \textbf{86.2} & 82.1 & \underli
 
 The DTKD student surpasses both teachers on mIoU$_{\text{fg}}$ (+1.7 over Teacher~1, +3.3 over Teacher~2), IoU$_{\text{cr}}$, and IoU$_{\text{sp}}$, confirming that class-conditional distillation effectively combines complementary strengths.
 Teacher~2 (SAM-LoRA+SRL) achieves the highest ConnR$_{\text{sp}}$ (86.0\%), reflecting SAM's strong global structure preservation.
-The student substantially inherits this advantage (ConnR$_{\text{sp}}$ = 83.8\%, vs.\ Teacher~1's 73.4\%), while maintaining superior pixel-level accuracy---notably surpassing both teachers on connectivity as well.
+The student substantially inherits this advantage (ConnR$_{\text{sp}}$ = 83.8\%, vs.\ Teacher~1's 73.4\%), while maintaining superior pixel-level accuracy. However, the student does not fully match Teacher~2's ConnR$_{\text{sp}}$ (83.8\% vs.\ 86.0\%) and slightly trails both teachers on ConnR$_{\text{cr}}$ (82.1\% vs.\ 82.2\%), consistent with the ConnR$_{\text{cr}}$ trade-off observed in the ablation.
 
 The student surpassing both teachers is consistent with multi-teacher distillation findings in the literature \citep{you2017learning,yuan2021multihead}, where combining complementary knowledge sources provides regularisation benefits beyond what any single teacher offers. Unlike classical ``born-again'' networks \citep{furlanello2018born} where student and teacher share the same architecture, our student additionally benefits from the DSConv geometric inductive bias that neither teacher possesses.
 
@@ -533,8 +533,8 @@ Model & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text
 \midrule
 SegFormer-B2 & 0.1 & 0.1 & 0.0 & 2.8 & 1.3 & 49.9 \\
 Mask2Former & 2.5 & 0.1 & 4.8 & 5.5 & 21.2 & 49.7 \\
-DSCFormer$^\S$ & 17.1 & 7.6 & 26.7 & \textbf{49.6} & \textbf{72.1} & \textbf{69.3} \\
-DSCFormer + DTKD & \textbf{18.7} & \textbf{8.6} & \textbf{28.9} & 46.6 & 68.4 & 70.1 \\
+DSCFormer$^\S$ & 17.1 & 7.6 & 26.7 & \textbf{49.6} & \textbf{72.1} & 69.3 \\
+DSCFormer + DTKD & \textbf{18.7} & \textbf{8.6} & \textbf{28.9} & 46.6 & 68.4 & \textbf{70.1} \\
 \midrule
 DSCFormer + DTKD + TTA$^*$ & 18.6 & 8.4 & 28.9 & 45.3 & 69.0 & 69.0 \\
 \bottomrule
