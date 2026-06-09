@@ -217,6 +217,11 @@ class RunCfg:
     dgacl_phase2_lr: float = 1e-5                 # Phase 2 base LR
     dgacl_phase2_warmup: int = 3                  # Phase 2 warmup epochs
 
+    # Topology-Aware KD (match soft skeletons between student and teacher)
+    use_topo_kd: bool = False                 # enable topo-KD loss
+    topo_kd_weight: float = 0.10              # weight for topo-KD loss
+    topo_kd_iters: int = 5                    # soft skeleton iterations
+
     # Morphology-Aware Curriculum (MAC)
     use_mac: bool = False                         # master MAC switch
     use_mac_morph_difficulty: bool = False         # replace generic difficulty with morph features
@@ -1842,6 +1847,68 @@ ABLATION_PRESETS = {
     # ACCW: Adaptive Class-Conditional Weighting experiments
     # =========================================================================
     # ACCW1: Full adaptive weighting + confidence-aware KD (main experiment)
+    # --- Topology-Aware KD (Direction B) ---
+    # TOPOKD1: DKD10 + topo-KD (soft skeleton matching between student and teacher)
+    "TOPOKD1": {"name": "topokd1_full",
+                "model_type": "dscformer",
+                "use_kd": True, "use_dual_kd": True,
+                "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+                "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+                "kd_teacher2_model_type": "sam_lora",
+                "kd_alpha": 0.5, "kd_temperature": 4.0,
+                "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+                "kd_class_weights": True,
+                "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+                "use_topo_kd": True, "topo_kd_weight": 0.10, "topo_kd_iters": 5,
+                "use_dgacl": True, "dgacl_pixel_kd": True,
+                "no_curriculum": True,
+                "use_soft_curriculum": False, "use_softmax_sampling": False,
+                "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                "use_boundary_loss": False, "use_tversky_loss": False,
+                "use_cldice_loss": False, "use_srl_loss": False,
+                "use_soft_boundary_schedule": False},
+    # TOPOKD2: DKD10 + topo-KD only (no conf-KD, isolate topo-KD effect)
+    "TOPOKD2": {"name": "topokd2_noconfkd",
+                "model_type": "dscformer",
+                "use_kd": True, "use_dual_kd": True,
+                "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+                "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+                "kd_teacher2_model_type": "sam_lora",
+                "kd_alpha": 0.5, "kd_temperature": 4.0,
+                "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+                "kd_class_weights": True,
+                "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+                "use_topo_kd": True, "topo_kd_weight": 0.10, "topo_kd_iters": 5,
+                "use_dgacl": False, "dgacl_pixel_kd": False,
+                "no_curriculum": True,
+                "use_soft_curriculum": False, "use_softmax_sampling": False,
+                "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                "use_boundary_loss": False, "use_tversky_loss": False,
+                "use_cldice_loss": False, "use_srl_loss": False,
+                "use_soft_boundary_schedule": False},
+    # TOPOKD3: DKD10 + topo-KD with higher weight (0.20)
+    "TOPOKD3": {"name": "topokd3_heavy",
+                "model_type": "dscformer",
+                "use_kd": True, "use_dual_kd": True,
+                "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+                "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+                "kd_teacher2_model_type": "sam_lora",
+                "kd_alpha": 0.5, "kd_temperature": 4.0,
+                "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+                "kd_class_weights": True,
+                "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+                "use_topo_kd": True, "topo_kd_weight": 0.20, "topo_kd_iters": 5,
+                "use_dgacl": False, "dgacl_pixel_kd": False,
+                "no_curriculum": True,
+                "use_soft_curriculum": False, "use_softmax_sampling": False,
+                "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                "use_boundary_loss": False, "use_tversky_loss": False,
+                "use_cldice_loss": False, "use_srl_loss": False,
+                "use_soft_boundary_schedule": False},
+    # --- ACCW (abandoned, kept for reference) ---
     "ACCW1": {"name": "accw1_adaptive_confkd",
               "model_type": "dscformer",
               "use_kd": True, "use_dual_kd": True,

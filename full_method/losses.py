@@ -130,6 +130,41 @@ def soft_skel(img, iters: int):
         skel = skel + F.relu(delta - skel * delta)
     return skel
 
+def topo_kd_loss(student_logits: torch.Tensor, teacher_logits: torch.Tensor,
+                 iters: int = 5, eps: float = 1e-6) -> torch.Tensor:
+    """Topology-aware KD: match soft skeletons between student and teacher.
+
+    Standard KD transfers pixel-level soft labels. This additionally
+    transfers topological structure by encouraging the student's predicted
+    crack skeleton to match the teacher's predicted crack skeleton.
+
+    Args:
+        student_logits: (B, C, H, W) student logits.
+        teacher_logits: (B, C, H, W) teacher (ensemble) logits.
+        iters: soft skeleton iterations.
+        eps: numerical stability.
+
+    Returns:
+        Scalar loss (1 - soft Dice between skeletons).
+    """
+    s_prob = torch.softmax(student_logits, dim=1)[:, 1:2]  # crack prob (B,1,H,W)
+    t_prob = torch.softmax(teacher_logits, dim=1)[:, 1:2]
+
+    s_skel = soft_skel(s_prob, iters)
+    t_skel = soft_skel(t_prob.detach(), iters)
+
+    # Soft Dice between student and teacher skeletons
+    inter = (s_skel * t_skel).sum(dim=(1, 2, 3))
+    card = s_skel.sum(dim=(1, 2, 3)) + t_skel.sum(dim=(1, 2, 3))
+    dice = (2.0 * inter + eps) / (card + eps)
+
+    # Only compute for samples with meaningful skeleton
+    has_skel = card > eps
+    if has_skel.any():
+        return 1.0 - dice[has_skel].mean()
+    return student_logits.new_zeros(())
+
+
 def soft_cldice_loss(prob, target, iters=7, eps=1e-6):
     """Soft clDice loss on (B,1,H,W) probability and binary target."""
     sp = soft_skel(prob, iters)

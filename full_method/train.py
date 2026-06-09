@@ -48,7 +48,7 @@ from full_method.model import SegFormerWithBoundary, DSCformerDam, _PreviewWrapp
 from full_method.sam_model import TopoLoRASAM
 from full_method.calora_model import CrackAdaptiveLoRASAM, compute_router_aux_loss
 from full_method.dinov2_model import DINOv2LoRA
-from full_method.losses import CompositeLoss, confidence_aware_kd_loss
+from full_method.losses import CompositeLoss, confidence_aware_kd_loss, topo_kd_loss
 from full_method.adaptive_weights import (
     AdaptiveTeacherWeights, adaptive_dual_teacher_ensemble, accw_epoch_update,
 )
@@ -212,7 +212,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
     model.train()
     metrics.reset()
     loss_sum = 0.0
-    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0, "loss_skel_pred": 0.0, "loss_skel_consist": 0.0, "loss_contrastive": 0.0, "loss_kd": 0.0, "loss_router": 0.0}
+    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0, "loss_skel_pred": 0.0, "loss_skel_consist": 0.0, "loss_contrastive": 0.0, "loss_kd": 0.0, "loss_topo_kd": 0.0, "loss_router": 0.0}
     n_batches = 0
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)
@@ -311,6 +311,12 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
 
                 total_loss = cfg.kd_alpha * total_loss + (1 - cfg.kd_alpha) * loss_kd
                 info["loss_kd"] = float(loss_kd.detach().cpu())
+
+                # Topology-aware KD: match soft skeletons between student and teacher
+                if cfg.use_topo_kd:
+                    loss_tk = topo_kd_loss(s_logits, t_logits, iters=cfg.topo_kd_iters)
+                    total_loss = total_loss + cfg.topo_kd_weight * loss_tk
+                    info["loss_topo_kd"] = float(loss_tk.detach().cpu())
 
             # CALoRA: auxiliary routing loss (crack density -> high-rank gate)
             if (cfg is not None and cfg.model_type == "calora_sam"
