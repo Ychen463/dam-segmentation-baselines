@@ -52,7 +52,7 @@ def main():
 
     # Dataset + loader
     tfm = build_transforms(cfg.img_size, train=False)
-    ds = FullMethodDataset(records, C.DATA_ROOT, transform=tfm)
+    ds = FullMethodDataset(C.DATA_ROOT, records, transform=tfm)
     loader = DataLoader(ds, batch_size=4, shuffle=False, num_workers=2,
                         collate_fn=dict_collate, pin_memory=True)
 
