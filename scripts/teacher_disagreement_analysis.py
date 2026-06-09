@@ -51,7 +51,7 @@ def main():
     tier_map = {r["id"]: r["tier"] for r in records}
 
     # Dataset + loader
-    tfm = build_transforms(cfg.img_size, mode="val")
+    tfm = build_transforms(cfg.img_size, train=False)
     ds = FullMethodDataset(records, C.DATA_ROOT, transform=tfm)
     loader = DataLoader(ds, batch_size=4, shuffle=False, num_workers=2,
                         collate_fn=dict_collate, pin_memory=True)
