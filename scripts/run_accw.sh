@@ -18,7 +18,7 @@ for preset in $PRESETS; do
     echo "=========================================="
     echo "  Running $preset"
     echo "=========================================="
-    python -m full_method.train --preset "$preset"
+    python -m full_method.train --ablation "$preset"
     echo ""
     echo "[$preset] done."
     echo ""
