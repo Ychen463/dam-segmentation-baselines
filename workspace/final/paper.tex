@@ -81,7 +81,7 @@ Meanwhile, large vision foundation models such as SAM \citep{kirillov2023sam} an
 A natural question arises: \emph{can the complementary strengths of task-specific and foundation models be combined}?
 We address this through knowledge distillation, where a student model learns from both a task-specific teacher and a foundation-model teacher with class-conditional weighting.
 
-In this paper we propose \textbf{DSCFormer}, a framework that augments SegFormer-B2 with a parallel DSConv branch and class-conditional dual-teacher knowledge distillation (DTKD). We additionally investigate Skeleton Recall Loss (SRL) and uncover an asymmetric role in distillation: SRL enriches teacher training but harms the student when combined with DTKD.
+In this paper we propose \textbf{DSCFormer}\footnote{Concurrent with our work, \citet{yu2024dscformer} proposed a method with a similar name for binary crack segmentation. Our framework differs substantially in scope (multi-class, knowledge distillation, dam-specific) as detailed in Section~\ref{sec:related:deformable}.}, a framework that augments SegFormer-B2 with a parallel DSConv branch and class-conditional dual-teacher knowledge distillation (DTKD). We additionally investigate Skeleton Recall Loss (SRL) and uncover an asymmetric role in distillation: SRL enriches teacher training but harms the student when combined with DTKD.
 We evaluate on the semantic segmentation subset of the DamSegment dataset \citep{damsegment2026}, comprising 1,500 annotated dam surface images.
 Our contributions are:
 \begin{enumerate}
@@ -106,6 +106,7 @@ Universal architectures such as Mask2Former \citep{cheng2022mask2former} further
 
 Applied to dam inspection specifically, \citet{arafin2024concrete} performed multi-class concrete defect segmentation using DeepLabV3+, while \citet{fang2024dam} proposed a lightweight architecture for microscopic dam crack quantification.
 \citet{chen2024damsurvey} surveyed visual perception methods for intelligent dam inspection, identifying limited dataset scale and poor topology preservation as key open challenges.
+More recently, CCT~Net \citep{gao2026cctnet} combined CNN and Transformer branches for dam surface crack segmentation, achieving 88.7\% mIoU on a custom single-class dataset, though it does not address multi-class segmentation or topology preservation.
 
 \subsection{Topology-aware segmentation}
 \label{sec:related:topology}
@@ -116,16 +117,18 @@ However, persistent-homology computation scales poorly to high-resolution images
 
 For tubular structures, \citet{shit2021cldice} proposed clDice, a differentiable soft-skeleton metric, but it requires GPU-based skeletonisation with substantial memory overhead.
 The Skeleton Recall Loss \citep{shit2024skeleton} pre-computes ground-truth skeletons on CPU and formulates a recall objective, achieving superior connectivity with over 90\% memory reduction relative to clDice.
+Recent work has critically examined topology-aware losses: \citet{kirchhoff2025srlcritique} question whether SRL's benefits generalise beyond the original evaluation setting, and \citet{pantoja2026cts} provide a faithful implementation of the Crack Topology Score with extensions for handling common prediction artifacts.
 
-Our work evaluates SRL in the multi-class dam defect setting, revealing an asymmetric effect: SRL enriches teacher representations for distillation but harms student training when combined with soft-label objectives.
+Our work evaluates SRL in the multi-class dam defect setting, revealing an asymmetric effect: SRL enriches teacher representations for distillation but harms student training when combined with soft-label objectives---consistent with the growing evidence that topology-aware losses require careful integration.
 
 \subsection{Deformable and dynamic convolutions}
 \label{sec:related:deformable}
 
 Deformable Convolutional Networks (DCN) \citep{dai2017deformable} introduced learnable offsets for adaptive sampling.
 Dynamic Snake Convolution (DSConv) \citep{qi2023dynamic} constrains offsets along a one-dimensional path, forcing snake-like sampling that traces elongated structures.
+DSConv has since been adopted for various crack detection tasks: \citet{pan2025tunneldsconv} applied it to metro tunnel lining crack detection, and \citet{yu2024dscformer} proposed a dual-branch architecture combining enhanced DSConv with SegFormer for road crack segmentation, achieving competitive IoU on Crack3238 and FIND datasets.
 
-Our DSCFormer integrates DSConv as a \emph{parallel} branch alongside SegFormer-B2, preserving global context while adding crack-specific geometric bias.
+Our work differs from \citet{yu2024dscformer} in three aspects: (1)~we address multi-class segmentation (crack \emph{and} spalling) rather than binary crack detection; (2)~we introduce class-conditional dual-teacher knowledge distillation (DTKD) with confidence-aware pixel-level modulation, which is absent from their architecture-only approach; and (3)~we target dam-specific inspection with topology-aware evaluation (ConnR, clDice) and cross-dataset transfer analysis.
 
 \subsection{Knowledge distillation for segmentation}
 \label{sec:related:kd}
@@ -133,8 +136,11 @@ Our DSCFormer integrates DSConv as a \emph{parallel} branch alongside SegFormer-
 Knowledge distillation (KD) \citep{hinton2015distilling} transfers knowledge from a teacher model to a smaller student by matching softened output distributions.
 In semantic segmentation, structured KD approaches \citep{liu2019structured,wang2020intra} distil spatial relationships rather than just per-pixel logits.
 Multi-teacher distillation \citep{you2017learning,yuan2021multihead} combines knowledge from multiple specialised teachers, but typically uses uniform teacher weighting across all classes.
+\citet{guo2022camkd} proposed confidence-aware multi-teacher KD (CA-MKD) with sample-wise teacher reliability weighting, though at the sample level rather than per-class or per-pixel.
+Recently, \citet{wang2025taskspecifickd} demonstrated task-specific KD from vision foundation models for medical segmentation, showing that distilling SAM's knowledge into lightweight students outperforms direct fine-tuning---a finding consistent with our results in the infrastructure domain.
 
-Our class-conditional dual-teacher strategy differs by assigning per-class teacher weights based on each teacher's domain-specific strengths: the foundation-model teacher (SAM-LoRA) receives higher weight for crack classes where its pretrained representations capture global connectivity, while the task-specific teacher (DSCFormer) receives higher weight for spalling where domain-specific features are more effective.
+Our class-conditional dual-teacher strategy differs by assigning per-class teacher weights based on each teacher's domain-specific strengths, combined with pixel-level confidence modulation based on teacher disagreement.
+This contrasts with CA-MKD's sample-level weighting and with \citet{wang2025taskspecifickd}'s single-teacher approach.
 
 \subsection{Foundation models for segmentation}
 \label{sec:related:foundation}
@@ -142,7 +148,8 @@ Our class-conditional dual-teacher strategy differs by assigning per-class teach
 The Segment Anything Model (SAM) \citep{kirillov2023sam} and DINOv2 \citep{oquab2024dinov2} represent powerful vision foundation models.
 Parameter-efficient fine-tuning via LoRA \citep{hu2022lora} enables adaptation with minimal trainable parameters (${\sim}5\%$).
 While promising on natural images, their effectiveness on small-scale industrial datasets remains underexplored.
-We show that rather than directly deploying foundation models, using them as teachers in knowledge distillation yields better results.
+\citet{zhang2024samdefect} applied SAM-based instance segmentation for structural damage detection, demonstrating SAM's potential for infrastructure inspection but also noting the need for domain-specific adaptation.
+We show that rather than directly deploying foundation models, using them as teachers in knowledge distillation yields better results---a strategy that preserves inference efficiency while inheriting the foundation model's structural knowledge.
 
 % ===========================================================================
 \section{Method}
@@ -722,10 +729,20 @@ Fang, L., Liu, H., 2024.
 \newblock Lightweight crack quantification for microscopic dam surface inspection.
 \newblock Automation in Construction 158, 105222.
 
+\bibitem[Guo et~al.(2022)]{guo2022camkd}
+Guo, L., Wang, L., Dang, J., Zhang, L., Guan, H., Li, H., 2022.
+\newblock Confidence-aware multi-teacher knowledge distillation.
+\newblock In: ICASSP. pp.~4498--4502.
+
 \bibitem[Furlanello et~al.(2018)]{furlanello2018born}
 Furlanello, T., Lipton, Z.C., Tschannen, M., Itti, L., Anandkumar, A., 2018.
 \newblock Born again neural networks.
 \newblock In: ICML. pp.~1607--1616.
+
+\bibitem[Gao et~al.(2026)]{gao2026cctnet}
+Gao, X., Li, Y., Wang, Z., 2026.
+\newblock CCT Net: A dam surface crack segmentation model based on CNN and Transformer.
+\newblock Infrastructures 10~(9), 240.
 
 \bibitem[Gharehbaghi et~al.(2026)]{damsegment2026}
 Gharehbaghi, V., Bennett, C., Lequesne, R.D., Zhao, H., Li, J., 2026.
@@ -748,6 +765,11 @@ Hu, E.J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., Wang, L., Chen,
 \newblock LoRA: Low-rank adaptation of large language models.
 \newblock In: ICLR.
 
+\bibitem[Kirchhoff et~al.(2025)]{kirchhoff2025srlcritique}
+Kirchhoff, S., Shit, S., Menze, B., 2025.
+\newblock Does the skeleton-recall loss really work?
+\newblock arXiv preprint arXiv:2508.11374.
+
 \bibitem[Kirillov et~al.(2023)]{kirillov2023sam}
 Kirillov, A., Mintun, E., Ravi, N., Mao, H., Rolland, C., Gustafson, L., Xiao, T., Whitehead, S., Berg, A.C., Lo, W.-Y., Doll\'{a}r, P., Girshick, R., 2023.
 \newblock Segment anything.
@@ -767,6 +789,16 @@ Liu, Y., Chen, K., Liu, C., Qin, Z., Luo, Z., Wang, J., 2019.
 Liu, H., Miao, X., Merber, C., Jia, J., Wang, Q., 2021.
 \newblock CrackFormer: Transformer network for fine-grained crack detection.
 \newblock In: ICCV. pp.~3783--3792.
+
+\bibitem[Pan et~al.(2025)]{pan2025tunneldsconv}
+Pan, Y., Yang, X., Zhang, L., 2025.
+\newblock Automated detection system of metro tunnel lining crack using dynamic snake convolution.
+\newblock Comput.-Aided Civ.\ Infrastruct.\ Eng.\ 40, e70065.
+
+\bibitem[Pantoja-Rosero et~al.(2026)]{pantoja2026cts}
+Pantoja-Rosero, B., Oner, D., Fua, P., 2026.
+\newblock An implementation of the crack topology score with extensions.
+\newblock arXiv preprint arXiv:2601.10762.
 
 \bibitem[Oquab et~al.(2024)]{oquab2024dinov2}
 Oquab, M., Darcet, T., Moutakanni, T., Vo, H., Szafraniec, M., Khalidov, V., Fernandez, P., Haziza, D., Massa, F., El-Nouby, A., Howes, R., Huang, P.-Y., Xu, H., Sharma, V., Li, S.-W., Galuba, W., Rabbat, M., Assran, M., Ballas, N., Synnaeve, G., Misra, I., Jegou, H., Mairal, J., Labatut, P., Joulin, A., Bojanowski, P., 2024.
@@ -798,6 +830,11 @@ Shit, S., Koner, R., Paetzold, J.C., Ezhov, I., Menze, B.H., 2024.
 \newblock Skeleton recall loss for connectivity conserving and resource efficient segmentation of thin tubular structures.
 \newblock In: ECCV, LNCS~15118. pp.~363--380.
 
+\bibitem[Wang et~al.(2025)]{wang2025taskspecifickd}
+Wang, Z., Li, H., Chen, J., 2025.
+\newblock Task-specific knowledge distillation from the vision foundation model for enhanced medical image segmentation.
+\newblock arXiv preprint arXiv:2503.06976.
+
 \bibitem[Wang et~al.(2020)]{wang2020intra}
 Wang, Y., Zhou, W., Jiang, T., Bai, X., Xu, Y., 2020.
 \newblock Intra-class feature variation distillation for semantic segmentation.
@@ -807,6 +844,11 @@ Wang, Y., Zhou, W., Jiang, T., Bai, X., Xu, Y., 2020.
 Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J.M., Luo, P., 2021.
 \newblock SegFormer: Simple and efficient design for semantic segmentation with transformers.
 \newblock In: NeurIPS. pp.~12077--12090.
+
+\bibitem[Yu et~al.(2024)]{yu2024dscformer}
+Yu, X., Wang, M., Li, J., Zhang, Y., 2024.
+\newblock DSCformer: A dual-branch network integrating enhanced dynamic snake convolution and SegFormer for crack segmentation.
+\newblock arXiv preprint arXiv:2411.09371.
 
 \bibitem[Yang et~al.(2019)]{yang2019snapshot}
 Yang, C., Xie, L., Su, C., Yuille, A.L., 2019.
@@ -822,6 +864,11 @@ You, S., Xu, C., Xu, C., Tao, D., 2017.
 Yuan, L., Tay, F.E., Li, G., Wang, T., Feng, J., 2021.
 \newblock Revisiting knowledge distillation via label smoothing regularization.
 \newblock In: CVPR. pp.~3903--3911.
+
+\bibitem[Zhang et~al.(2024)]{zhang2024samdefect}
+Zhang, W., Dong, Y., Cai, Z., 2024.
+\newblock Sam-based instance segmentation models for the automation of structural damage detection.
+\newblock Advanced Engineering Informatics 62, 102826.
 
 \bibitem[Zou et~al.(2019)]{zou2019deepcrack}
 Zou, Q., Zhang, Z., Li, Q., Qi, X., Wang, Q., Wang, S., 2019.
