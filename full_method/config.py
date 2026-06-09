@@ -202,6 +202,16 @@ class RunCfg:
     competence_floor_medium: float = 0.02         # C2: Medium replay floor
     competence_floor_hard: float = 0.00           # C2: Hard replay floor (0 = no early replay)
 
+    # Disagreement-Guided Adaptive Curriculum Learning (DGACL)
+    use_dgacl: bool = False                       # master DGACL switch
+    dgacl_w_disagree: float = 0.5                 # weight for teacher disagreement in difficulty
+    dgacl_w_gap: float = 0.3                      # weight for student-teacher gap in difficulty
+    dgacl_w_loss: float = 0.2                     # weight for EMA loss in difficulty
+    dgacl_lambda: float = 1.0                     # scaling factor for loss reweighting
+    dgacl_pixel_kd: bool = True                   # pixel-level confidence-aware KD
+    dgacl_phase2_lr: float = 1e-5                 # Phase 2 base LR
+    dgacl_phase2_warmup: int = 3                  # Phase 2 warmup epochs
+
     # Morphology-Aware Curriculum (MAC)
     use_mac: bool = False                         # master MAC switch
     use_mac_morph_difficulty: bool = False         # replace generic difficulty with morph features
@@ -1717,6 +1727,111 @@ ABLATION_PRESETS = {
              "use_srl_loss": True, "cldice_weight": 0.05,
              "cldice_start_epoch": 20, "cldice_iters": 7,
              "use_soft_boundary_schedule": False},
+
+    # ===================================================================
+    # Set DGACL: Disagreement-Guided Adaptive Curriculum Learning
+    # Phase 2 warm-start from DKD10 checkpoint (30 additional epochs)
+    # ===================================================================
+    # Shared base: inherits DKD10's dual-teacher KD setup + enables DGACL
+    # DGACL1: Full method (disagree + gap + loss reweighting + pixel KD)
+    "DGACL1": {"name": "dgacl1_full",
+               "model_type": "dscformer",
+               "epochs": 30,
+               "use_kd": True, "use_dual_kd": True,
+               "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+               "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+               "kd_teacher2_model_type": "sam_lora",
+               "kd_alpha": 0.5, "kd_temperature": 4.0,
+               "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+               "kd_class_weights": True,
+               "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+               "use_dgacl": True,
+               "dgacl_w_disagree": 0.5, "dgacl_w_gap": 0.3, "dgacl_w_loss": 0.2,
+               "dgacl_lambda": 1.0,
+               "dgacl_pixel_kd": True,
+               "dgacl_phase2_lr": 1e-5, "dgacl_phase2_warmup": 3,
+               "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+               "loss_reweight_lambda": 1.0,
+               "no_curriculum": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+    # DGACL2: Sample reweight only (no pixel KD) — ablation
+    "DGACL2": {"name": "dgacl2_no_pixel_kd",
+               "model_type": "dscformer",
+               "epochs": 30,
+               "use_kd": True, "use_dual_kd": True,
+               "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+               "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+               "kd_teacher2_model_type": "sam_lora",
+               "kd_alpha": 0.5, "kd_temperature": 4.0,
+               "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+               "kd_class_weights": True,
+               "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+               "use_dgacl": True,
+               "dgacl_w_disagree": 0.5, "dgacl_w_gap": 0.3, "dgacl_w_loss": 0.2,
+               "dgacl_lambda": 1.0,
+               "dgacl_pixel_kd": False,
+               "dgacl_phase2_lr": 1e-5, "dgacl_phase2_warmup": 3,
+               "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+               "loss_reweight_lambda": 1.0,
+               "no_curriculum": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+    # DGACL3: Pixel KD only (no sample reweight) — ablation
+    "DGACL3": {"name": "dgacl3_pixel_kd_only",
+               "model_type": "dscformer",
+               "epochs": 30,
+               "use_kd": True, "use_dual_kd": True,
+               "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+               "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+               "kd_teacher2_model_type": "sam_lora",
+               "kd_alpha": 0.5, "kd_temperature": 4.0,
+               "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+               "kd_class_weights": True,
+               "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+               "use_dgacl": True,
+               "dgacl_w_disagree": 0.5, "dgacl_w_gap": 0.3, "dgacl_w_loss": 0.2,
+               "dgacl_lambda": 0.0,
+               "dgacl_pixel_kd": True,
+               "dgacl_phase2_lr": 1e-5, "dgacl_phase2_warmup": 3,
+               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+               "no_curriculum": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+    # DGACL4: Loss-based difficulty only (no disagreement) — shows disagreement signal matters
+    "DGACL4": {"name": "dgacl4_loss_only",
+               "model_type": "dscformer",
+               "epochs": 30,
+               "use_kd": True, "use_dual_kd": True,
+               "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+               "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+               "kd_teacher2_model_type": "sam_lora",
+               "kd_alpha": 0.5, "kd_temperature": 4.0,
+               "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+               "kd_class_weights": True,
+               "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+               "use_dgacl": True,
+               "dgacl_w_disagree": 0.0, "dgacl_w_gap": 0.0, "dgacl_w_loss": 1.0,
+               "dgacl_lambda": 1.0,
+               "dgacl_pixel_kd": False,
+               "dgacl_phase2_lr": 1e-5, "dgacl_phase2_warmup": 3,
+               "use_dynamic_difficulty": True, "use_dynamic_loss_reweight": True,
+               "loss_reweight_lambda": 1.0,
+               "no_curriculum": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
 }
 
 

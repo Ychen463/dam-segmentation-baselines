@@ -16,6 +16,32 @@ from . import config as C
 
 
 # ---------------------------------------------------------------------------
+# Confidence-aware KD loss (DGACL pixel-level)
+# ---------------------------------------------------------------------------
+
+def confidence_aware_kd_loss(student_logits: torch.Tensor,
+                             teacher_logits: torch.Tensor,
+                             agreement_map: torch.Tensor,
+                             temperature: float = 4.0) -> torch.Tensor:
+    """KD loss weighted by pixel-level teacher agreement.
+
+    Where teachers agree (agreement_map ~ 1), trust soft labels fully.
+    Where they disagree (agreement_map ~ 0), reduce KD weight → rely on GT.
+
+    Args:
+        student_logits: (B, C, H, W) student logits.
+        teacher_logits: (B, C, H, W) ensemble teacher logits.
+        agreement_map: (B, H, W) in [0, 1], 1 = teachers agree.
+        temperature: softmax temperature for KD.
+    """
+    s_log_prob = F.log_softmax(student_logits / temperature, dim=1)
+    t_prob = F.softmax(teacher_logits / temperature, dim=1)
+    kl_per_pixel = (t_prob * (t_prob.log() - s_log_prob)).sum(dim=1)  # (B, H, W)
+    weighted = kl_per_pixel * agreement_map  # down-weight where teachers disagree
+    return weighted.mean() * (temperature ** 2)
+
+
+# ---------------------------------------------------------------------------
 # Per-sample helpers (for difficulty estimation — detach before use!)
 # ---------------------------------------------------------------------------
 

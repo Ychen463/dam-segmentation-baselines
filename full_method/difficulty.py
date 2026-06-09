@@ -28,6 +28,9 @@ class SampleState:
     ema_loss_crack: float = 0.0
     ema_loss_spalling: float = 0.0
     morph_difficulty: float = 0.0      # static morphology-based difficulty
+    # --- DGACL fields ---
+    teacher_disagreement: float = 0.0  # static: KL(T1 || T2) pixel-mean
+    student_teacher_gap: float = 0.0   # dynamic: KL(ensemble || student) EMA
 
 
 class DifficultyEstimator:
@@ -67,6 +70,13 @@ class DifficultyEstimator:
         state.ema_loss_spalling = (self.ema_decay * state.ema_loss_spalling
                                    + (1 - self.ema_decay) * loss_spalling)
 
+    def update_dgacl(self, state: SampleState,
+                     disagree_val: float, gap_val: float) -> None:
+        """Update DGACL fields: static disagreement + EMA student-teacher gap."""
+        state.teacher_disagreement = disagree_val  # static per-sample
+        state.student_teacher_gap = (self.ema_decay * state.student_teacher_gap
+                                     + (1 - self.ema_decay) * gap_val)
+
     @staticmethod
     def _compute_boundary_complexity(mask: np.ndarray) -> float:
         """Crack boundary pixels / crack pixels. Crack = class 1."""
@@ -86,7 +96,11 @@ class DifficultyEstimator:
         """1 - foreground_ratio. Higher = sparser foreground."""
         return 1.0 - float((mask > 0).mean())
 
-    def normalize_and_score(self, sample_bank: Dict[str, SampleState]) -> None:
+    def normalize_and_score(self, sample_bank: Dict[str, SampleState],
+                            use_dgacl: bool = False,
+                            dgacl_w_disagree: float = 0.5,
+                            dgacl_w_gap: float = 0.3,
+                            dgacl_w_loss: float = 0.2) -> None:
         """Epoch-level z-score normalization, then weighted combination."""
         if not sample_bank:
             return
@@ -101,7 +115,19 @@ class DifficultyEstimator:
         z_loss = zscore(losses)
         z_uncert = zscore(uncerts)
 
-        if self.use_mac_morph_difficulty:
+        if use_dgacl:
+            # DGACL mode: teacher disagreement + student-teacher gap + EMA loss
+            disagrees = np.array([sample_bank[k].teacher_disagreement for k in ids])
+            gaps = np.array([sample_bank[k].student_teacher_gap for k in ids])
+            z_disagree = zscore(disagrees)
+            z_gap = zscore(gaps)
+            for i, k in enumerate(ids):
+                sample_bank[k].difficulty = float(
+                    dgacl_w_disagree * z_disagree[i]
+                    + dgacl_w_gap * z_gap[i]
+                    + dgacl_w_loss * z_loss[i]
+                )
+        elif self.use_mac_morph_difficulty:
             # MAC mode: replace boundary_complexity + sparsity with morph_difficulty
             morphs = np.array([sample_bank[k].morph_difficulty for k in ids])
             z_morph = zscore(morphs)

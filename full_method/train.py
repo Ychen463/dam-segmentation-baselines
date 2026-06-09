@@ -48,7 +48,7 @@ from full_method.model import SegFormerWithBoundary, DSCformerDam, _PreviewWrapp
 from full_method.sam_model import TopoLoRASAM
 from full_method.calora_model import CrackAdaptiveLoRASAM, compute_router_aux_loss
 from full_method.dinov2_model import DINOv2LoRA
-from full_method.losses import CompositeLoss
+from full_method.losses import CompositeLoss, confidence_aware_kd_loss
 from full_method.difficulty import DifficultyEstimator, SampleState
 from full_method.sampler import TierAwareDynamicSampler
 from full_method.scheduler import CurriculumScheduler, AdaptivePacer, ClassLossScheduler
@@ -249,22 +249,58 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
             if teacher_model is not None and cfg is not None and cfg.use_kd:
                 with torch.no_grad():
                     t_out = teacher_model(imgs)
-                    t_logits = F.interpolate(t_out["seg_logits"].float(),
-                                            masks.shape[-2:], mode="bilinear",
-                                            align_corners=False)
+                    t1_logits = F.interpolate(t_out["seg_logits"].float(),
+                                             masks.shape[-2:], mode="bilinear",
+                                             align_corners=False)
 
                     # Dual-teacher: ensemble with second teacher
+                    t2_logits = None
                     if teacher2_model is not None and cfg.use_dual_kd:
                         t2_out = teacher2_model(imgs)
                         t2_logits = F.interpolate(t2_out["seg_logits"].float(),
                                                   masks.shape[-2:], mode="bilinear",
                                                   align_corners=False)
-                        t_logits = dual_teacher_ensemble(t_logits, t2_logits, cfg)
+                        t_logits = dual_teacher_ensemble(t1_logits, t2_logits, cfg)
+                    else:
+                        t_logits = t1_logits
 
                 s_logits = F.interpolate(outputs["seg_logits"].float(),
                                          masks.shape[-2:], mode="bilinear",
                                          align_corners=False)
-                loss_kd = kd_loss(s_logits, t_logits, cfg.kd_temperature)
+
+                # DGACL: compute teacher disagreement and student-teacher gap
+                dgacl_disagree_map = None
+                if cfg.use_dgacl and t2_logits is not None:
+                    with torch.no_grad():
+                        t1_prob = F.softmax(t1_logits / cfg.kd_temperature, dim=1)
+                        t2_prob = F.softmax(t2_logits / cfg.kd_temperature, dim=1)
+                        # Per-pixel KL(T1 || T2)
+                        kl_t1t2 = (t1_prob * (t1_prob.clamp_min(1e-8).log()
+                                              - t2_prob.clamp_min(1e-8).log())).sum(1)  # (B,H,W)
+                        disagree_per_sample = kl_t1t2.mean(dim=(1, 2))  # (B,)
+
+                        # Per-pixel student-teacher gap: KL(ensemble || student)
+                        s_prob = F.softmax(s_logits / cfg.kd_temperature, dim=1)
+                        ens_prob = F.softmax(t_logits / cfg.kd_temperature, dim=1)
+                        kl_gap = (ens_prob * (ens_prob.clamp_min(1e-8).log()
+                                              - s_prob.clamp_min(1e-8).log())).sum(1)  # (B,H,W)
+                        gap_per_sample = kl_gap.mean(dim=(1, 2))  # (B,)
+
+                        # Agreement map for pixel-level KD: 1 = agree, 0 = disagree
+                        kl_max = kl_t1t2.max().clamp_min(1e-6)
+                        dgacl_disagree_map = 1.0 - (kl_t1t2 / kl_max)  # (B,H,W)
+
+                    # Store per-sample DGACL signals
+                    info["dgacl_disagree"] = disagree_per_sample.detach().cpu()
+                    info["dgacl_gap"] = gap_per_sample.detach().cpu()
+
+                # KD loss: pixel-level confidence-aware or standard
+                if cfg.use_dgacl and cfg.dgacl_pixel_kd and dgacl_disagree_map is not None:
+                    loss_kd = confidence_aware_kd_loss(
+                        s_logits, t_logits, dgacl_disagree_map, cfg.kd_temperature)
+                else:
+                    loss_kd = kd_loss(s_logits, t_logits, cfg.kd_temperature)
+
                 total_loss = cfg.kd_alpha * total_loss + (1 - cfg.kd_alpha) * loss_kd
                 info["loss_kd"] = float(loss_kd.detach().cpu())
 
@@ -322,6 +358,13 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                         sample_bank[sid],
                         float(info["per_sample_ce_crack"][b_idx]),
                         float(info["per_sample_ce_spalling"][b_idx]),
+                    )
+                # DGACL: update teacher disagreement + student-teacher gap
+                if cfg is not None and cfg.use_dgacl and "dgacl_disagree" in info:
+                    estimator.update_dgacl(
+                        sample_bank[sid],
+                        float(info["dgacl_disagree"][b_idx]),
+                        float(info["dgacl_gap"][b_idx]),
                     )
 
         done = step + 1
@@ -576,6 +619,11 @@ def main() -> None:
           f" soft={cfg.use_competence_soft_mixing}"
           f" c0={cfg.competence_c0} duration={cfg.competence_duration}"
           f" floors=[{cfg.competence_floor_easy},{cfg.competence_floor_medium},{cfg.competence_floor_hard}]")
+    print(f"[train] DGACL: use={cfg.use_dgacl}"
+          f" w_disagree={cfg.dgacl_w_disagree} w_gap={cfg.dgacl_w_gap}"
+          f" w_loss={cfg.dgacl_w_loss} lambda={cfg.dgacl_lambda}"
+          f" pixel_kd={cfg.dgacl_pixel_kd}"
+          f" phase2_lr={cfg.dgacl_phase2_lr} warmup={cfg.dgacl_phase2_warmup}")
     print(f"[train] MAC: use={cfg.use_mac} morph_diff={cfg.use_mac_morph_difficulty}"
           f" adaptive_pacing={cfg.use_mac_adaptive_pacing}"
           f" class_loss={cfg.use_mac_class_loss}"
@@ -741,10 +789,22 @@ def main() -> None:
 
     # Warmup + cosine scheduler
     from torch.optim.lr_scheduler import LinearLR, CosineAnnealingLR, SequentialLR
-    warmup_sched = LinearLR(optimizer, start_factor=1e-2, total_iters=cfg.warmup_epochs)
-    cosine_sched = CosineAnnealingLR(optimizer, T_max=total_epochs - cfg.warmup_epochs)
-    lr_scheduler = SequentialLR(optimizer, [warmup_sched, cosine_sched],
-                                milestones=[cfg.warmup_epochs])
+    if cfg.use_dgacl:
+        # DGACL Phase 2: reduced LR with short warmup + cosine decay
+        for pg in optimizer.param_groups:
+            pg["lr"] = cfg.dgacl_phase2_lr
+        warmup_sched = LinearLR(optimizer, start_factor=1e-2,
+                                total_iters=cfg.dgacl_phase2_warmup)
+        cosine_sched = CosineAnnealingLR(
+            optimizer, T_max=total_epochs - cfg.dgacl_phase2_warmup)
+        lr_scheduler = SequentialLR(optimizer, [warmup_sched, cosine_sched],
+                                    milestones=[cfg.dgacl_phase2_warmup])
+        base_lr = cfg.dgacl_phase2_lr
+    else:
+        warmup_sched = LinearLR(optimizer, start_factor=1e-2, total_iters=cfg.warmup_epochs)
+        cosine_sched = CosineAnnealingLR(optimizer, T_max=total_epochs - cfg.warmup_epochs)
+        lr_scheduler = SequentialLR(optimizer, [warmup_sched, cosine_sched],
+                                    milestones=[cfg.warmup_epochs])
 
     # ----- OOM probe -----
     accum_notice = None
@@ -1065,7 +1125,13 @@ def main() -> None:
 
         # 4. Epoch-level z-score normalize + rescore (before val)
         if cfg.use_dynamic_difficulty:
-            estimator.normalize_and_score(sample_bank)
+            estimator.normalize_and_score(
+                sample_bank,
+                use_dgacl=cfg.use_dgacl,
+                dgacl_w_disagree=cfg.dgacl_w_disagree,
+                dgacl_w_gap=cfg.dgacl_w_gap,
+                dgacl_w_loss=cfg.dgacl_w_loss,
+            )
 
             # 5. Difficulty distribution stats
             diffs = [s.difficulty for s in sample_bank.values()]
