@@ -1,0 +1,27 @@
+run: dkd14_equal_weight
+ablation_preset: DKD14
+mode: TTA (scales=[0.75, 1.0, 1.25] + hflip + vflip, 9 views)
+tta: scales=[0.75, 1.0, 1.25] flip=True n_views=9
+test set metrics (TTA):
+  IoU_background: 0.978995581555733
+  IoU_crack: 0.5952840518250485
+  IoU_spalling: 0.8616327981515493
+  Dice_background: 0.989386323729053
+  Dice_crack: 0.7463047739291662
+  Dice_spalling: 0.9256742779855199
+  mIoU_fg: 0.7284584249882988
+  mIoU_all: 0.8119708105107769
+  pixel_acc: 0.9796536000569661
+  BF1_crack: 0.7634768414687321
+  BF1_spalling: 0.6599045670280043
+  BF1_fg_mean: 0.7116907042483682
+  clDice_crack: 0.8382955564082104
+  clDice_spalling: 0.8811601672350319
+  clDice_fg_mean: 0.8597278618216211
+  ConnR_crack: 0.7931324190842791
+  ConnR_spalling: 0.7972972972972973
+  ConnR_fg_mean: 0.7952148581907882
+confusion matrix (rows=gt, cols=pred):
+[[36956580   400017    23871]
+ [  320629  1070488     2293]
+ [   48389     4854   494479]]
