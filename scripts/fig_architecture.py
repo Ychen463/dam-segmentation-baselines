@@ -2,7 +2,7 @@
 """Method overview architecture diagram — vertical (portrait) layout.
 
 Matches the paper's final method:
-  (a) DSCFormer: SegFormer-B2 + parallel DSConv branch
+  (a) TopoDistill: SegFormer-B2 + parallel DSConv branch
   (b) DTKD: class-conditional dual-teacher KD with confidence-aware distillation
 
 Usage:
@@ -83,7 +83,7 @@ def main():
                            facecolor=C_BG_A, edgecolor=C_ENC, alpha=0.20,
                            linewidth=1.5, linestyle="--", zorder=0)
     ax.add_patch(bg_a)
-    ax.text(0.6, 16.0, "(a) DSCFormer Architecture", fontsize=12,
+    ax.text(0.6, 16.0, "(a) TopoDistill Architecture", fontsize=12,
             fontweight="bold", color=C_ENC, family="sans-serif", alpha=0.85)
 
     # Background region (b): Training / DTKD  (lower half)
@@ -205,7 +205,7 @@ def main():
     # TEACHER 1  (left)
     # ==================================================================
     t1_x, t1_y = 1.8, 5.8
-    draw_box(ax, t1_x, t1_y, 2.4, 1.2, "Teacher 1\nDSCFormer\n(frozen)",
+    draw_box(ax, t1_x, t1_y, 2.4, 1.2, "Teacher 1\nTopoDistill\n(frozen)",
              C_T1, fontsize=8, alpha=0.30, fontweight="bold")
     ax.text(t1_x, 5.0, "Strong on spalling", fontsize=6.5,
             ha="center", color=C_T1, fontstyle="italic",
