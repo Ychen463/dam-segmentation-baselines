@@ -50,7 +50,7 @@ from full_method.calora_model import CrackAdaptiveLoRASAM, compute_router_aux_lo
 from full_method.dinov2_model import DINOv2LoRA
 from full_method.losses import CompositeLoss, confidence_aware_kd_loss
 from full_method.adaptive_weights import (
-    AdaptiveTeacherWeights, adaptive_dual_teacher_ensemble, accw_val_loss,
+    AdaptiveTeacherWeights, adaptive_dual_teacher_ensemble, accw_epoch_update,
 )
 from full_method.difficulty import DifficultyEstimator, SampleState
 from full_method.sampler import TierAwareDynamicSampler
@@ -208,10 +208,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     mac_topo_multiplier: float = 1.0,
                     teacher_model: nn.Module = None,
                     teacher2_model: nn.Module = None,
-                    accw: AdaptiveTeacherWeights = None,
-                    accw_optimizer: torch.optim.Optimizer = None,
-                    val_loader_iter: object = None,
-                    val_loader: DataLoader = None) -> Dict[str, float]:
+                    accw: AdaptiveTeacherWeights = None) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
@@ -314,34 +311,6 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
 
                 total_loss = cfg.kd_alpha * total_loss + (1 - cfg.kd_alpha) * loss_kd
                 info["loss_kd"] = float(loss_kd.detach().cpu())
-
-                # ACCW: update adaptive weights via val feedback
-                if (accw is not None and accw_optimizer is not None
-                        and val_loader is not None
-                        and step % cfg.accw_update_freq == 0):
-                    # Get a val batch (cycle through val loader)
-                    if val_loader_iter is not None and hasattr(val_loader_iter, '__next__'):
-                        try:
-                            v_batch = next(val_loader_iter)
-                        except StopIteration:
-                            val_loader_iter = iter(val_loader)
-                            v_batch = next(val_loader_iter)
-                    else:
-                        val_loader_iter = iter(val_loader)
-                        v_batch = next(val_loader_iter)
-
-                    model.eval()
-                    accw_optimizer.zero_grad()
-                    v_loss = accw_val_loss(
-                        model, teacher_model, teacher2_model, accw,
-                        v_batch, device, cfg.kd_temperature, cfg.kd_alpha,
-                        use_conf_kd=(cfg.use_dgacl and cfg.dgacl_pixel_kd),
-                    )
-                    v_loss.backward()
-                    accw_optimizer.step()
-                    model.train()
-                    info["accw_val_loss"] = float(v_loss.detach().cpu())
-                    info.update(accw.get_weights_dict())
 
             # CALoRA: auxiliary routing loss (crack density -> high-rank gate)
             if (cfg is not None and cfg.model_type == "calora_sam"
@@ -1090,14 +1059,13 @@ def main() -> None:
     # ----- ACCW: adaptive teacher weights -----
     accw = None
     accw_optimizer = None
-    accw_val_iter = None
     if cfg.use_accw and teacher2_model is not None:
         init_t2 = [float(x) for x in cfg.accw_init_t2.split(",")]
         accw = AdaptiveTeacherWeights(num_classes=C.NUM_CLASSES,
                                       init_t2_weights=init_t2).to(device)
         accw_optimizer = torch.optim.Adam(accw.parameters(), lr=cfg.accw_lr)
         print(f"[ACCW] adaptive teacher weights enabled: init_t2={init_t2}, "
-              f"lr={cfg.accw_lr}, update_freq={cfg.accw_update_freq}")
+              f"lr={cfg.accw_lr}, update=per-epoch (full val set)")
 
     # ----- training loop -----
     run_t0 = time.time()
@@ -1155,9 +1123,7 @@ def main() -> None:
                              mac_topo_multiplier=_mac_topo_mult,
                              teacher_model=teacher_model,
                              teacher2_model=teacher2_model,
-                             accw=accw, accw_optimizer=accw_optimizer,
-                             val_loader_iter=accw_val_iter,
-                             val_loader=val_loader)
+                             accw=accw)
 
         # 2b. Update EMA model
         if ema_model is not None and epoch >= cfg.ema_start_epoch:
@@ -1229,6 +1195,18 @@ def main() -> None:
                 tm = mac_class_sched.get_topo_multiplier()
                 print(f"[MAC] class_loss: crack_mult={cm:.3f} spalling_mult={sm:.3f}"
                       f" topo_mult={tm:.3f}")
+            # ACCW: update adaptive weights using full val set
+            if accw is not None and accw_optimizer is not None:
+                accw_info = accw_epoch_update(
+                    model, teacher_model, teacher2_model, accw, accw_optimizer,
+                    val_loader, device, cfg.kd_temperature, cfg.kd_alpha,
+                    use_conf_kd=(cfg.use_dgacl and cfg.dgacl_pixel_kd),
+                )
+                print(f"  [ACCW] val_loss={accw_info['accw_val_loss']:.4f} "
+                      f"w2_bg={accw_info['w2_bg']:.4f} "
+                      f"w2_crack={accw_info['w2_crack']:.4f} "
+                      f"w2_spalling={accw_info['w2_spalling']:.4f}")
+                model.train()  # restore train mode
         lr_scheduler.step()
         dt = time.time() - t0
         epochs_done += 1

@@ -6,9 +6,10 @@ optimized via validation feedback (simplified bi-level optimization).
 Model params theta: updated on training loss (inner loop).
 Weight params alpha: updated on validation loss (outer loop).
 
-Every `update_freq` training steps, a validation mini-batch is forwarded
-through both teachers + student with current adaptive weights. The val
-loss gradient flows only through alpha (model params are detached).
+At the end of each epoch, the full validation set is forwarded through
+both teachers + student. The val loss gradient flows only through alpha
+(model params are detached), providing a stable signal to learn
+per-class teacher expertise.
 """
 from __future__ import annotations
 
@@ -99,85 +100,96 @@ def adaptive_dual_teacher_ensemble(
     return torch.log(ensemble + 1e-8) * temperature
 
 
-def accw_val_loss(
+def accw_epoch_update(
     student_model: nn.Module,
     teacher1_model: nn.Module,
     teacher2_model: nn.Module,
     accw: AdaptiveTeacherWeights,
-    val_batch: dict,
+    accw_optimizer: torch.optim.Optimizer,
+    val_loader,
     device: str,
     temperature: float = 4.0,
     kd_alpha: float = 0.5,
     use_conf_kd: bool = True,
-) -> torch.Tensor:
-    """Compute validation KD loss with adaptive weights.
+) -> dict:
+    """Update adaptive weights using the full validation set (once per epoch).
 
-    The gradient flows through accw.logits only (student & teacher
-    params are detached / frozen). This enables updating the weight
-    params to minimize val-set distillation quality.
+    Iterates over all val batches, accumulates gradient on accw.logits,
+    then takes a single optimizer step. This gives a stable gradient
+    signal from all 150 val images rather than a noisy 4-image estimate.
 
     Args:
-        student_model: the student (in eval mode, grads disabled on params).
+        student_model: the student (eval mode, params frozen for this step).
         teacher1_model: frozen teacher 1.
         teacher2_model: frozen teacher 2.
-        accw: AdaptiveTeacherWeights (the only trainable component here).
-        val_batch: a batch dict from the val DataLoader.
+        accw: AdaptiveTeacherWeights (the only trainable component).
+        accw_optimizer: optimizer for accw parameters.
+        val_loader: full validation DataLoader.
         device: device string.
         temperature: KD temperature.
         kd_alpha: weight for KD loss vs. supervised loss.
         use_conf_kd: whether to apply confidence-aware KD.
 
     Returns:
-        Scalar loss for updating accw parameters.
+        Dict with val loss and current weights for logging.
     """
-    imgs = val_batch["image"].to(device, non_blocking=True).float()
-    masks = val_batch["mask"].to(device, non_blocking=True).long()
+    student_model.eval()
+    accw_optimizer.zero_grad()
 
-    with torch.no_grad():
-        t1_out = teacher1_model(imgs)
-        t1_logits = F.interpolate(t1_out["seg_logits"].float(),
-                                  masks.shape[-2:], mode="bilinear",
-                                  align_corners=False)
-        t2_out = teacher2_model(imgs)
-        t2_logits = F.interpolate(t2_out["seg_logits"].float(),
-                                  masks.shape[-2:], mode="bilinear",
-                                  align_corners=False)
-        s_out = student_model(imgs)
-        s_logits = F.interpolate(s_out["seg_logits"].float(),
-                                 masks.shape[-2:], mode="bilinear",
-                                 align_corners=False)
+    total_loss = torch.tensor(0.0, device=device)
+    n_batches = 0
 
-    # Ensemble with adaptive weights (gradient flows through accw)
-    t_logits = adaptive_dual_teacher_ensemble(
-        t1_logits, t2_logits, accw, temperature)
+    for val_batch in val_loader:
+        imgs = val_batch["image"].to(device, non_blocking=True).float()
+        masks = val_batch["mask"].to(device, non_blocking=True).long()
 
-    # KD loss: student vs. adaptive ensemble
-    s_log_prob = F.log_softmax(s_logits.detach() / temperature, dim=1)
-    t_prob = F.softmax(t_logits / temperature, dim=1)
+        with torch.no_grad():
+            t1_out = teacher1_model(imgs)
+            t1_logits = F.interpolate(t1_out["seg_logits"].float(),
+                                      masks.shape[-2:], mode="bilinear",
+                                      align_corners=False)
+            t2_out = teacher2_model(imgs)
+            t2_logits = F.interpolate(t2_out["seg_logits"].float(),
+                                      masks.shape[-2:], mode="bilinear",
+                                      align_corners=False)
+            s_out = student_model(imgs)
+            s_logits = F.interpolate(s_out["seg_logits"].float(),
+                                     masks.shape[-2:], mode="bilinear",
+                                     align_corners=False)
 
-    if use_conf_kd:
-        # Confidence-aware: down-weight where teachers disagree
-        t1_prob = F.softmax(t1_logits / temperature, dim=1)
-        t2_prob = F.softmax(t2_logits / temperature, dim=1)
-        kl_t1t2 = (t1_prob * (t1_prob.clamp_min(1e-8).log()
-                              - t2_prob.clamp_min(1e-8).log())).sum(1)
-        kl_max = kl_t1t2.max().clamp_min(1e-6)
-        agreement = 1.0 - (kl_t1t2 / kl_max)  # (B, H, W)
+        # Ensemble with adaptive weights (gradient flows through accw)
+        t_logits = adaptive_dual_teacher_ensemble(
+            t1_logits, t2_logits, accw, temperature)
 
-        kl_per_pixel = (t_prob * (t_prob.log() - s_log_prob)).sum(dim=1)
-        loss_kd = (kl_per_pixel * agreement).mean() * (temperature ** 2)
-    else:
-        loss_kd = F.kl_div(s_log_prob, t_prob, reduction="batchmean") * (temperature ** 2)
+        # KD loss: student vs. adaptive ensemble
+        s_log_prob = F.log_softmax(s_logits.detach() / temperature, dim=1)
+        t_prob = F.softmax(t_logits / temperature, dim=1)
 
-    # Supervised loss on val (CE + Dice) — provides ground-truth signal
-    # to guide weights toward better per-class teacher selection
-    loss_ce = F.cross_entropy(s_logits.detach(), masks)
+        if use_conf_kd:
+            t1_prob = F.softmax(t1_logits / temperature, dim=1)
+            t2_prob = F.softmax(t2_logits / temperature, dim=1)
+            kl_t1t2 = (t1_prob * (t1_prob.clamp_min(1e-8).log()
+                                  - t2_prob.clamp_min(1e-8).log())).sum(1)
+            kl_max = kl_t1t2.max().clamp_min(1e-6)
+            agreement = 1.0 - (kl_t1t2 / kl_max)
 
-    # Combined: we want weights that produce ensemble labels which,
-    # when distilled, align with GT supervision on validation data
-    # The key insight: optimizing KD loss alone would just match the
-    # student's current predictions; adding CE grounds the weights
-    # toward GT-aligned teacher selection.
-    total = kd_alpha * loss_kd + (1.0 - kd_alpha) * loss_ce
+            kl_per_pixel = (t_prob * (t_prob.log() - s_log_prob)).sum(dim=1)
+            loss_kd = (kl_per_pixel * agreement).mean() * (temperature ** 2)
+        else:
+            loss_kd = F.kl_div(s_log_prob, t_prob, reduction="batchmean") * (temperature ** 2)
 
-    return total
+        loss_ce = F.cross_entropy(s_logits.detach(), masks)
+        batch_loss = kd_alpha * loss_kd + (1.0 - kd_alpha) * loss_ce
+
+        # Accumulate gradients across all val batches
+        (batch_loss / len(val_loader)).backward()
+        total_loss = total_loss + batch_loss.detach()
+        n_batches += 1
+
+    # Single optimizer step with accumulated gradients from full val set
+    accw_optimizer.step()
+
+    avg_loss = total_loss.item() / max(n_batches, 1)
+    result = {"accw_val_loss": avg_loss}
+    result.update(accw.get_weights_dict())
+    return result

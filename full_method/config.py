@@ -143,7 +143,6 @@ class RunCfg:
     # Adaptive Class-Conditional Weighting (ACCW)
     use_accw: bool = False                  # learn per-class weights via val feedback
     accw_lr: float = 0.01                   # learning rate for weight logits
-    accw_update_freq: int = 50              # update weights every N training steps
     accw_init_t2: str = "0.5,0.6,0.3"      # initial T2 weights (bg,crack,spalling)
 
     # Skeleton-Distance Weighted Loss (SDWL)
@@ -1854,7 +1853,7 @@ ABLATION_PRESETS = {
               "kd_class_weights": True,
               "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
               "use_accw": True,
-              "accw_lr": 0.01, "accw_update_freq": 50,
+              "accw_lr": 0.01,
               "accw_init_t2": "0.5,0.6,0.3",
               "use_dgacl": True, "dgacl_pixel_kd": True,
               "no_curriculum": True,
@@ -1876,7 +1875,7 @@ ABLATION_PRESETS = {
               "kd_class_weights": True,
               "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
               "use_accw": True,
-              "accw_lr": 0.01, "accw_update_freq": 50,
+              "accw_lr": 0.01,
               "accw_init_t2": "0.5,0.6,0.3",
               "use_dgacl": False, "dgacl_pixel_kd": False,
               "no_curriculum": True,
@@ -1898,7 +1897,7 @@ ABLATION_PRESETS = {
               "kd_class_weights": True,
               "kd_crack_t2_weight": 0.5, "kd_spalling_t2_weight": 0.5,
               "use_accw": True,
-              "accw_lr": 0.01, "accw_update_freq": 50,
+              "accw_lr": 0.01,
               "accw_init_t2": "0.5,0.5,0.5",
               "use_dgacl": True, "dgacl_pixel_kd": True,
               "no_curriculum": True,
