@@ -140,6 +140,12 @@ class RunCfg:
     kd_crack_t2_weight: float = 0.6        # SAM2 weight for crack class (higher = more SAM2)
     kd_spalling_t2_weight: float = 0.3     # SAM2 weight for spalling class (lower = more G1)
 
+    # Adaptive Class-Conditional Weighting (ACCW)
+    use_accw: bool = False                  # learn per-class weights via val feedback
+    accw_lr: float = 0.01                   # learning rate for weight logits
+    accw_update_freq: int = 50              # update weights every N training steps
+    accw_init_t2: str = "0.5,0.6,0.3"      # initial T2 weights (bg,crack,spalling)
+
     # Skeleton-Distance Weighted Loss (SDWL)
     use_sdwl: bool = False               # enable skeleton-distance weighted CE
     sdwl_start_epoch: int = 30           # start SDWL after this epoch
@@ -1832,6 +1838,76 @@ ABLATION_PRESETS = {
                "use_boundary_loss": False, "use_tversky_loss": False,
                "use_cldice_loss": False, "use_srl_loss": False,
                "use_soft_boundary_schedule": False},
+
+    # =========================================================================
+    # ACCW: Adaptive Class-Conditional Weighting experiments
+    # =========================================================================
+    # ACCW1: Full adaptive weighting + confidence-aware KD (main experiment)
+    "ACCW1": {"name": "accw1_adaptive_confkd",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": True,
+              "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+              "use_accw": True,
+              "accw_lr": 0.01, "accw_update_freq": 50,
+              "accw_init_t2": "0.5,0.6,0.3",
+              "use_dgacl": True, "dgacl_pixel_kd": True,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False, "use_srl_loss": False,
+              "use_soft_boundary_schedule": False},
+    # ACCW2: Adaptive weighting without confidence-aware KD (ablation)
+    "ACCW2": {"name": "accw2_adaptive_only",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": True,
+              "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+              "use_accw": True,
+              "accw_lr": 0.01, "accw_update_freq": 50,
+              "accw_init_t2": "0.5,0.6,0.3",
+              "use_dgacl": False, "dgacl_pixel_kd": False,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False, "use_srl_loss": False,
+              "use_soft_boundary_schedule": False},
+    # ACCW3: Adaptive weighting initialized from equal weights (0.5,0.5,0.5)
+    "ACCW3": {"name": "accw3_from_equal",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": True,
+              "kd_crack_t2_weight": 0.5, "kd_spalling_t2_weight": 0.5,
+              "use_accw": True,
+              "accw_lr": 0.01, "accw_update_freq": 50,
+              "accw_init_t2": "0.5,0.5,0.5",
+              "use_dgacl": True, "dgacl_pixel_kd": True,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False, "use_srl_loss": False,
+              "use_soft_boundary_schedule": False},
 }
 
 

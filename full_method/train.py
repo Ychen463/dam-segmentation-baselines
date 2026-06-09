@@ -49,6 +49,9 @@ from full_method.sam_model import TopoLoRASAM
 from full_method.calora_model import CrackAdaptiveLoRASAM, compute_router_aux_loss
 from full_method.dinov2_model import DINOv2LoRA
 from full_method.losses import CompositeLoss, confidence_aware_kd_loss
+from full_method.adaptive_weights import (
+    AdaptiveTeacherWeights, adaptive_dual_teacher_ensemble, accw_val_loss,
+)
 from full_method.difficulty import DifficultyEstimator, SampleState
 from full_method.sampler import TierAwareDynamicSampler
 from full_method.scheduler import CurriculumScheduler, AdaptivePacer, ClassLossScheduler
@@ -204,7 +207,11 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     mac_ce_multipliers: tuple = None,
                     mac_topo_multiplier: float = 1.0,
                     teacher_model: nn.Module = None,
-                    teacher2_model: nn.Module = None) -> Dict[str, float]:
+                    teacher2_model: nn.Module = None,
+                    accw: AdaptiveTeacherWeights = None,
+                    accw_optimizer: torch.optim.Optimizer = None,
+                    val_loader_iter: object = None,
+                    val_loader: DataLoader = None) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
@@ -260,7 +267,11 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                         t2_logits = F.interpolate(t2_out["seg_logits"].float(),
                                                   masks.shape[-2:], mode="bilinear",
                                                   align_corners=False)
-                        t_logits = dual_teacher_ensemble(t1_logits, t2_logits, cfg)
+                        if accw is not None:
+                            t_logits = adaptive_dual_teacher_ensemble(
+                                t1_logits, t2_logits, accw, cfg.kd_temperature)
+                        else:
+                            t_logits = dual_teacher_ensemble(t1_logits, t2_logits, cfg)
                     else:
                         t_logits = t1_logits
 
@@ -303,6 +314,34 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
 
                 total_loss = cfg.kd_alpha * total_loss + (1 - cfg.kd_alpha) * loss_kd
                 info["loss_kd"] = float(loss_kd.detach().cpu())
+
+                # ACCW: update adaptive weights via val feedback
+                if (accw is not None and accw_optimizer is not None
+                        and val_loader is not None
+                        and step % cfg.accw_update_freq == 0):
+                    # Get a val batch (cycle through val loader)
+                    if val_loader_iter is not None and hasattr(val_loader_iter, '__next__'):
+                        try:
+                            v_batch = next(val_loader_iter)
+                        except StopIteration:
+                            val_loader_iter = iter(val_loader)
+                            v_batch = next(val_loader_iter)
+                    else:
+                        val_loader_iter = iter(val_loader)
+                        v_batch = next(val_loader_iter)
+
+                    model.eval()
+                    accw_optimizer.zero_grad()
+                    v_loss = accw_val_loss(
+                        model, teacher_model, teacher2_model, accw,
+                        v_batch, device, cfg.kd_temperature, cfg.kd_alpha,
+                        use_conf_kd=(cfg.use_dgacl and cfg.dgacl_pixel_kd),
+                    )
+                    v_loss.backward()
+                    accw_optimizer.step()
+                    model.train()
+                    info["accw_val_loss"] = float(v_loss.detach().cpu())
+                    info.update(accw.get_weights_dict())
 
             # CALoRA: auxiliary routing loss (crack density -> high-rank gate)
             if (cfg is not None and cfg.model_type == "calora_sam"
@@ -1048,6 +1087,18 @@ def main() -> None:
             print(f"[KD] dual-teacher mode: {mode} "
                   f"(t1={cfg.kd_t1_weight}, t2={cfg.kd_t2_weight})")
 
+    # ----- ACCW: adaptive teacher weights -----
+    accw = None
+    accw_optimizer = None
+    accw_val_iter = None
+    if cfg.use_accw and teacher2_model is not None:
+        init_t2 = [float(x) for x in cfg.accw_init_t2.split(",")]
+        accw = AdaptiveTeacherWeights(num_classes=C.NUM_CLASSES,
+                                      init_t2_weights=init_t2).to(device)
+        accw_optimizer = torch.optim.Adam(accw.parameters(), lr=cfg.accw_lr)
+        print(f"[ACCW] adaptive teacher weights enabled: init_t2={init_t2}, "
+              f"lr={cfg.accw_lr}, update_freq={cfg.accw_update_freq}")
+
     # ----- training loop -----
     run_t0 = time.time()
     epochs_done = 0
@@ -1103,7 +1154,10 @@ def main() -> None:
                              mac_ce_multipliers=_mac_ce_mults,
                              mac_topo_multiplier=_mac_topo_mult,
                              teacher_model=teacher_model,
-                             teacher2_model=teacher2_model)
+                             teacher2_model=teacher2_model,
+                             accw=accw, accw_optimizer=accw_optimizer,
+                             val_loader_iter=accw_val_iter,
+                             val_loader=val_loader)
 
         # 2b. Update EMA model
         if ema_model is not None and epoch >= cfg.ema_start_epoch:
@@ -1122,6 +1176,12 @@ def main() -> None:
             if 'unique_hist' in ss:
                 print(f"[{cfg.name}] [sampler] unique: {ss['unique_hist']} "
                       f"unique_total={ss['unique_total']} dup_ratio={ss['dup_ratio']:.2f}x")
+
+        # 3b. Log ACCW weights
+        if accw is not None:
+            wd = accw.get_weights_dict()
+            print(f"[{cfg.name}] [ACCW] w2_bg={wd['w2_bg']:.4f} "
+                  f"w2_crack={wd['w2_crack']:.4f} w2_spalling={wd['w2_spalling']:.4f}")
 
         # 4. Epoch-level z-score normalize + rescore (before val)
         if cfg.use_dynamic_difficulty:
@@ -1257,6 +1317,9 @@ def main() -> None:
                              "sample_bank": bank_serializable}
                 if ema_model is not None:
                     best_ckpt["ema_model"] = ema_model.state_dict()
+                if accw is not None:
+                    best_ckpt["accw"] = accw.state_dict()
+                    best_ckpt["accw_weights"] = accw.get_weights_dict()
                 # If EMA is better, also save EMA weights as "model" for easy loading
                 if best_is_ema:
                     best_ckpt["model"] = ema_model.state_dict()
