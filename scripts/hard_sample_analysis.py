@@ -168,7 +168,8 @@ def main():
 
     # Compute width stats for worst samples
     print(f"\n[hard-sample] Computing width stats for top-{args.top} worst samples...")
-    from full_method.dataset import FullMethodDataset, build_transforms
+    from full_method.dataset import FullMethodDataset
+    from baseline_unet.dataset import build_transforms
     ds = FullMethodDataset(C.DATA_ROOT,
                            [{"id": s["file"], "rel": s["file"], "tier": 0, "has_spalling": False}
                             for s in crack_samples[:args.top]],
