@@ -229,6 +229,12 @@ class RunCfg:
     boundary_kd_body_discount: float = 0.5
     boundary_kd_combine_conf: bool = True
 
+    # Boundary-Conditional Teacher Ensemble (BCTE)
+    # At boundary pixels, shift ensemble weight toward T1 (more accurate at boundaries)
+    use_boundary_ensemble: bool = False
+    boundary_ens_t1_weight: float = 0.65    # T1 weight at boundary pixels
+    boundary_ens_width: int = 3             # boundary strip width for ensemble
+
     # Boundary Dice Loss
     use_boundary_dice: bool = False
     boundary_dice_weight: float = 0.15
@@ -2228,6 +2234,49 @@ ABLATION_PRESETS = {
             "boundary_kd_combine_conf": True,
             "use_dgacl": True, "dgacl_pixel_kd": True,
             "dgacl_phase2_lr": 1e-5, "dgacl_phase2_warmup": 3},
+    # BR6: Boundary-Conditional Teacher Ensemble (BCTE)
+    # Data-driven: T1 is +4pp more accurate at boundary pixels → upweight T1 there
+    "BR6": {"name": "br6_boundary_ensemble",
+            "model_type": "dscformer",
+            "use_kd": True, "use_dual_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+            "kd_teacher2_model_type": "sam_lora",
+            "kd_alpha": 0.5, "kd_temperature": 4.0,
+            "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+            "kd_class_weights": True,
+            "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_boundary_ensemble": True, "boundary_ens_t1_weight": 0.65,
+            "boundary_ens_width": 3},
+    # BR6b: BCTE + crack-only boundary Dice (combine teacher-side + student-side)
+    "BR6b": {"name": "br6b_bcte_bdice",
+             "model_type": "dscformer",
+             "use_kd": True, "use_dual_kd": True,
+             "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+             "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+             "kd_teacher2_model_type": "sam_lora",
+             "kd_alpha": 0.5, "kd_temperature": 4.0,
+             "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+             "kd_class_weights": True,
+             "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False, "use_srl_loss": False,
+             "use_soft_boundary_schedule": False,
+             "use_boundary_ensemble": True, "boundary_ens_t1_weight": 0.65,
+             "boundary_ens_width": 3,
+             "use_boundary_dice": True, "boundary_dice_weight": 0.15,
+             "boundary_dice_width": 3, "boundary_dice_classes": (1,)},
 
     # ACCW2: Adaptive weighting without confidence-aware KD (ablation)
     "ACCW2": {"name": "accw2_adaptive_only",

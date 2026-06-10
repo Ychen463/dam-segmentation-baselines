@@ -207,6 +207,48 @@ def dual_teacher_ensemble(t1_logits: torch.Tensor, t2_logits: torch.Tensor,
         return cfg.kd_t1_weight * t1_logits + cfg.kd_t2_weight * t2_logits
 
 
+def boundary_conditional_ensemble(t1_logits: torch.Tensor, t2_logits: torch.Tensor,
+                                  masks: torch.Tensor, cfg) -> torch.Tensor:
+    """Ensemble with boundary-conditional T1/T2 weights.
+
+    At boundary pixels, upweight T1 (more accurate at boundaries per analysis).
+    At body pixels, use the standard class-conditional ensemble.
+    """
+    # Get body ensemble (standard)
+    body_logits = dual_teacher_ensemble(t1_logits, t2_logits, cfg)
+
+    # Get boundary ensemble (T1-heavy)
+    bdry_t1_w = cfg.boundary_ens_t1_weight
+    bdry_t2_w = 1.0 - bdry_t1_w
+
+    if cfg.kd_class_weights:
+        t1_prob = F.softmax(t1_logits / cfg.kd_temperature, dim=1)
+        t2_prob = F.softmax(t2_logits / cfg.kd_temperature, dim=1)
+        ensemble = bdry_t1_w * t1_prob + bdry_t2_w * t2_prob
+        ensemble = ensemble / (ensemble.sum(dim=1, keepdim=True) + 1e-8)
+        bdry_logits = torch.log(ensemble + 1e-8) * cfg.kd_temperature
+    else:
+        bdry_logits = bdry_t1_w * t1_logits + bdry_t2_w * t2_logits
+
+    # Binary boundary mask → blend
+    B, _, H, W = t1_logits.shape
+    boundary = masks.new_zeros((B, H, W), dtype=torch.float32)
+    width = cfg.boundary_ens_width
+    for cls in (1, 2):
+        cls_mask = (masks == cls).float().unsqueeze(1)
+        if cls_mask.sum() < 1:
+            continue
+        ks = 2 * width + 1
+        dil = F.max_pool2d(cls_mask, ks, stride=1, padding=width)
+        ero = -F.max_pool2d(-cls_mask, ks, stride=1, padding=width)
+        strip = ((dil - ero) > 0.5).float()[:, 0]
+        boundary = torch.max(boundary, strip)
+
+    # (B, 1, H, W) blend factor
+    alpha = boundary.unsqueeze(1)
+    return alpha * bdry_logits + (1.0 - alpha) * body_logits
+
+
 def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     metrics: SegMetricsBF1, grad_accum: int,
                     sample_bank: Dict[str, SampleState],
@@ -284,6 +326,9 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                         if accw is not None:
                             t_logits = adaptive_dual_teacher_ensemble(
                                 t1_logits, t2_logits, accw, cfg.kd_temperature)
+                        elif cfg.use_boundary_ensemble:
+                            t_logits = boundary_conditional_ensemble(
+                                t1_logits, t2_logits, masks, cfg)
                         else:
                             t_logits = dual_teacher_ensemble(t1_logits, t2_logits, cfg)
                     else:
