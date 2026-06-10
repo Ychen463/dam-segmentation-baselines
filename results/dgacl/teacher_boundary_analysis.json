@@ -1,0 +1,94 @@
+{
+  "overall": {
+    "boundary": {
+      "kl_t1t2_mean": 0.053122,
+      "entropy_t1_mean": 0.191441,
+      "entropy_t2_mean": 0.229157,
+      "acc_t1": 0.8258,
+      "acc_t2": 0.7849,
+      "n_pixels": 21101920
+    },
+    "body": {
+      "kl_t1t2_mean": 0.035886,
+      "entropy_t1_mean": 0.004717,
+      "entropy_t2_mean": 0.010642,
+      "acc_t1": 0.9974,
+      "acc_t2": 0.994,
+      "n_pixels": 293470880
+    }
+  },
+  "by_class": {
+    "crack_boundary": {
+      "kl_t1t2_mean": 0.051831,
+      "entropy_t1_mean": 0.193232,
+      "entropy_t2_mean": 0.229336,
+      "acc_t1": 0.8259,
+      "acc_t2": 0.7853,
+      "n_pixels": 20214182
+    },
+    "spalling_boundary": {
+      "kl_t1t2_mean": 0.082954,
+      "entropy_t1_mean": 0.153869,
+      "entropy_t2_mean": 0.228687,
+      "acc_t1": 0.8213,
+      "acc_t2": 0.7735,
+      "n_pixels": 901867
+    }
+  },
+  "by_tier": {
+    "Easy": {
+      "boundary": {
+        "kl_t1t2_mean": 0.060833,
+        "entropy_t1_mean": 0.176673,
+        "entropy_t2_mean": 0.198589,
+        "acc_t1": 0.8284,
+        "acc_t2": 0.7946,
+        "n_pixels": 3109686
+      },
+      "body": {
+        "kl_t1t2_mean": 0.031115,
+        "entropy_t1_mean": 0.000999,
+        "entropy_t2_mean": 0.003064,
+        "acc_t1": 0.9994,
+        "acc_t2": 0.9976,
+        "n_pixels": 101747914
+      }
+    },
+    "Medium": {
+      "boundary": {
+        "kl_t1t2_mean": 0.051974,
+        "entropy_t1_mean": 0.1812,
+        "entropy_t2_mean": 0.210557,
+        "acc_t1": 0.8273,
+        "acc_t2": 0.7976,
+        "n_pixels": 6034341
+      },
+      "body": {
+        "kl_t1t2_mean": 0.032054,
+        "entropy_t1_mean": 0.002548,
+        "entropy_t2_mean": 0.007471,
+        "acc_t1": 0.9983,
+        "acc_t2": 0.9951,
+        "n_pixels": 98823259
+      }
+    },
+    "Hard": {
+      "boundary": {
+        "kl_t1t2_mean": 0.051695,
+        "entropy_t1_mean": 0.20045,
+        "entropy_t2_mean": 0.246492,
+        "acc_t1": 0.8244,
+        "acc_t2": 0.776,
+        "n_pixels": 11957893
+      },
+      "body": {
+        "kl_t1t2_mean": 0.045189,
+        "entropy_t1_mean": 0.011096,
+        "entropy_t2_mean": 0.022314,
+        "acc_t1": 0.9941,
+        "acc_t2": 0.9889,
+        "n_pixels": 92899707
+      }
+    }
+  }
+}
