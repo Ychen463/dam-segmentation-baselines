@@ -1,0 +1,648 @@
+{
+  "run": "dscformer_srl_G1",
+  "split": "test",
+  "tier_summary": {
+    "Easy": {
+      "n": 50,
+      "mean_crack_iou": 0.6101,
+      "mean_spalling_iou": 0.744,
+      "mean_miou_fg": 0.643
+    },
+    "Medium": {
+      "n": 50,
+      "mean_crack_iou": 0.6016,
+      "mean_spalling_iou": 0.5066,
+      "mean_miou_fg": 0.5917
+    },
+    "Hard": {
+      "n": 50,
+      "mean_crack_iou": 0.5251,
+      "mean_spalling_iou": 0.6706,
+      "mean_miou_fg": 0.533
+    }
+  },
+  "worst_samples": [
+    {
+      "file": "Easy/E (294).jpg",
+      "tier": "Easy",
+      "crack_iou": 0.0,
+      "spalling_iou": 0.9328,
+      "miou_fg": 0.4664,
+      "has_crack": true,
+      "has_spalling": true,
+      "crack_area": 372,
+      "spalling_area": 21924,
+      "tp": 0,
+      "fp": 0,
+      "fn": 372,
+      "width_stats": {
+        "area": 372,
+        "mean_width": 6.850728467419142,
+        "min_width": 4.0,
+        "max_width": 10.0
+      }
+    },
+    {
+      "file": "Easy/E (25).jpg",
+      "tier": "Easy",
+      "crack_iou": 0.1831,
+      "spalling_iou": null,
+      "miou_fg": 0.1831,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 8150,
+      "spalling_area": 0,
+      "tp": 1642,
+      "fp": 816,
+      "fn": 6508,
+      "width_stats": {
+        "area": 8150,
+        "mean_width": 12.36397195312765,
+        "min_width": 2.0,
+        "max_width": 18.0
+      }
+    },
+    {
+      "file": "Easy/E (8).jpg",
+      "tier": "Easy",
+      "crack_iou": 0.2493,
+      "spalling_iou": 0.9751,
+      "miou_fg": 0.6122,
+      "has_crack": true,
+      "has_spalling": true,
+      "crack_area": 784,
+      "spalling_area": 44272,
+      "tp": 767,
+      "fp": 2292,
+      "fn": 17,
+      "width_stats": {
+        "area": 784,
+        "mean_width": 8.904087723631756,
+        "min_width": 2.0,
+        "max_width": 12.165525060596439
+      }
+    },
+    {
+      "file": "Easy/E (162).jpg",
+      "tier": "Easy",
+      "crack_iou": 0.2914,
+      "spalling_iou": null,
+      "miou_fg": 0.2914,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 5804,
+      "spalling_area": 0,
+      "tp": 1842,
+      "fp": 518,
+      "fn": 3962,
+      "width_stats": {
+        "area": 5804,
+        "mean_width": 7.837312014073469,
+        "min_width": 2.0,
+        "max_width": 18.0
+      }
+    },
+    {
+      "file": "Easy/E (86).jpg",
+      "tier": "Easy",
+      "crack_iou": 0.3436,
+      "spalling_iou": null,
+      "miou_fg": 0.3436,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 1350,
+      "spalling_area": 0,
+      "tp": 1281,
+      "fp": 2378,
+      "fn": 69,
+      "width_stats": {
+        "area": 1350,
+        "mean_width": 6.205838563245697,
+        "min_width": 2.0,
+        "max_width": 10.198039027185569
+      }
+    },
+    {
+      "file": "Hard/H (411).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.3559,
+      "spalling_iou": null,
+      "miou_fg": 0.3559,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 7558,
+      "spalling_area": 0,
+      "tp": 4964,
+      "fp": 6391,
+      "fn": 2594,
+      "width_stats": {
+        "area": 7558,
+        "mean_width": 4.725620457758501,
+        "min_width": 2.0,
+        "max_width": 10.0
+      }
+    },
+    {
+      "file": "Hard/H (452).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.3578,
+      "spalling_iou": null,
+      "miou_fg": 0.3578,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 12240,
+      "spalling_area": 0,
+      "tp": 5836,
+      "fp": 4070,
+      "fn": 6404,
+      "width_stats": {
+        "area": 12240,
+        "mean_width": 5.271488253265193,
+        "min_width": 2.0,
+        "max_width": 16.1245154965971
+      }
+    },
+    {
+      "file": "Hard/H (402).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.3746,
+      "spalling_iou": null,
+      "miou_fg": 0.3746,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 10131,
+      "spalling_area": 0,
+      "tp": 7025,
+      "fp": 8621,
+      "fn": 3106,
+      "width_stats": {
+        "area": 10131,
+        "mean_width": 4.656407880332934,
+        "min_width": 2.0,
+        "max_width": 8.246211251235321
+      }
+    },
+    {
+      "file": "Hard/H (292).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.3815,
+      "spalling_iou": null,
+      "miou_fg": 0.3815,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 8599,
+      "spalling_area": 0,
+      "tp": 6671,
+      "fp": 8885,
+      "fn": 1928,
+      "width_stats": {
+        "area": 8599,
+        "mean_width": 4.37480234543127,
+        "min_width": 2.0,
+        "max_width": 10.0
+      }
+    },
+    {
+      "file": "Easy/E (350).jpg",
+      "tier": "Easy",
+      "crack_iou": 0.3911,
+      "spalling_iou": 0.8331,
+      "miou_fg": 0.6121,
+      "has_crack": true,
+      "has_spalling": true,
+      "crack_area": 298,
+      "spalling_area": 11665,
+      "tp": 298,
+      "fp": 464,
+      "fn": 0,
+      "width_stats": {
+        "area": 298,
+        "mean_width": 5.586253661025611,
+        "min_width": 2.8284271247461903,
+        "max_width": 8.94427190999916
+      }
+    },
+    {
+      "file": "Hard/H (49).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.4083,
+      "spalling_iou": null,
+      "miou_fg": 0.4083,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 5605,
+      "spalling_area": 0,
+      "tp": 2891,
+      "fp": 1476,
+      "fn": 2714,
+      "width_stats": {
+        "area": 5605,
+        "mean_width": 4.836773874324967,
+        "min_width": 2.0,
+        "max_width": 11.661903789690601
+      }
+    },
+    {
+      "file": "Medium/M (84).jpg",
+      "tier": "Medium",
+      "crack_iou": 0.41,
+      "spalling_iou": null,
+      "miou_fg": 0.41,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 5190,
+      "spalling_area": 0,
+      "tp": 3033,
+      "fp": 2208,
+      "fn": 2157,
+      "width_stats": {
+        "area": 5190,
+        "mean_width": 7.762588738034079,
+        "min_width": 2.0,
+        "max_width": 16.492422502470642
+      }
+    },
+    {
+      "file": "Hard/H (484).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.41,
+      "spalling_iou": null,
+      "miou_fg": 0.41,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 20206,
+      "spalling_area": 0,
+      "tp": 12811,
+      "fp": 11042,
+      "fn": 7395,
+      "width_stats": {
+        "area": 20206,
+        "mean_width": 4.858213459864985,
+        "min_width": 2.0,
+        "max_width": 12.165525060596439
+      }
+    },
+    {
+      "file": "Medium/M (193).jpg",
+      "tier": "Medium",
+      "crack_iou": 0.4187,
+      "spalling_iou": 0.9496,
+      "miou_fg": 0.6842,
+      "has_crack": true,
+      "has_spalling": true,
+      "crack_area": 3437,
+      "spalling_area": 5685,
+      "tp": 3009,
+      "fp": 3749,
+      "fn": 428,
+      "width_stats": {
+        "area": 3437,
+        "mean_width": 6.952625167457256,
+        "min_width": 2.0,
+        "max_width": 12.0
+      }
+    },
+    {
+      "file": "Easy/E (413).jpg",
+      "tier": "Easy",
+      "crack_iou": 0.4233,
+      "spalling_iou": 0.8243,
+      "miou_fg": 0.6238,
+      "has_crack": true,
+      "has_spalling": true,
+      "crack_area": 9442,
+      "spalling_area": 27891,
+      "tp": 5855,
+      "fp": 4389,
+      "fn": 3587,
+      "width_stats": {
+        "area": 9442,
+        "mean_width": 12.298240373557277,
+        "min_width": 2.0,
+        "max_width": 30.463092423455635
+      }
+    },
+    {
+      "file": "Hard/H (286).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.4246,
+      "spalling_iou": null,
+      "miou_fg": 0.4246,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 7848,
+      "spalling_area": 0,
+      "tp": 5938,
+      "fp": 6137,
+      "fn": 1910,
+      "width_stats": {
+        "area": 7848,
+        "mean_width": 4.626419637997186,
+        "min_width": 2.0,
+        "max_width": 10.0
+      }
+    },
+    {
+      "file": "Hard/H (17).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.428,
+      "spalling_iou": null,
+      "miou_fg": 0.428,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 10550,
+      "spalling_area": 0,
+      "tp": 8732,
+      "fp": 9852,
+      "fn": 1818,
+      "width_stats": {
+        "area": 10550,
+        "mean_width": 7.750056746201544,
+        "min_width": 2.0,
+        "max_width": 18.867962264113206
+      }
+    },
+    {
+      "file": "Hard/H (483).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.4289,
+      "spalling_iou": null,
+      "miou_fg": 0.4289,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 12216,
+      "spalling_area": 0,
+      "tp": 10299,
+      "fp": 11796,
+      "fn": 1917,
+      "width_stats": {
+        "area": 12216,
+        "mean_width": 4.543318158369895,
+        "min_width": 2.0,
+        "max_width": 10.198039027185569
+      }
+    },
+    {
+      "file": "Hard/H (275).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.4336,
+      "spalling_iou": null,
+      "miou_fg": 0.4336,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 9957,
+      "spalling_area": 0,
+      "tp": 7411,
+      "fp": 7135,
+      "fn": 2546,
+      "width_stats": {
+        "area": 9957,
+        "mean_width": 5.606342096361675,
+        "min_width": 2.0,
+        "max_width": 12.806248474865697
+      }
+    },
+    {
+      "file": "Hard/H (87).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.4378,
+      "spalling_iou": null,
+      "miou_fg": 0.4378,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 7011,
+      "spalling_area": 0,
+      "tp": 4779,
+      "fp": 3905,
+      "fn": 2232,
+      "width_stats": {
+        "area": 7011,
+        "mean_width": 3.7416759985034087,
+        "min_width": 2.0,
+        "max_width": 7.211102550927978
+      }
+    },
+    {
+      "file": "Hard/H (350).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.4412,
+      "spalling_iou": null,
+      "miou_fg": 0.4412,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 10329,
+      "spalling_area": 0,
+      "tp": 8484,
+      "fp": 8899,
+      "fn": 1845,
+      "width_stats": {
+        "area": 10329,
+        "mean_width": 5.934793865365807,
+        "min_width": 2.0,
+        "max_width": 12.0
+      }
+    },
+    {
+      "file": "Hard/H (171).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.4551,
+      "spalling_iou": null,
+      "miou_fg": 0.4551,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 10910,
+      "spalling_area": 0,
+      "tp": 6617,
+      "fp": 3629,
+      "fn": 4293,
+      "width_stats": {
+        "area": 10910,
+        "mean_width": 6.040979065371641,
+        "min_width": 2.0,
+        "max_width": 10.198039027185569
+      }
+    },
+    {
+      "file": "Hard/H (60).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.459,
+      "spalling_iou": null,
+      "miou_fg": 0.459,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 6788,
+      "spalling_area": 0,
+      "tp": 4084,
+      "fp": 2109,
+      "fn": 2704,
+      "width_stats": {
+        "area": 6788,
+        "mean_width": 6.568184217710838,
+        "min_width": 2.0,
+        "max_width": 11.661903789690601
+      }
+    },
+    {
+      "file": "Medium/M (36).jpg",
+      "tier": "Medium",
+      "crack_iou": 0.472,
+      "spalling_iou": null,
+      "miou_fg": 0.472,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 4105,
+      "spalling_area": 0,
+      "tp": 3094,
+      "fp": 2450,
+      "fn": 1011,
+      "width_stats": {
+        "area": 4105,
+        "mean_width": 6.554444325604831,
+        "min_width": 2.0,
+        "max_width": 21.540659228538015
+      }
+    },
+    {
+      "file": "Hard/H (7).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.4752,
+      "spalling_iou": null,
+      "miou_fg": 0.4752,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 10374,
+      "spalling_area": 0,
+      "tp": 8478,
+      "fp": 7467,
+      "fn": 1896,
+      "width_stats": {
+        "area": 10374,
+        "mean_width": 8.156295628285955,
+        "min_width": 2.0,
+        "max_width": 14.0
+      }
+    },
+    {
+      "file": "Medium/M (328).jpg",
+      "tier": "Medium",
+      "crack_iou": 0.4775,
+      "spalling_iou": null,
+      "miou_fg": 0.4775,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 11416,
+      "spalling_area": 0,
+      "tp": 7126,
+      "fp": 3507,
+      "fn": 4290,
+      "width_stats": {
+        "area": 11416,
+        "mean_width": 9.634665444544009,
+        "min_width": 2.0,
+        "max_width": 29.120439557122072
+      }
+    },
+    {
+      "file": "Hard/H (335).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.4777,
+      "spalling_iou": null,
+      "miou_fg": 0.4777,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 10320,
+      "spalling_area": 0,
+      "tp": 7963,
+      "fp": 6349,
+      "fn": 2357,
+      "width_stats": {
+        "area": 10320,
+        "mean_width": 4.893105758214795,
+        "min_width": 2.0,
+        "max_width": 10.0
+      }
+    },
+    {
+      "file": "Hard/H (277).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.48,
+      "spalling_iou": null,
+      "miou_fg": 0.48,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 13663,
+      "spalling_area": 0,
+      "tp": 9005,
+      "fp": 5099,
+      "fn": 4658,
+      "width_stats": {
+        "area": 13663,
+        "mean_width": 5.61046313076265,
+        "min_width": 2.0,
+        "max_width": 14.560219778561036
+      }
+    },
+    {
+      "file": "Medium/M (20).jpg",
+      "tier": "Medium",
+      "crack_iou": 0.4922,
+      "spalling_iou": null,
+      "miou_fg": 0.4922,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 6818,
+      "spalling_area": 0,
+      "tp": 5544,
+      "fp": 4445,
+      "fn": 1274,
+      "width_stats": {
+        "area": 6818,
+        "mean_width": 7.706093521879311,
+        "min_width": 2.0,
+        "max_width": 12.165525060596439
+      }
+    },
+    {
+      "file": "Hard/H (482).jpg",
+      "tier": "Hard",
+      "crack_iou": 0.4949,
+      "spalling_iou": null,
+      "miou_fg": 0.4949,
+      "has_crack": true,
+      "has_spalling": false,
+      "crack_area": 19702,
+      "spalling_area": 0,
+      "tp": 15136,
+      "fp": 10885,
+      "fn": 4566,
+      "width_stats": {
+        "area": 19702,
+        "mean_width": 5.479744818613343,
+        "min_width": 2.0,
+        "max_width": 21.540659228538015
+      }
+    }
+  ],
+  "iou_distribution": {
+    "[0.0-0.1)": 1,
+    "[0.1-0.2)": 1,
+    "[0.2-0.3)": 2,
+    "[0.3-0.4)": 6,
+    "[0.4-0.5)": 21,
+    "[0.5-0.6)": 54,
+    "[0.6-0.7)": 40,
+    "[0.7-0.8)": 19,
+    "[0.8-0.9)": 2,
+    "[0.9-1.0)": 0
+  },
+  "stats": {
+    "total_crack_samples": 146,
+    "zero_iou_count": 1,
+    "zero_iou_by_tier": {
+      "Easy": 1
+    },
+    "low_iou_count": 4,
+    "mean_crack_iou": 0.5781,
+    "median_crack_iou": 0.5837
+  }
+}
