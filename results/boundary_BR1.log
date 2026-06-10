@@ -1,0 +1,1854 @@
+Some weights of SegformerForSemanticSegmentation were not initialized from the model checkpoint at nvidia/segformer-b2-finetuned-ade-512-512 and are newly initialized because the shapes did not match:
+- decode_head.classifier.weight: found shape torch.Size([150, 768, 1, 1]) in the checkpoint and torch.Size([3, 768, 1, 1]) in the model instantiated
+- decode_head.classifier.bias: found shape torch.Size([150]) in the checkpoint and torch.Size([3]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Some weights of SegformerForSemanticSegmentation were not initialized from the model checkpoint at nvidia/segformer-b2-finetuned-ade-512-512 and are newly initialized because the shapes did not match:
+- decode_head.classifier.weight: found shape torch.Size([150, 768, 1, 1]) in the checkpoint and torch.Size([3, 768, 1, 1]) in the model instantiated
+- decode_head.classifier.bias: found shape torch.Size([150]) in the checkpoint and torch.Size([3]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[train] cuDNN warmup OK
+[train] full_method (br1_boundary_dice)
+[train] device=cuda  torch=2.6.0+cu124  transformers=4.44.2
+[train] cfg: pretrained=nvidia/segformer-b2-finetuned-ade-512-512 img=512 bs=4 grad_accum=1 epochs=100 lr=6e-05 warmup=5
+[train] difficulty: alpha=1.0 beta=0.5 gamma=0.3 delta=0.3 ema=0.9 tau=0.5
+[train] bonuses: spalling=0.3 late_hard_crack=0.4
+[train] ablation switches: dynamic_difficulty=False class_sampling_bonus=False class_loss_schedule=False boundary_loss=False tversky_loss=False
+[train] new switches: soft_curriculum=False softmax_sampling=False dynamic_loss_reweight=False (lambda=0.5) soft_boundary=False (start=0.6 max=0.1)
+[train] cldice: use=False weight=0.15 start_epoch=40 iters=7
+[train] srl: use=False weight=0.15 start_epoch=40
+[train] snake_aux: use=False weight=0.1
+[train] model_type=dscformer snake_channels=64 snake_kernel=9
+[train] no_curriculum=True
+[train] competence: hard=False soft=False c0=0.333 duration=70 floors=[0.05,0.02,0.0]
+[train] DGACL: use=False w_disagree=0.5 w_gap=0.3 w_loss=0.2 lambda=1.0 pixel_kd=True phase2_lr=1e-05 warmup=3
+[train] MAC: use=False morph_diff=False adaptive_pacing=False class_loss=False diff_gamma=0.5 weights=[0.4,0.3,0.2,0.1]
+[train] sizes: train=1200 val=150 test=150
+[train] building records (scanning masks for has_spalling) ...
+[train] records: {0: 400, 1: 400, 2: 400}  has_spalling=292/1200
+[train] raw pixel frequency: {'background': 0.9522022684733072, 'crack': 0.03419326375325521, 'spalling': 0.0136044677734375}
+[train] clipped weights    : {'background': 0.25, 'crack': 1.0811465739395691, 'spalling': 1.713974933006328}
+[train] running OOM probe ...
+[train] OOM probe OK
+[train] mixed precision (AMP) enabled
+[train] viz samples (6):
+    Hard/H (99).jpg
+    Hard/H (365).jpg
+    Medium/M (127).jpg
+    Medium/M (422).jpg
+    Hard/H (431).jpg
+    Hard/H (476).jpg
+[KD] loading teacher 1 from /workspace/dam-segmentation-baselines/full_method/runs/dscformer_srl_G1/best.pt
+[KD] teacher 1 loaded (epoch=91, val_mIoU_fg=0.701027307132969)
+[KD] alpha=0.5 temperature=4.0
+[KD] loading teacher 2 from /workspace/dam-segmentation-baselines/full_method/runs/sam_lora_srl_SAM2/best.pt
+[TopoLoRA-SAM] loaded SAM ViT-B from sam_vit_b_01ec64.pth
+[TopoLoRA-SAM] injected LoRA into 48 layers (rank=16)
+[TopoLoRA-SAM] total params: 95.8M, trainable: 6.1M (6.4%)
+[KD] teacher 2 loaded (epoch=40, val_mIoU_fg=0.6944438789823197)
+[KD] dual-teacher mode: class-conditional (t1=0.5, t2=0.5)
+[br1_boundary_dice] [curriculum] epoch 1: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 1/100] batch 30/300 (10%) loss=1699034.9500 elapsed=13s eta=114s
+  [br1_boundary_dice] [epoch 1/100] batch 60/300 (20%) loss=1709854.1938 elapsed=24s eta=98s
+  [br1_boundary_dice] [epoch 1/100] batch 90/300 (30%) loss=1712372.5944 elapsed=36s eta=85s
+  [br1_boundary_dice] [epoch 1/100] batch 120/300 (40%) loss=1717766.0958 elapsed=48s eta=72s
+  [br1_boundary_dice] [epoch 1/100] batch 150/300 (50%) loss=1718999.8067 elapsed=60s eta=60s
+  [br1_boundary_dice] [epoch 1/100] batch 180/300 (60%) loss=1720024.4542 elapsed=72s eta=48s
+  [br1_boundary_dice] [epoch 1/100] batch 210/300 (70%) loss=1718443.8036 elapsed=84s eta=36s
+  [br1_boundary_dice] [epoch 1/100] batch 240/300 (80%) loss=1716756.2557 elapsed=96s eta=24s
+  [br1_boundary_dice] [epoch 1/100] batch 270/300 (90%) loss=1715347.1676 elapsed=108s eta=12s
+  [br1_boundary_dice] [epoch 1/100] batch 300/300 (100%) loss=1713902.3700 elapsed=120s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 001/100] remain=99 epochs ep_eta=207.1min (avg 126s/ep)
+[br1_boundary_dice] [epoch 001/100] lr=0.000012  dt=125.5s
+  train loss=1713902.3700  ce=1.0917 dice=0.9441  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=1.1155
+  IoU   bg=0.4681  crack=0.0511  spalling=0.0129  | mIoU_fg=0.0320  pix_acc=0.4768
+  Dice  bg=0.6377  crack=0.0973  spalling=0.0255
+  BF1   crack=0.1208  spalling=0.0137  | BF1_fg_mean=0.0672
+  [br1_boundary_dice] [best] mIoU_fg=0.0320  saved -> best.pt
+[br1_boundary_dice] [curriculum] epoch 2: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 2/100] batch 30/300 (10%) loss=1682875.1333 elapsed=12s eta=109s
+  [br1_boundary_dice] [epoch 2/100] batch 60/300 (20%) loss=1650663.9854 elapsed=24s eta=95s
+  [br1_boundary_dice] [epoch 2/100] batch 90/300 (30%) loss=1628717.0819 elapsed=35s eta=82s
+  [br1_boundary_dice] [epoch 2/100] batch 120/300 (40%) loss=1603927.3146 elapsed=47s eta=70s
+  [br1_boundary_dice] [epoch 2/100] batch 150/300 (50%) loss=1579585.3075 elapsed=58s eta=58s
+  [br1_boundary_dice] [epoch 2/100] batch 180/300 (60%) loss=1554970.3049 elapsed=69s eta=46s
+  [br1_boundary_dice] [epoch 2/100] batch 210/300 (70%) loss=1528146.3119 elapsed=81s eta=35s
+  [br1_boundary_dice] [epoch 2/100] batch 240/300 (80%) loss=1503249.7766 elapsed=92s eta=23s
+  [br1_boundary_dice] [epoch 2/100] batch 270/300 (90%) loss=1476144.1056 elapsed=103s eta=11s
+  [br1_boundary_dice] [epoch 2/100] batch 300/300 (100%) loss=1450609.7563 elapsed=115s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 002/100] remain=98 epochs ep_eta=197.6min (avg 121s/ep)
+[br1_boundary_dice] [epoch 002/100] lr=0.000024  dt=114.7s
+  train loss=1450609.7563  ce=0.7235 dice=0.9017  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 5)
+[br1_boundary_dice] [curriculum] epoch 3: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 3/100] batch 30/300 (10%) loss=1154660.6708 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 3/100] batch 60/300 (20%) loss=1111661.2677 elapsed=23s eta=91s
+  [br1_boundary_dice] [epoch 3/100] batch 90/300 (30%) loss=1078128.9993 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 3/100] batch 120/300 (40%) loss=1043363.9875 elapsed=45s eta=68s
+  [br1_boundary_dice] [epoch 3/100] batch 150/300 (50%) loss=1009229.0717 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 3/100] batch 180/300 (60%) loss=977733.2934 elapsed=68s eta=45s
+  [br1_boundary_dice] [epoch 3/100] batch 210/300 (70%) loss=948835.0360 elapsed=79s eta=34s
+  [br1_boundary_dice] [epoch 3/100] batch 240/300 (80%) loss=921941.3974 elapsed=90s eta=22s
+  [br1_boundary_dice] [epoch 3/100] batch 270/300 (90%) loss=897701.4715 elapsed=101s eta=11s
+  [br1_boundary_dice] [epoch 3/100] batch 300/300 (100%) loss=874914.8981 elapsed=112s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 003/100] remain=97 epochs ep_eta=190.8min (avg 118s/ep)
+[br1_boundary_dice] [epoch 003/100] lr=0.000036  dt=111.6s
+  train loss=874914.8981  ce=0.4173 dice=0.7645  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 5)
+[br1_boundary_dice] [curriculum] epoch 4: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 4/100] batch 30/300 (10%) loss=633462.1687 elapsed=11s eta=100s
+  [br1_boundary_dice] [epoch 4/100] batch 60/300 (20%) loss=615044.5729 elapsed=22s eta=88s
+  [br1_boundary_dice] [epoch 4/100] batch 90/300 (30%) loss=597448.9118 elapsed=33s eta=76s
+  [br1_boundary_dice] [epoch 4/100] batch 120/300 (40%) loss=579294.2312 elapsed=43s eta=65s
+  [br1_boundary_dice] [epoch 4/100] batch 150/300 (50%) loss=563864.0010 elapsed=54s eta=54s
+  [br1_boundary_dice] [epoch 4/100] batch 180/300 (60%) loss=548074.2849 elapsed=65s eta=43s
+  [br1_boundary_dice] [epoch 4/100] batch 210/300 (70%) loss=533411.3122 elapsed=76s eta=32s
+  [br1_boundary_dice] [epoch 4/100] batch 240/300 (80%) loss=519106.4368 elapsed=87s eta=22s
+  [br1_boundary_dice] [epoch 4/100] batch 270/300 (90%) loss=505134.8023 elapsed=97s eta=11s
+  [br1_boundary_dice] [epoch 4/100] batch 300/300 (100%) loss=493883.3640 elapsed=108s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 004/100] remain=96 epochs ep_eta=185.3min (avg 116s/ep)
+[br1_boundary_dice] [epoch 004/100] lr=0.000048  dt=108.4s
+  train loss=493883.3640  ce=0.4189 dice=0.6922  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 5)
+[br1_boundary_dice] [curriculum] epoch 5: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 5/100] batch 30/300 (10%) loss=360262.5687 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 5/100] batch 60/300 (20%) loss=348133.6453 elapsed=22s eta=88s
+  [br1_boundary_dice] [epoch 5/100] batch 90/300 (30%) loss=341030.2667 elapsed=33s eta=77s
+  [br1_boundary_dice] [epoch 5/100] batch 120/300 (40%) loss=328520.2462 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 5/100] batch 150/300 (50%) loss=318701.4128 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 5/100] batch 180/300 (60%) loss=308926.0332 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 5/100] batch 210/300 (70%) loss=299986.2156 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 5/100] batch 240/300 (80%) loss=291743.4107 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 5/100] batch 270/300 (90%) loss=283667.6366 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 5/100] batch 300/300 (100%) loss=276193.3295 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+/usr/local/lib/python3.11/dist-packages/torch/optim/lr_scheduler.py:243: UserWarning: The epoch parameter in `scheduler.step()` was not necessary and is being deprecated where possible. Please use `scheduler.step()` to step the scheduler. During the deprecation, if epoch is different from None, the closed form is used instead of the new chainable form, where available. Please open an issue if you are unable to replicate your use case: https://github.com/pytorch/pytorch/issues/new/choose.
+  warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
+[br1_boundary_dice] [epoch 005/100] remain=95 epochs ep_eta=183.2min (avg 116s/ep)
+[br1_boundary_dice] [epoch 005/100] lr=0.000060  dt=114.7s
+  train loss=276193.3295  ce=0.3354 dice=0.5442  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.4572
+  IoU   bg=0.9708  crack=0.4326  spalling=0.6873  | mIoU_fg=0.5599  pix_acc=0.9713
+  Dice  bg=0.9852  crack=0.6040  spalling=0.8147
+  BF1   crack=0.5941  spalling=0.2461  | BF1_fg_mean=0.4201
+  [br1_boundary_dice] [best] mIoU_fg=0.5599  saved -> best.pt
+[br1_boundary_dice] [curriculum] epoch 6: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 6/100] batch 30/300 (10%) loss=192934.9672 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 6/100] batch 60/300 (20%) loss=195385.0156 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 6/100] batch 90/300 (30%) loss=189358.5099 elapsed=33s eta=77s
+  [br1_boundary_dice] [epoch 6/100] batch 120/300 (40%) loss=183945.2007 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 6/100] batch 150/300 (50%) loss=178189.7651 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 6/100] batch 180/300 (60%) loss=173462.6585 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 6/100] batch 210/300 (70%) loss=167312.8359 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 6/100] batch 240/300 (80%) loss=162391.7344 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 6/100] batch 270/300 (90%) loss=157679.2025 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 6/100] batch 300/300 (100%) loss=153758.5070 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 006/100] remain=94 epochs ep_eta=180.3min (avg 115s/ep)
+[br1_boundary_dice] [epoch 006/100] lr=0.000060  dt=110.1s
+  train loss=153758.5070  ce=0.2861 dice=0.4654  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[br1_boundary_dice] [curriculum] epoch 7: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 7/100] batch 30/300 (10%) loss=115418.7089 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 7/100] batch 60/300 (20%) loss=110879.4105 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 7/100] batch 90/300 (30%) loss=113063.3341 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 7/100] batch 120/300 (40%) loss=111141.4142 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 7/100] batch 150/300 (50%) loss=107233.1174 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 7/100] batch 180/300 (60%) loss=103297.9757 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 7/100] batch 210/300 (70%) loss=101454.0163 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 7/100] batch 240/300 (80%) loss=100067.3827 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 7/100] batch 270/300 (90%) loss=98053.7076 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 7/100] batch 300/300 (100%) loss=97539.7049 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 007/100] remain=93 epochs ep_eta=177.4min (avg 114s/ep)
+[br1_boundary_dice] [epoch 007/100] lr=0.000060  dt=110.3s
+  train loss=97539.7049  ce=0.2605 dice=0.4191  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[br1_boundary_dice] [curriculum] epoch 8: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 8/100] batch 30/300 (10%) loss=79047.9444 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 8/100] batch 60/300 (20%) loss=77692.6150 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 8/100] batch 90/300 (30%) loss=73507.5614 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 8/100] batch 120/300 (40%) loss=72854.6369 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 8/100] batch 150/300 (50%) loss=72254.4871 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 8/100] batch 180/300 (60%) loss=70195.9995 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 8/100] batch 210/300 (70%) loss=69083.6371 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 8/100] batch 240/300 (80%) loss=68926.9005 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 8/100] batch 270/300 (90%) loss=68670.7323 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 8/100] batch 300/300 (100%) loss=67090.4079 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 008/100] remain=92 epochs ep_eta=174.9min (avg 114s/ep)
+[br1_boundary_dice] [epoch 008/100] lr=0.000060  dt=110.6s
+  train loss=67090.4079  ce=0.2234 dice=0.3702  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[br1_boundary_dice] [curriculum] epoch 9: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 9/100] batch 30/300 (10%) loss=50071.3614 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 9/100] batch 60/300 (20%) loss=49307.4581 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 9/100] batch 90/300 (30%) loss=50533.5269 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 9/100] batch 120/300 (40%) loss=51563.0550 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 9/100] batch 150/300 (50%) loss=51266.5717 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 9/100] batch 180/300 (60%) loss=51445.3623 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 9/100] batch 210/300 (70%) loss=51343.4292 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 9/100] batch 240/300 (80%) loss=50788.8150 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 9/100] batch 270/300 (90%) loss=50547.8592 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 9/100] batch 300/300 (100%) loss=49960.5090 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 009/100] remain=91 epochs ep_eta=172.6min (avg 114s/ep)
+[br1_boundary_dice] [epoch 009/100] lr=0.000060  dt=111.2s
+  train loss=49960.5090  ce=0.1989 dice=0.3204  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[br1_boundary_dice] [curriculum] epoch 10: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 10/100] batch 30/300 (10%) loss=49317.7667 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 10/100] batch 60/300 (20%) loss=44763.7143 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 10/100] batch 90/300 (30%) loss=43305.8538 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 10/100] batch 120/300 (40%) loss=44977.1830 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 10/100] batch 150/300 (50%) loss=44326.8732 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 10/100] batch 180/300 (60%) loss=44487.8401 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 10/100] batch 210/300 (70%) loss=44003.9424 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 10/100] batch 240/300 (80%) loss=43049.3848 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 10/100] batch 270/300 (90%) loss=42558.8071 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 10/100] batch 300/300 (100%) loss=41737.4881 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 010/100] remain=90 epochs ep_eta=171.0min (avg 114s/ep)
+[br1_boundary_dice] [epoch 010/100] lr=0.000060  dt=115.2s
+  train loss=41737.4881  ce=0.1872 dice=0.2988  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.3085
+  IoU   bg=0.9740  crack=0.5419  spalling=0.7664  | mIoU_fg=0.6542  pix_acc=0.9745
+  Dice  bg=0.9868  crack=0.7029  spalling=0.8677
+  BF1   crack=0.6989  spalling=0.5558  | BF1_fg_mean=0.6273
+  [br1_boundary_dice] [best] mIoU_fg=0.6542  saved -> best.pt
+[br1_boundary_dice] [curriculum] epoch 11: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 11/100] batch 30/300 (10%) loss=32018.6185 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 11/100] batch 60/300 (20%) loss=43702.6179 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 11/100] batch 90/300 (30%) loss=42488.8780 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 11/100] batch 120/300 (40%) loss=41837.7223 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 11/100] batch 150/300 (50%) loss=41606.6763 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 11/100] batch 180/300 (60%) loss=42905.4673 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 11/100] batch 210/300 (70%) loss=43086.6538 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 11/100] batch 240/300 (80%) loss=42857.4167 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 11/100] batch 270/300 (90%) loss=42408.0421 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 11/100] batch 300/300 (100%) loss=41602.3915 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 011/100] remain=89 epochs ep_eta=169.0min (avg 114s/ep)
+[br1_boundary_dice] [epoch 011/100] lr=0.000059  dt=111.2s
+  train loss=41602.3915  ce=0.2029 dice=0.3168  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[br1_boundary_dice] [curriculum] epoch 12: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 12/100] batch 30/300 (10%) loss=43854.6867 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 12/100] batch 60/300 (20%) loss=42560.1533 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 12/100] batch 90/300 (30%) loss=41048.8586 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 12/100] batch 120/300 (40%) loss=39283.7991 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 12/100] batch 150/300 (50%) loss=37668.2998 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 12/100] batch 180/300 (60%) loss=36854.4891 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 12/100] batch 210/300 (70%) loss=36296.4459 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 12/100] batch 240/300 (80%) loss=35861.7267 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 12/100] batch 270/300 (90%) loss=35461.4895 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 12/100] batch 300/300 (100%) loss=35124.9813 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 012/100] remain=88 epochs ep_eta=166.7min (avg 114s/ep)
+[br1_boundary_dice] [epoch 012/100] lr=0.000059  dt=110.6s
+  train loss=35124.9813  ce=0.1843 dice=0.2905  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[br1_boundary_dice] [curriculum] epoch 13: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 13/100] batch 30/300 (10%) loss=28237.2269 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 13/100] batch 60/300 (20%) loss=30383.3655 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 13/100] batch 90/300 (30%) loss=30601.5557 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 13/100] batch 120/300 (40%) loss=29637.1406 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 13/100] batch 150/300 (50%) loss=29659.1466 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 13/100] batch 180/300 (60%) loss=29745.4952 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 13/100] batch 210/300 (70%) loss=29492.9450 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 13/100] batch 240/300 (80%) loss=29340.1357 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 13/100] batch 270/300 (90%) loss=29571.3712 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 13/100] batch 300/300 (100%) loss=29351.2981 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 013/100] remain=87 epochs ep_eta=164.6min (avg 113s/ep)
+[br1_boundary_dice] [epoch 013/100] lr=0.000059  dt=110.5s
+  train loss=29351.2981  ce=0.1664 dice=0.2708  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[br1_boundary_dice] [curriculum] epoch 14: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 14/100] batch 30/300 (10%) loss=26463.2154 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 14/100] batch 60/300 (20%) loss=30630.2154 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 14/100] batch 90/300 (30%) loss=28564.3035 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 14/100] batch 120/300 (40%) loss=28346.8732 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 14/100] batch 150/300 (50%) loss=28190.1321 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 14/100] batch 180/300 (60%) loss=27468.6266 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 14/100] batch 210/300 (70%) loss=27479.8030 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 14/100] batch 240/300 (80%) loss=27333.4892 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 14/100] batch 270/300 (90%) loss=27166.0521 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 14/100] batch 300/300 (100%) loss=27075.8788 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 014/100] remain=86 epochs ep_eta=162.4min (avg 113s/ep)
+[br1_boundary_dice] [epoch 014/100] lr=0.000059  dt=110.4s
+  train loss=27075.8788  ce=0.1623 dice=0.2666  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[br1_boundary_dice] [curriculum] epoch 15: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 15/100] batch 30/300 (10%) loss=25606.7294 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 15/100] batch 60/300 (20%) loss=25227.7043 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 15/100] batch 90/300 (30%) loss=25281.5668 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 15/100] batch 120/300 (40%) loss=25293.9897 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 15/100] batch 150/300 (50%) loss=25860.1157 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 15/100] batch 180/300 (60%) loss=25400.5397 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 15/100] batch 210/300 (70%) loss=25045.4595 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 15/100] batch 240/300 (80%) loss=25000.5920 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 15/100] batch 270/300 (90%) loss=25211.1607 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 15/100] batch 300/300 (100%) loss=25197.5092 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 015/100] remain=85 epochs ep_eta=160.8min (avg 113s/ep)
+[br1_boundary_dice] [epoch 015/100] lr=0.000058  dt=115.3s
+  train loss=25197.5092  ce=0.1547 dice=0.2603  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.3138
+  IoU   bg=0.9750  crack=0.5584  spalling=0.7409  | mIoU_fg=0.6497  pix_acc=0.9754
+  Dice  bg=0.9873  crack=0.7166  spalling=0.8512
+  BF1   crack=0.7105  spalling=0.5356  | BF1_fg_mean=0.6230
+[br1_boundary_dice] [curriculum] epoch 16: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 16/100] batch 30/300 (10%) loss=23800.0245 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 16/100] batch 60/300 (20%) loss=23138.7705 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 16/100] batch 90/300 (30%) loss=24209.4927 elapsed=33s eta=77s
+  [br1_boundary_dice] [epoch 16/100] batch 120/300 (40%) loss=23435.0075 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 16/100] batch 150/300 (50%) loss=23325.3526 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 16/100] batch 180/300 (60%) loss=23529.8750 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 16/100] batch 210/300 (70%) loss=23291.9166 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 16/100] batch 240/300 (80%) loss=23393.2220 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 16/100] batch 270/300 (90%) loss=23605.1247 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 16/100] batch 300/300 (100%) loss=23850.1808 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 016/100] remain=84 epochs ep_eta=158.7min (avg 113s/ep)
+[br1_boundary_dice] [epoch 016/100] lr=0.000058  dt=109.7s
+  train loss=23850.1808  ce=0.1507 dice=0.2599  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[br1_boundary_dice] [curriculum] epoch 17: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 17/100] batch 30/300 (10%) loss=21824.0312 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 17/100] batch 60/300 (20%) loss=25613.4651 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 17/100] batch 90/300 (30%) loss=46490.6146 elapsed=33s eta=77s
+  [br1_boundary_dice] [epoch 17/100] batch 120/300 (40%) loss=44341.6678 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 17/100] batch 150/300 (50%) loss=41548.1108 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 17/100] batch 180/300 (60%) loss=38438.2665 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 17/100] batch 210/300 (70%) loss=36966.2921 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 17/100] batch 240/300 (80%) loss=35286.2668 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 17/100] batch 270/300 (90%) loss=34386.8099 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 17/100] batch 300/300 (100%) loss=33391.6155 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 017/100] remain=83 epochs ep_eta=156.6min (avg 113s/ep)
+[br1_boundary_dice] [epoch 017/100] lr=0.000058  dt=110.3s
+  train loss=33391.6155  ce=0.1983 dice=0.2748  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[br1_boundary_dice] [curriculum] epoch 18: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 18/100] batch 30/300 (10%) loss=21626.1239 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 18/100] batch 60/300 (20%) loss=21802.6260 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 18/100] batch 90/300 (30%) loss=22896.0867 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 18/100] batch 120/300 (40%) loss=22107.5683 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 18/100] batch 150/300 (50%) loss=22276.0085 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 18/100] batch 180/300 (60%) loss=22442.7766 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 18/100] batch 210/300 (70%) loss=22285.0822 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 18/100] batch 240/300 (80%) loss=22220.8055 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 18/100] batch 270/300 (90%) loss=22386.5838 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 18/100] batch 300/300 (100%) loss=22383.6883 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 018/100] remain=82 epochs ep_eta=154.5min (avg 113s/ep)
+[br1_boundary_dice] [epoch 018/100] lr=0.000057  dt=110.5s
+  train loss=22383.6883  ce=0.1452 dice=0.2546  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[br1_boundary_dice] [curriculum] epoch 19: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 19/100] batch 30/300 (10%) loss=20763.2354 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 19/100] batch 60/300 (20%) loss=21710.4350 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 19/100] batch 90/300 (30%) loss=21276.5099 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 19/100] batch 120/300 (40%) loss=21418.6889 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 19/100] batch 150/300 (50%) loss=21487.8151 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 19/100] batch 180/300 (60%) loss=21202.1663 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 19/100] batch 210/300 (70%) loss=20984.6934 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 19/100] batch 240/300 (80%) loss=20934.2145 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 19/100] batch 270/300 (90%) loss=20792.3980 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 19/100] batch 300/300 (100%) loss=20613.7248 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 019/100] remain=81 epochs ep_eta=152.5min (avg 113s/ep)
+[br1_boundary_dice] [epoch 019/100] lr=0.000057  dt=110.6s
+  train loss=20613.7248  ce=0.1412 dice=0.2400  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[br1_boundary_dice] [curriculum] epoch 20: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 20/100] batch 30/300 (10%) loss=20024.7893 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 20/100] batch 60/300 (20%) loss=19525.2724 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 20/100] batch 90/300 (30%) loss=19097.9127 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 20/100] batch 120/300 (40%) loss=19188.1306 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 20/100] batch 150/300 (50%) loss=19729.0498 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 20/100] batch 180/300 (60%) loss=19746.2330 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 20/100] batch 210/300 (70%) loss=19499.2112 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 20/100] batch 240/300 (80%) loss=19536.5108 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 20/100] batch 270/300 (90%) loss=19473.7535 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 20/100] batch 300/300 (100%) loss=19454.9930 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 020/100] remain=80 epochs ep_eta=150.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 020/100] lr=0.000056  dt=116.0s
+  train loss=19454.9930  ce=0.1381 dice=0.2416  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.3063
+  IoU   bg=0.9766  crack=0.5728  spalling=0.8027  | mIoU_fg=0.6878  pix_acc=0.9773
+  Dice  bg=0.9881  crack=0.7284  spalling=0.8905
+  BF1   crack=0.7399  spalling=0.6110  | BF1_fg_mean=0.6754
+  [br1_boundary_dice] [best] mIoU_fg=0.6878  saved -> best.pt
+[br1_boundary_dice] [curriculum] epoch 21: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 21/100] batch 30/300 (10%) loss=18632.7047 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 21/100] batch 60/300 (20%) loss=18320.8967 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 21/100] batch 90/300 (30%) loss=18180.0933 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 21/100] batch 120/300 (40%) loss=18269.7542 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 21/100] batch 150/300 (50%) loss=18291.8599 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 21/100] batch 180/300 (60%) loss=18162.3937 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 21/100] batch 210/300 (70%) loss=18246.9402 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 21/100] batch 240/300 (80%) loss=18342.4037 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 21/100] batch 270/300 (90%) loss=18618.2865 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 21/100] batch 300/300 (100%) loss=18582.8935 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 021/100] remain=79 epochs ep_eta=148.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 021/100] lr=0.000056  dt=110.6s
+  train loss=18582.8935  ce=0.1331 dice=0.2299  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[br1_boundary_dice] [curriculum] epoch 22: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 22/100] batch 30/300 (10%) loss=17755.0181 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 22/100] batch 60/300 (20%) loss=18399.6151 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 22/100] batch 90/300 (30%) loss=18445.1657 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 22/100] batch 120/300 (40%) loss=18064.5034 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 22/100] batch 150/300 (50%) loss=17642.0335 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 22/100] batch 180/300 (60%) loss=17389.3461 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 22/100] batch 210/300 (70%) loss=17272.4590 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 22/100] batch 240/300 (80%) loss=17471.2502 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 22/100] batch 270/300 (90%) loss=17762.1483 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 22/100] batch 300/300 (100%) loss=17986.2471 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 022/100] remain=78 epochs ep_eta=146.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 022/100] lr=0.000055  dt=110.3s
+  train loss=17986.2471  ce=0.1320 dice=0.2324  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[br1_boundary_dice] [curriculum] epoch 23: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 23/100] batch 30/300 (10%) loss=18176.1307 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 23/100] batch 60/300 (20%) loss=17198.6354 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 23/100] batch 90/300 (30%) loss=17913.2417 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 23/100] batch 120/300 (40%) loss=18579.1015 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 23/100] batch 150/300 (50%) loss=18145.5618 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 23/100] batch 180/300 (60%) loss=17938.3499 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 23/100] batch 210/300 (70%) loss=17996.7233 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 23/100] batch 240/300 (80%) loss=17780.7855 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 23/100] batch 270/300 (90%) loss=17625.0494 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 23/100] batch 300/300 (100%) loss=17496.0868 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 023/100] remain=77 epochs ep_eta=144.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 023/100] lr=0.000055  dt=110.5s
+  train loss=17496.0868  ce=0.1296 dice=0.2366  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[br1_boundary_dice] [curriculum] epoch 24: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 24/100] batch 30/300 (10%) loss=17881.0198 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 24/100] batch 60/300 (20%) loss=16393.0197 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 24/100] batch 90/300 (30%) loss=16363.8968 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 24/100] batch 120/300 (40%) loss=16553.3120 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 24/100] batch 150/300 (50%) loss=16807.7956 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 24/100] batch 180/300 (60%) loss=16879.6598 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 24/100] batch 210/300 (70%) loss=16825.3392 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 24/100] batch 240/300 (80%) loss=16669.3518 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 24/100] batch 270/300 (90%) loss=16697.4350 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 24/100] batch 300/300 (100%) loss=16585.4896 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 024/100] remain=76 epochs ep_eta=142.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 024/100] lr=0.000054  dt=110.5s
+  train loss=16585.4896  ce=0.1255 dice=0.2226  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[br1_boundary_dice] [curriculum] epoch 25: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 25/100] batch 30/300 (10%) loss=15959.2623 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 25/100] batch 60/300 (20%) loss=16079.0221 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 25/100] batch 90/300 (30%) loss=15867.1575 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 25/100] batch 120/300 (40%) loss=15704.6464 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 25/100] batch 150/300 (50%) loss=15506.8747 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 25/100] batch 180/300 (60%) loss=15645.4482 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 25/100] batch 210/300 (70%) loss=15828.7114 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 25/100] batch 240/300 (80%) loss=16001.4434 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 25/100] batch 270/300 (90%) loss=16198.8210 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 25/100] batch 300/300 (100%) loss=16306.5199 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 025/100] remain=75 epochs ep_eta=141.2min (avg 113s/ep)
+[br1_boundary_dice] [epoch 025/100] lr=0.000054  dt=115.5s
+  train loss=16306.5199  ce=0.1244 dice=0.2314  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2632
+  IoU   bg=0.9762  crack=0.5710  spalling=0.7998  | mIoU_fg=0.6854  pix_acc=0.9767
+  Dice  bg=0.9880  crack=0.7269  spalling=0.8887
+  BF1   crack=0.7386  spalling=0.6404  | BF1_fg_mean=0.6895
+[br1_boundary_dice] [curriculum] epoch 26: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 26/100] batch 30/300 (10%) loss=17174.3937 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 26/100] batch 60/300 (20%) loss=17107.6446 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 26/100] batch 90/300 (30%) loss=16844.1995 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 26/100] batch 120/300 (40%) loss=16860.7325 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 26/100] batch 150/300 (50%) loss=16434.0390 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 26/100] batch 180/300 (60%) loss=16303.6265 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 26/100] batch 210/300 (70%) loss=16255.9294 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 26/100] batch 240/300 (80%) loss=16067.8933 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 26/100] batch 270/300 (90%) loss=15829.6422 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 26/100] batch 300/300 (100%) loss=15749.9711 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 026/100] remain=74 epochs ep_eta=139.3min (avg 113s/ep)
+[br1_boundary_dice] [epoch 026/100] lr=0.000053  dt=110.7s
+  train loss=15749.9711  ce=0.1224 dice=0.2275  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[br1_boundary_dice] [curriculum] epoch 27: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 27/100] batch 30/300 (10%) loss=14482.9824 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 27/100] batch 60/300 (20%) loss=14406.8971 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 27/100] batch 90/300 (30%) loss=14987.3112 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 27/100] batch 120/300 (40%) loss=15199.5722 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 27/100] batch 150/300 (50%) loss=15528.5058 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 27/100] batch 180/300 (60%) loss=15249.8525 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 27/100] batch 210/300 (70%) loss=15142.3275 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 27/100] batch 240/300 (80%) loss=15047.7741 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 27/100] batch 270/300 (90%) loss=15098.9528 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 27/100] batch 300/300 (100%) loss=15122.9025 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 027/100] remain=73 epochs ep_eta=137.3min (avg 113s/ep)
+[br1_boundary_dice] [epoch 027/100] lr=0.000052  dt=110.8s
+  train loss=15122.9025  ce=0.1207 dice=0.2210  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[br1_boundary_dice] [curriculum] epoch 28: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 28/100] batch 30/300 (10%) loss=15605.9157 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 28/100] batch 60/300 (20%) loss=18114.7541 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 28/100] batch 90/300 (30%) loss=17126.0683 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 28/100] batch 120/300 (40%) loss=16850.6937 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 28/100] batch 150/300 (50%) loss=16351.3673 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 28/100] batch 180/300 (60%) loss=16073.5481 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 28/100] batch 210/300 (70%) loss=15669.5956 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 28/100] batch 240/300 (80%) loss=15545.3083 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 28/100] batch 270/300 (90%) loss=15472.5339 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 28/100] batch 300/300 (100%) loss=15430.5744 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 028/100] remain=72 epochs ep_eta=135.4min (avg 113s/ep)
+[br1_boundary_dice] [epoch 028/100] lr=0.000052  dt=111.2s
+  train loss=15430.5744  ce=0.1242 dice=0.2173  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[br1_boundary_dice] [curriculum] epoch 29: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [br1_boundary_dice] [epoch 29/100] batch 30/300 (10%) loss=14641.4457 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 29/100] batch 60/300 (20%) loss=14448.3401 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 29/100] batch 90/300 (30%) loss=14644.6203 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 29/100] batch 120/300 (40%) loss=14781.5722 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 29/100] batch 150/300 (50%) loss=15123.9476 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 29/100] batch 180/300 (60%) loss=14758.3885 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 29/100] batch 210/300 (70%) loss=14582.9740 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 29/100] batch 240/300 (80%) loss=14510.9759 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 29/100] batch 270/300 (90%) loss=14408.4233 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 29/100] batch 300/300 (100%) loss=14309.5785 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 029/100] remain=71 epochs ep_eta=133.5min (avg 113s/ep)
+[br1_boundary_dice] [epoch 029/100] lr=0.000051  dt=110.7s
+  train loss=14309.5785  ce=0.1168 dice=0.2215  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[br1_boundary_dice] [curriculum] epoch 30: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 30/100] batch 30/300 (10%) loss=13309.2548 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 30/100] batch 60/300 (20%) loss=13982.0279 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 30/100] batch 90/300 (30%) loss=14332.0754 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 30/100] batch 120/300 (40%) loss=14058.0728 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 30/100] batch 150/300 (50%) loss=14255.4312 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 30/100] batch 180/300 (60%) loss=14430.6008 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 30/100] batch 210/300 (70%) loss=15516.8814 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 30/100] batch 240/300 (80%) loss=20366.1758 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 30/100] batch 270/300 (90%) loss=22450.3668 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 30/100] batch 300/300 (100%) loss=22430.0769 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 030/100] remain=70 epochs ep_eta=131.7min (avg 113s/ep)
+[br1_boundary_dice] [epoch 030/100] lr=0.000050  dt=115.4s
+  train loss=22430.0769  ce=0.1576 dice=0.2307  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.3070
+  IoU   bg=0.9752  crack=0.5561  spalling=0.7769  | mIoU_fg=0.6665  pix_acc=0.9757
+  Dice  bg=0.9874  crack=0.7148  spalling=0.8744
+  BF1   crack=0.7226  spalling=0.5517  | BF1_fg_mean=0.6371
+[br1_boundary_dice] [curriculum] epoch 31: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 31/100] batch 30/300 (10%) loss=21092.6371 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 31/100] batch 60/300 (20%) loss=22452.4134 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 31/100] batch 90/300 (30%) loss=22496.9769 elapsed=33s eta=77s
+  [br1_boundary_dice] [epoch 31/100] batch 120/300 (40%) loss=22417.0387 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 31/100] batch 150/300 (50%) loss=22376.6878 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 31/100] batch 180/300 (60%) loss=22601.5068 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 31/100] batch 210/300 (70%) loss=22044.0844 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 31/100] batch 240/300 (80%) loss=21315.4057 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 31/100] batch 270/300 (90%) loss=20731.4455 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 31/100] batch 300/300 (100%) loss=20194.2193 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 031/100] remain=69 epochs ep_eta=129.8min (avg 113s/ep)
+[br1_boundary_dice] [epoch 031/100] lr=0.000050  dt=110.5s
+  train loss=20194.2193  ce=0.1432 dice=0.2458  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[br1_boundary_dice] [curriculum] epoch 32: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 32/100] batch 30/300 (10%) loss=16103.2843 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 32/100] batch 60/300 (20%) loss=17517.0839 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 32/100] batch 90/300 (30%) loss=17868.7976 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 32/100] batch 120/300 (40%) loss=17646.2258 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 32/100] batch 150/300 (50%) loss=17227.5637 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 32/100] batch 180/300 (60%) loss=17021.2724 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 32/100] batch 210/300 (70%) loss=16529.8976 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 32/100] batch 240/300 (80%) loss=16248.8289 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 32/100] batch 270/300 (90%) loss=16062.5791 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 32/100] batch 300/300 (100%) loss=15882.5910 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 032/100] remain=68 epochs ep_eta=127.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 032/100] lr=0.000049  dt=111.3s
+  train loss=15882.5910  ce=0.1222 dice=0.2185  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[br1_boundary_dice] [curriculum] epoch 33: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 33/100] batch 30/300 (10%) loss=17275.9064 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 33/100] batch 60/300 (20%) loss=16458.9451 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 33/100] batch 90/300 (30%) loss=15582.4110 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 33/100] batch 120/300 (40%) loss=15256.6907 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 33/100] batch 150/300 (50%) loss=14966.4018 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 33/100] batch 180/300 (60%) loss=14654.0286 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 33/100] batch 210/300 (70%) loss=14639.1484 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 33/100] batch 240/300 (80%) loss=14504.0831 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 33/100] batch 270/300 (90%) loss=14301.8606 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 33/100] batch 300/300 (100%) loss=14115.3953 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 033/100] remain=67 epochs ep_eta=126.0min (avg 113s/ep)
+[br1_boundary_dice] [epoch 033/100] lr=0.000048  dt=111.0s
+  train loss=14115.3953  ce=0.1163 dice=0.2193  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[br1_boundary_dice] [curriculum] epoch 34: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 34/100] batch 30/300 (10%) loss=12594.4773 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 34/100] batch 60/300 (20%) loss=13076.0523 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 34/100] batch 90/300 (30%) loss=13300.3643 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 34/100] batch 120/300 (40%) loss=13617.6687 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 34/100] batch 150/300 (50%) loss=13545.2756 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 34/100] batch 180/300 (60%) loss=13573.3889 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 34/100] batch 210/300 (70%) loss=13640.7796 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 34/100] batch 240/300 (80%) loss=13548.9674 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 34/100] batch 270/300 (90%) loss=13386.2900 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 34/100] batch 300/300 (100%) loss=13346.7936 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 034/100] remain=66 epochs ep_eta=124.0min (avg 113s/ep)
+[br1_boundary_dice] [epoch 034/100] lr=0.000047  dt=111.1s
+  train loss=13346.7936  ce=0.1121 dice=0.2130  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[br1_boundary_dice] [curriculum] epoch 35: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 35/100] batch 30/300 (10%) loss=12482.1793 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 35/100] batch 60/300 (20%) loss=12547.7799 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 35/100] batch 90/300 (30%) loss=12407.4239 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 35/100] batch 120/300 (40%) loss=12273.5787 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 35/100] batch 150/300 (50%) loss=12359.5018 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 35/100] batch 180/300 (60%) loss=12309.4143 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 35/100] batch 210/300 (70%) loss=12237.2361 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 35/100] batch 240/300 (80%) loss=12233.6604 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 35/100] batch 270/300 (90%) loss=12376.4373 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 35/100] batch 300/300 (100%) loss=12388.5765 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 035/100] remain=65 epochs ep_eta=122.3min (avg 113s/ep)
+[br1_boundary_dice] [epoch 035/100] lr=0.000046  dt=115.6s
+  train loss=12388.5765  ce=0.1088 dice=0.2049  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2924
+  IoU   bg=0.9764  crack=0.5771  spalling=0.7941  | mIoU_fg=0.6856  pix_acc=0.9771
+  Dice  bg=0.9881  crack=0.7318  spalling=0.8852
+  BF1   crack=0.7536  spalling=0.6484  | BF1_fg_mean=0.7010
+[br1_boundary_dice] [curriculum] epoch 36: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 36/100] batch 30/300 (10%) loss=12242.4882 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 36/100] batch 60/300 (20%) loss=12374.3836 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 36/100] batch 90/300 (30%) loss=12374.2924 elapsed=33s eta=77s
+  [br1_boundary_dice] [epoch 36/100] batch 120/300 (40%) loss=12279.0505 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 36/100] batch 150/300 (50%) loss=12464.7009 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 36/100] batch 180/300 (60%) loss=12552.4681 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 36/100] batch 210/300 (70%) loss=12480.5016 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 36/100] batch 240/300 (80%) loss=12325.0697 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 36/100] batch 270/300 (90%) loss=12362.0414 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 36/100] batch 300/300 (100%) loss=12420.5578 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 036/100] remain=64 epochs ep_eta=120.3min (avg 113s/ep)
+[br1_boundary_dice] [epoch 036/100] lr=0.000046  dt=110.3s
+  train loss=12420.5578  ce=0.1089 dice=0.2039  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[br1_boundary_dice] [curriculum] epoch 37: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 37/100] batch 30/300 (10%) loss=14166.2881 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 37/100] batch 60/300 (20%) loss=13485.9445 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 37/100] batch 90/300 (30%) loss=12688.6990 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 37/100] batch 120/300 (40%) loss=12520.2863 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 37/100] batch 150/300 (50%) loss=12317.3958 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 37/100] batch 180/300 (60%) loss=12352.2914 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 37/100] batch 210/300 (70%) loss=12290.5758 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 37/100] batch 240/300 (80%) loss=12295.0590 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 37/100] batch 270/300 (90%) loss=12278.0755 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 37/100] batch 300/300 (100%) loss=12280.1715 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 037/100] remain=63 epochs ep_eta=118.4min (avg 113s/ep)
+[br1_boundary_dice] [epoch 037/100] lr=0.000045  dt=110.7s
+  train loss=12280.1715  ce=0.1087 dice=0.2052  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[br1_boundary_dice] [curriculum] epoch 38: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 38/100] batch 30/300 (10%) loss=12957.1196 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 38/100] batch 60/300 (20%) loss=13113.9332 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 38/100] batch 90/300 (30%) loss=12725.6808 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 38/100] batch 120/300 (40%) loss=12463.5595 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 38/100] batch 150/300 (50%) loss=12209.4388 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 38/100] batch 180/300 (60%) loss=12109.8697 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 38/100] batch 210/300 (70%) loss=11921.1957 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 38/100] batch 240/300 (80%) loss=11911.2366 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 38/100] batch 270/300 (90%) loss=11892.6245 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 38/100] batch 300/300 (100%) loss=11926.5252 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 038/100] remain=62 epochs ep_eta=116.5min (avg 113s/ep)
+[br1_boundary_dice] [epoch 038/100] lr=0.000044  dt=110.7s
+  train loss=11926.5252  ce=0.1063 dice=0.2076  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[br1_boundary_dice] [curriculum] epoch 39: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 39/100] batch 30/300 (10%) loss=11688.2568 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 39/100] batch 60/300 (20%) loss=13017.6606 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 39/100] batch 90/300 (30%) loss=13074.8277 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 39/100] batch 120/300 (40%) loss=12698.3118 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 39/100] batch 150/300 (50%) loss=12520.8066 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 39/100] batch 180/300 (60%) loss=12302.2800 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 39/100] batch 210/300 (70%) loss=12312.5427 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 39/100] batch 240/300 (80%) loss=12180.6303 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 39/100] batch 270/300 (90%) loss=12190.8173 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 39/100] batch 300/300 (100%) loss=12182.2881 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 039/100] remain=61 epochs ep_eta=114.6min (avg 113s/ep)
+[br1_boundary_dice] [epoch 039/100] lr=0.000043  dt=110.8s
+  train loss=12182.2881  ce=0.1071 dice=0.2027  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[br1_boundary_dice] [curriculum] epoch 40: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 40/100] batch 30/300 (10%) loss=11072.1580 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 40/100] batch 60/300 (20%) loss=11189.3969 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 40/100] batch 90/300 (30%) loss=11227.1083 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 40/100] batch 120/300 (40%) loss=11252.7707 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 40/100] batch 150/300 (50%) loss=11194.3089 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 40/100] batch 180/300 (60%) loss=11397.2634 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 40/100] batch 210/300 (70%) loss=11574.5642 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 40/100] batch 240/300 (80%) loss=11619.9459 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 40/100] batch 270/300 (90%) loss=11574.4626 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 40/100] batch 300/300 (100%) loss=11491.2887 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 040/100] remain=60 epochs ep_eta=112.8min (avg 113s/ep)
+[br1_boundary_dice] [epoch 040/100] lr=0.000042  dt=115.3s
+  train loss=11491.2887  ce=0.1047 dice=0.2013  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2854
+  IoU   bg=0.9778  crack=0.5864  spalling=0.8002  | mIoU_fg=0.6933  pix_acc=0.9783
+  Dice  bg=0.9888  crack=0.7393  spalling=0.8890
+  BF1   crack=0.7613  spalling=0.6739  | BF1_fg_mean=0.7176
+  [br1_boundary_dice] [best] mIoU_fg=0.6933  saved -> best.pt
+[br1_boundary_dice] [curriculum] epoch 41: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 41/100] batch 30/300 (10%) loss=11403.1198 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 41/100] batch 60/300 (20%) loss=11696.7098 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 41/100] batch 90/300 (30%) loss=11366.0960 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 41/100] batch 120/300 (40%) loss=11480.4426 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 41/100] batch 150/300 (50%) loss=11420.3776 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 41/100] batch 180/300 (60%) loss=11477.5181 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 41/100] batch 210/300 (70%) loss=11465.0158 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 41/100] batch 240/300 (80%) loss=11543.1807 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 41/100] batch 270/300 (90%) loss=11558.5797 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 41/100] batch 300/300 (100%) loss=11446.6167 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 041/100] remain=59 epochs ep_eta=110.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 041/100] lr=0.000041  dt=111.0s
+  train loss=11446.6167  ce=0.1038 dice=0.1986  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[br1_boundary_dice] [curriculum] epoch 42: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 42/100] batch 30/300 (10%) loss=11469.5774 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 42/100] batch 60/300 (20%) loss=11277.4923 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 42/100] batch 90/300 (30%) loss=11228.6497 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 42/100] batch 120/300 (40%) loss=11312.6456 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 42/100] batch 150/300 (50%) loss=11382.7714 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 42/100] batch 180/300 (60%) loss=11418.2268 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 42/100] batch 210/300 (70%) loss=11429.1560 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 42/100] batch 240/300 (80%) loss=11490.0500 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 42/100] batch 270/300 (90%) loss=11464.3012 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 42/100] batch 300/300 (100%) loss=11448.5627 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 042/100] remain=58 epochs ep_eta=109.0min (avg 113s/ep)
+[br1_boundary_dice] [epoch 042/100] lr=0.000040  dt=111.0s
+  train loss=11448.5627  ce=0.1041 dice=0.2008  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[br1_boundary_dice] [curriculum] epoch 43: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 43/100] batch 30/300 (10%) loss=10646.4981 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 43/100] batch 60/300 (20%) loss=10884.3691 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 43/100] batch 90/300 (30%) loss=10916.0291 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 43/100] batch 120/300 (40%) loss=11126.0478 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 43/100] batch 150/300 (50%) loss=11032.6416 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 43/100] batch 180/300 (60%) loss=11254.7594 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 43/100] batch 210/300 (70%) loss=11272.7465 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 43/100] batch 240/300 (80%) loss=11170.1000 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 43/100] batch 270/300 (90%) loss=11131.7102 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 43/100] batch 300/300 (100%) loss=11101.3571 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 043/100] remain=57 epochs ep_eta=107.1min (avg 113s/ep)
+[br1_boundary_dice] [epoch 043/100] lr=0.000039  dt=110.4s
+  train loss=11101.3571  ce=0.1038 dice=0.1969  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[br1_boundary_dice] [curriculum] epoch 44: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 44/100] batch 30/300 (10%) loss=10669.8089 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 44/100] batch 60/300 (20%) loss=11281.3306 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 44/100] batch 90/300 (30%) loss=11077.5953 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 44/100] batch 120/300 (40%) loss=10780.8893 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 44/100] batch 150/300 (50%) loss=10804.6422 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 44/100] batch 180/300 (60%) loss=10782.4475 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 44/100] batch 210/300 (70%) loss=10784.6210 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 44/100] batch 240/300 (80%) loss=10807.1176 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 44/100] batch 270/300 (90%) loss=10860.8966 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 44/100] batch 300/300 (100%) loss=10860.8019 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 044/100] remain=56 epochs ep_eta=105.2min (avg 113s/ep)
+[br1_boundary_dice] [epoch 044/100] lr=0.000038  dt=110.5s
+  train loss=10860.8019  ce=0.1017 dice=0.2007  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[br1_boundary_dice] [curriculum] epoch 45: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 45/100] batch 30/300 (10%) loss=10459.0737 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 45/100] batch 60/300 (20%) loss=10745.2609 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 45/100] batch 90/300 (30%) loss=10561.5249 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 45/100] batch 120/300 (40%) loss=10631.9299 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 45/100] batch 150/300 (50%) loss=10725.1624 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 45/100] batch 180/300 (60%) loss=10614.4857 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 45/100] batch 210/300 (70%) loss=10506.9483 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 45/100] batch 240/300 (80%) loss=10519.5457 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 45/100] batch 270/300 (90%) loss=10454.7595 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 45/100] batch 300/300 (100%) loss=10441.1777 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 045/100] remain=55 epochs ep_eta=103.4min (avg 113s/ep)
+[br1_boundary_dice] [epoch 045/100] lr=0.000037  dt=115.7s
+  train loss=10441.1777  ce=0.0992 dice=0.1912  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2866
+  IoU   bg=0.9767  crack=0.5779  spalling=0.7977  | mIoU_fg=0.6878  pix_acc=0.9773
+  Dice  bg=0.9882  crack=0.7325  spalling=0.8874
+  BF1   crack=0.7453  spalling=0.6567  | BF1_fg_mean=0.7010
+[br1_boundary_dice] [curriculum] epoch 46: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 46/100] batch 30/300 (10%) loss=10727.3025 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 46/100] batch 60/300 (20%) loss=10547.1517 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 46/100] batch 90/300 (30%) loss=10207.4619 elapsed=33s eta=77s
+  [br1_boundary_dice] [epoch 46/100] batch 120/300 (40%) loss=10326.8403 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 46/100] batch 150/300 (50%) loss=10317.5131 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 46/100] batch 180/300 (60%) loss=10283.4504 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 46/100] batch 210/300 (70%) loss=10271.0986 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 46/100] batch 240/300 (80%) loss=10314.9751 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 46/100] batch 270/300 (90%) loss=10257.6822 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 46/100] batch 300/300 (100%) loss=10358.3875 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 046/100] remain=54 epochs ep_eta=101.5min (avg 113s/ep)
+[br1_boundary_dice] [epoch 046/100] lr=0.000036  dt=110.5s
+  train loss=10358.3875  ce=0.0987 dice=0.1934  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[br1_boundary_dice] [curriculum] epoch 47: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 47/100] batch 30/300 (10%) loss=9786.4231 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 47/100] batch 60/300 (20%) loss=10315.5636 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 47/100] batch 90/300 (30%) loss=10725.1533 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 47/100] batch 120/300 (40%) loss=10583.5765 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 47/100] batch 150/300 (50%) loss=10604.6436 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 47/100] batch 180/300 (60%) loss=10569.9795 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 47/100] batch 210/300 (70%) loss=10528.5874 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 47/100] batch 240/300 (80%) loss=10498.1980 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 47/100] batch 270/300 (90%) loss=10399.6530 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 47/100] batch 300/300 (100%) loss=10454.0632 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 047/100] remain=53 epochs ep_eta=99.6min (avg 113s/ep)
+[br1_boundary_dice] [epoch 047/100] lr=0.000035  dt=111.2s
+  train loss=10454.0632  ce=0.1002 dice=0.1980  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[br1_boundary_dice] [curriculum] epoch 48: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 48/100] batch 30/300 (10%) loss=10139.5003 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 48/100] batch 60/300 (20%) loss=10285.0368 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 48/100] batch 90/300 (30%) loss=10068.4092 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 48/100] batch 120/300 (40%) loss=10141.0339 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 48/100] batch 150/300 (50%) loss=10173.9972 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 48/100] batch 180/300 (60%) loss=10160.7800 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 48/100] batch 210/300 (70%) loss=10091.7848 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 48/100] batch 240/300 (80%) loss=10104.0634 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 48/100] batch 270/300 (90%) loss=10163.6020 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 48/100] batch 300/300 (100%) loss=10136.4772 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 048/100] remain=52 epochs ep_eta=97.7min (avg 113s/ep)
+[br1_boundary_dice] [epoch 048/100] lr=0.000034  dt=110.6s
+  train loss=10136.4772  ce=0.0986 dice=0.1990  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[br1_boundary_dice] [curriculum] epoch 49: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 49/100] batch 30/300 (10%) loss=9965.6882 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 49/100] batch 60/300 (20%) loss=10299.5914 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 49/100] batch 90/300 (30%) loss=10096.2528 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 49/100] batch 120/300 (40%) loss=9902.5928 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 49/100] batch 150/300 (50%) loss=9853.4404 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 49/100] batch 180/300 (60%) loss=9857.6250 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 49/100] batch 210/300 (70%) loss=9922.5067 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 49/100] batch 240/300 (80%) loss=9891.4876 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 49/100] batch 270/300 (90%) loss=9846.3251 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 49/100] batch 300/300 (100%) loss=9848.1917 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 049/100] remain=51 epochs ep_eta=95.8min (avg 113s/ep)
+[br1_boundary_dice] [epoch 049/100] lr=0.000033  dt=111.0s
+  train loss=9848.1917  ce=0.0967 dice=0.1963  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[br1_boundary_dice] [curriculum] epoch 50: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 50/100] batch 30/300 (10%) loss=8972.7324 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 50/100] batch 60/300 (20%) loss=9940.5349 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 50/100] batch 90/300 (30%) loss=9871.1829 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 50/100] batch 120/300 (40%) loss=9778.6760 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 50/100] batch 150/300 (50%) loss=9669.5988 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 50/100] batch 180/300 (60%) loss=9780.1645 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 50/100] batch 210/300 (70%) loss=9696.1251 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 50/100] batch 240/300 (80%) loss=9755.3650 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 50/100] batch 270/300 (90%) loss=9782.6070 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 50/100] batch 300/300 (100%) loss=9821.7283 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 050/100] remain=50 epochs ep_eta=94.0min (avg 113s/ep)
+[br1_boundary_dice] [epoch 050/100] lr=0.000032  dt=116.1s
+  train loss=9821.7283  ce=0.0959 dice=0.1902  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2785
+  IoU   bg=0.9766  crack=0.5755  spalling=0.7991  | mIoU_fg=0.6873  pix_acc=0.9772
+  Dice  bg=0.9882  crack=0.7306  spalling=0.8884
+  BF1   crack=0.7478  spalling=0.6553  | BF1_fg_mean=0.7016
+[br1_boundary_dice] [curriculum] epoch 51: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 51/100] batch 30/300 (10%) loss=9648.3285 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 51/100] batch 60/300 (20%) loss=9818.4589 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 51/100] batch 90/300 (30%) loss=9839.6457 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 51/100] batch 120/300 (40%) loss=9712.7024 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 51/100] batch 150/300 (50%) loss=9723.3341 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 51/100] batch 180/300 (60%) loss=9777.0330 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 51/100] batch 210/300 (70%) loss=9728.6487 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 51/100] batch 240/300 (80%) loss=9735.2055 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 51/100] batch 270/300 (90%) loss=9746.0665 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 51/100] batch 300/300 (100%) loss=9740.3627 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 051/100] remain=49 epochs ep_eta=92.1min (avg 113s/ep)
+[br1_boundary_dice] [epoch 051/100] lr=0.000031  dt=110.4s
+  train loss=9740.3627  ce=0.0959 dice=0.1891  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[br1_boundary_dice] [curriculum] epoch 52: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 52/100] batch 30/300 (10%) loss=11276.4644 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 52/100] batch 60/300 (20%) loss=10199.4553 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 52/100] batch 90/300 (30%) loss=10015.5239 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 52/100] batch 120/300 (40%) loss=9904.3093 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 52/100] batch 150/300 (50%) loss=9897.4742 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 52/100] batch 180/300 (60%) loss=9846.7300 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 52/100] batch 210/300 (70%) loss=9846.4508 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 52/100] batch 240/300 (80%) loss=9932.9953 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 52/100] batch 270/300 (90%) loss=9897.5611 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 52/100] batch 300/300 (100%) loss=9856.5863 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 052/100] remain=48 epochs ep_eta=90.2min (avg 113s/ep)
+[br1_boundary_dice] [epoch 052/100] lr=0.000030  dt=111.2s
+  train loss=9856.5863  ce=0.0966 dice=0.1920  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[br1_boundary_dice] [curriculum] epoch 53: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 53/100] batch 30/300 (10%) loss=8706.8220 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 53/100] batch 60/300 (20%) loss=9356.5691 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 53/100] batch 90/300 (30%) loss=9311.1699 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 53/100] batch 120/300 (40%) loss=9472.8436 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 53/100] batch 150/300 (50%) loss=9470.2978 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 53/100] batch 180/300 (60%) loss=9395.8059 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 53/100] batch 210/300 (70%) loss=9346.2700 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 53/100] batch 240/300 (80%) loss=9310.5409 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 53/100] batch 270/300 (90%) loss=9387.8004 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 53/100] batch 300/300 (100%) loss=9323.0931 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 053/100] remain=47 epochs ep_eta=88.3min (avg 113s/ep)
+[br1_boundary_dice] [epoch 053/100] lr=0.000030  dt=110.5s
+  train loss=9323.0931  ce=0.0944 dice=0.1933  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[br1_boundary_dice] [curriculum] epoch 54: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 54/100] batch 30/300 (10%) loss=8833.2304 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 54/100] batch 60/300 (20%) loss=8966.3593 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 54/100] batch 90/300 (30%) loss=9215.0563 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 54/100] batch 120/300 (40%) loss=9311.9531 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 54/100] batch 150/300 (50%) loss=9199.2508 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 54/100] batch 180/300 (60%) loss=9139.1474 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 54/100] batch 210/300 (70%) loss=9278.4783 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 54/100] batch 240/300 (80%) loss=9199.3701 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 54/100] batch 270/300 (90%) loss=9165.4391 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 54/100] batch 300/300 (100%) loss=9234.1472 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 054/100] remain=46 epochs ep_eta=86.4min (avg 113s/ep)
+[br1_boundary_dice] [epoch 054/100] lr=0.000029  dt=110.7s
+  train loss=9234.1472  ce=0.0938 dice=0.1908  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[br1_boundary_dice] [curriculum] epoch 55: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 55/100] batch 30/300 (10%) loss=9311.7610 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 55/100] batch 60/300 (20%) loss=9605.5511 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 55/100] batch 90/300 (30%) loss=9538.2695 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 55/100] batch 120/300 (40%) loss=9564.5530 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 55/100] batch 150/300 (50%) loss=9475.8796 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 55/100] batch 180/300 (60%) loss=9379.5866 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 55/100] batch 210/300 (70%) loss=9303.0694 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 55/100] batch 240/300 (80%) loss=9213.0709 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 55/100] batch 270/300 (90%) loss=9167.7803 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 55/100] batch 300/300 (100%) loss=9088.0144 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 055/100] remain=45 epochs ep_eta=84.5min (avg 113s/ep)
+[br1_boundary_dice] [epoch 055/100] lr=0.000028  dt=115.8s
+  train loss=9088.0144  ce=0.0935 dice=0.1843  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2835
+  IoU   bg=0.9768  crack=0.5806  spalling=0.7929  | mIoU_fg=0.6868  pix_acc=0.9774
+  Dice  bg=0.9883  crack=0.7347  spalling=0.8845
+  BF1   crack=0.7609  spalling=0.6552  | BF1_fg_mean=0.7080
+[br1_boundary_dice] [curriculum] epoch 56: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 56/100] batch 30/300 (10%) loss=9646.2850 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 56/100] batch 60/300 (20%) loss=9486.6658 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 56/100] batch 90/300 (30%) loss=9242.9532 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 56/100] batch 120/300 (40%) loss=9184.4499 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 56/100] batch 150/300 (50%) loss=9206.1647 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 56/100] batch 180/300 (60%) loss=9157.9329 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 56/100] batch 210/300 (70%) loss=9235.1140 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 56/100] batch 240/300 (80%) loss=9454.2432 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 56/100] batch 270/300 (90%) loss=9406.8524 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 56/100] batch 300/300 (100%) loss=9373.7896 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 056/100] remain=44 epochs ep_eta=82.7min (avg 113s/ep)
+[br1_boundary_dice] [epoch 056/100] lr=0.000027  dt=110.7s
+  train loss=9373.7896  ce=0.0938 dice=0.1861  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[br1_boundary_dice] [curriculum] epoch 57: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 57/100] batch 30/300 (10%) loss=9489.9035 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 57/100] batch 60/300 (20%) loss=9226.1141 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 57/100] batch 90/300 (30%) loss=9092.6397 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 57/100] batch 120/300 (40%) loss=9230.4968 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 57/100] batch 150/300 (50%) loss=9081.3429 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 57/100] batch 180/300 (60%) loss=9096.1795 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 57/100] batch 210/300 (70%) loss=9101.1474 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 57/100] batch 240/300 (80%) loss=9052.5342 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 57/100] batch 270/300 (90%) loss=8971.6222 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 57/100] batch 300/300 (100%) loss=8987.9121 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 057/100] remain=43 epochs ep_eta=80.8min (avg 113s/ep)
+[br1_boundary_dice] [epoch 057/100] lr=0.000026  dt=110.8s
+  train loss=8987.9121  ce=0.0928 dice=0.1840  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[br1_boundary_dice] [curriculum] epoch 58: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 58/100] batch 30/300 (10%) loss=8517.2204 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 58/100] batch 60/300 (20%) loss=8743.5432 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 58/100] batch 90/300 (30%) loss=8716.8596 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 58/100] batch 120/300 (40%) loss=8745.5211 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 58/100] batch 150/300 (50%) loss=8766.7132 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 58/100] batch 180/300 (60%) loss=8674.3326 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 58/100] batch 210/300 (70%) loss=8677.9770 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 58/100] batch 240/300 (80%) loss=8706.3455 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 58/100] batch 270/300 (90%) loss=8678.7256 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 58/100] batch 300/300 (100%) loss=8684.3183 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 058/100] remain=42 epochs ep_eta=78.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 058/100] lr=0.000025  dt=110.4s
+  train loss=8684.3183  ce=0.0914 dice=0.1873  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[br1_boundary_dice] [curriculum] epoch 59: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 59/100] batch 30/300 (10%) loss=8724.7536 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 59/100] batch 60/300 (20%) loss=8744.2744 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 59/100] batch 90/300 (30%) loss=8548.7672 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 59/100] batch 120/300 (40%) loss=8747.6522 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 59/100] batch 150/300 (50%) loss=8596.5015 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 59/100] batch 180/300 (60%) loss=8571.6477 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 59/100] batch 210/300 (70%) loss=8713.7020 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 59/100] batch 240/300 (80%) loss=8709.8055 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 59/100] batch 270/300 (90%) loss=8705.3333 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 59/100] batch 300/300 (100%) loss=8725.3842 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 059/100] remain=41 epochs ep_eta=77.0min (avg 113s/ep)
+[br1_boundary_dice] [epoch 059/100] lr=0.000024  dt=111.3s
+  train loss=8725.3842  ce=0.0918 dice=0.1844  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[br1_boundary_dice] [curriculum] epoch 60: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 60/100] batch 30/300 (10%) loss=8739.5334 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 60/100] batch 60/300 (20%) loss=9564.8068 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 60/100] batch 90/300 (30%) loss=9528.8951 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 60/100] batch 120/300 (40%) loss=9273.5217 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 60/100] batch 150/300 (50%) loss=9285.3101 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 60/100] batch 180/300 (60%) loss=9162.1253 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 60/100] batch 210/300 (70%) loss=9138.6659 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 60/100] batch 240/300 (80%) loss=9073.4068 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 60/100] batch 270/300 (90%) loss=9079.0361 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 60/100] batch 300/300 (100%) loss=9036.3260 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 060/100] remain=40 epochs ep_eta=75.1min (avg 113s/ep)
+[br1_boundary_dice] [epoch 060/100] lr=0.000023  dt=115.9s
+  train loss=9036.3260  ce=0.0938 dice=0.1891  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2870
+  IoU   bg=0.9775  crack=0.5852  spalling=0.8014  | mIoU_fg=0.6933  pix_acc=0.9780
+  Dice  bg=0.9886  crack=0.7383  spalling=0.8897
+  BF1   crack=0.7628  spalling=0.6713  | BF1_fg_mean=0.7171
+[br1_boundary_dice] [curriculum] epoch 61: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 61/100] batch 30/300 (10%) loss=8923.6921 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 61/100] batch 60/300 (20%) loss=8696.3310 elapsed=23s eta=91s
+  [br1_boundary_dice] [epoch 61/100] batch 90/300 (30%) loss=8636.2775 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 61/100] batch 120/300 (40%) loss=8592.4064 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 61/100] batch 150/300 (50%) loss=8642.9191 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 61/100] batch 180/300 (60%) loss=8572.7610 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 61/100] batch 210/300 (70%) loss=8569.5011 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 61/100] batch 240/300 (80%) loss=8422.0216 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 61/100] batch 270/300 (90%) loss=8384.2248 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 61/100] batch 300/300 (100%) loss=8441.9974 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 061/100] remain=39 epochs ep_eta=73.3min (avg 113s/ep)
+[br1_boundary_dice] [epoch 061/100] lr=0.000022  dt=111.0s
+  train loss=8441.9974  ce=0.0907 dice=0.1829  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[br1_boundary_dice] [curriculum] epoch 62: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 62/100] batch 30/300 (10%) loss=8887.5839 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 62/100] batch 60/300 (20%) loss=8528.9440 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 62/100] batch 90/300 (30%) loss=8560.3944 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 62/100] batch 120/300 (40%) loss=8574.5252 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 62/100] batch 150/300 (50%) loss=8468.6164 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 62/100] batch 180/300 (60%) loss=8525.2142 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 62/100] batch 210/300 (70%) loss=8386.3497 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 62/100] batch 240/300 (80%) loss=8405.6453 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 62/100] batch 270/300 (90%) loss=8487.3677 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 62/100] batch 300/300 (100%) loss=8415.4244 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 062/100] remain=38 epochs ep_eta=71.4min (avg 113s/ep)
+[br1_boundary_dice] [epoch 062/100] lr=0.000021  dt=110.4s
+  train loss=8415.4244  ce=0.0898 dice=0.1809  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[br1_boundary_dice] [curriculum] epoch 63: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 63/100] batch 30/300 (10%) loss=8793.1519 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 63/100] batch 60/300 (20%) loss=8554.5694 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 63/100] batch 90/300 (30%) loss=8434.9240 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 63/100] batch 120/300 (40%) loss=8448.1898 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 63/100] batch 150/300 (50%) loss=8496.9768 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 63/100] batch 180/300 (60%) loss=8486.6147 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 63/100] batch 210/300 (70%) loss=8508.8612 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 63/100] batch 240/300 (80%) loss=8434.8478 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 63/100] batch 270/300 (90%) loss=8463.0295 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 63/100] batch 300/300 (100%) loss=8444.8170 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 063/100] remain=37 epochs ep_eta=69.5min (avg 113s/ep)
+[br1_boundary_dice] [epoch 063/100] lr=0.000020  dt=110.6s
+  train loss=8444.8170  ce=0.0908 dice=0.1854  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[br1_boundary_dice] [curriculum] epoch 64: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 64/100] batch 30/300 (10%) loss=8374.9147 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 64/100] batch 60/300 (20%) loss=8293.9704 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 64/100] batch 90/300 (30%) loss=8448.1277 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 64/100] batch 120/300 (40%) loss=8317.4737 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 64/100] batch 150/300 (50%) loss=8236.4948 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 64/100] batch 180/300 (60%) loss=8177.7393 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 64/100] batch 210/300 (70%) loss=8136.6674 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 64/100] batch 240/300 (80%) loss=8203.6970 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 64/100] batch 270/300 (90%) loss=8251.2844 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 64/100] batch 300/300 (100%) loss=8251.1791 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 064/100] remain=36 epochs ep_eta=67.6min (avg 113s/ep)
+[br1_boundary_dice] [epoch 064/100] lr=0.000019  dt=111.0s
+  train loss=8251.1791  ce=0.0892 dice=0.1841  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[br1_boundary_dice] [curriculum] epoch 65: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 65/100] batch 30/300 (10%) loss=8778.3494 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 65/100] batch 60/300 (20%) loss=8057.8613 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 65/100] batch 90/300 (30%) loss=7989.0842 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 65/100] batch 120/300 (40%) loss=7999.9928 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 65/100] batch 150/300 (50%) loss=8014.6913 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 65/100] batch 180/300 (60%) loss=8081.4310 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 65/100] batch 210/300 (70%) loss=8108.4690 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 65/100] batch 240/300 (80%) loss=8115.3619 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 65/100] batch 270/300 (90%) loss=8084.4428 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 65/100] batch 300/300 (100%) loss=8114.9741 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 065/100] remain=35 epochs ep_eta=65.7min (avg 113s/ep)
+[br1_boundary_dice] [epoch 065/100] lr=0.000018  dt=115.6s
+  train loss=8114.9741  ce=0.0889 dice=0.1824  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2762
+  IoU   bg=0.9772  crack=0.5856  spalling=0.8227  | mIoU_fg=0.7041  pix_acc=0.9779
+  Dice  bg=0.9885  crack=0.7386  spalling=0.9027
+  BF1   crack=0.7617  spalling=0.6383  | BF1_fg_mean=0.7000
+  [br1_boundary_dice] [best] mIoU_fg=0.7041  saved -> best.pt
+[br1_boundary_dice] [curriculum] epoch 66: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 66/100] batch 30/300 (10%) loss=8377.4909 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 66/100] batch 60/300 (20%) loss=8235.6130 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 66/100] batch 90/300 (30%) loss=8402.0489 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 66/100] batch 120/300 (40%) loss=8259.7954 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 66/100] batch 150/300 (50%) loss=8146.4139 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 66/100] batch 180/300 (60%) loss=8109.4842 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 66/100] batch 210/300 (70%) loss=8068.2814 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 66/100] batch 240/300 (80%) loss=8082.0350 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 66/100] batch 270/300 (90%) loss=8155.3467 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 66/100] batch 300/300 (100%) loss=8128.9845 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 066/100] remain=34 epochs ep_eta=63.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 066/100] lr=0.000017  dt=110.8s
+  train loss=8128.9845  ce=0.0893 dice=0.1840  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[br1_boundary_dice] [curriculum] epoch 67: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 67/100] batch 30/300 (10%) loss=8056.7702 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 67/100] batch 60/300 (20%) loss=7908.7267 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 67/100] batch 90/300 (30%) loss=8079.8820 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 67/100] batch 120/300 (40%) loss=7881.3658 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 67/100] batch 150/300 (50%) loss=7905.7731 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 67/100] batch 180/300 (60%) loss=7872.9447 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 67/100] batch 210/300 (70%) loss=7864.3219 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 67/100] batch 240/300 (80%) loss=7878.7869 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 67/100] batch 270/300 (90%) loss=7936.9748 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 67/100] batch 300/300 (100%) loss=7970.1463 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 067/100] remain=33 epochs ep_eta=62.0min (avg 113s/ep)
+[br1_boundary_dice] [epoch 067/100] lr=0.000016  dt=110.3s
+  train loss=7970.1463  ce=0.0880 dice=0.1814  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[br1_boundary_dice] [curriculum] epoch 68: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 68/100] batch 30/300 (10%) loss=8112.4167 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 68/100] batch 60/300 (20%) loss=8220.7726 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 68/100] batch 90/300 (30%) loss=8061.5848 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 68/100] batch 120/300 (40%) loss=8018.5113 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 68/100] batch 150/300 (50%) loss=7980.3134 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 68/100] batch 180/300 (60%) loss=8048.3442 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 68/100] batch 210/300 (70%) loss=8120.7608 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 68/100] batch 240/300 (80%) loss=8094.9802 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 68/100] batch 270/300 (90%) loss=8038.7625 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 68/100] batch 300/300 (100%) loss=7981.6522 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 068/100] remain=32 epochs ep_eta=60.1min (avg 113s/ep)
+[br1_boundary_dice] [epoch 068/100] lr=0.000015  dt=110.6s
+  train loss=7981.6522  ce=0.0883 dice=0.1807  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[br1_boundary_dice] [curriculum] epoch 69: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [br1_boundary_dice] [epoch 69/100] batch 30/300 (10%) loss=8016.5772 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 69/100] batch 60/300 (20%) loss=8041.3277 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 69/100] batch 90/300 (30%) loss=7925.8510 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 69/100] batch 120/300 (40%) loss=7739.0882 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 69/100] batch 150/300 (50%) loss=7772.8895 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 69/100] batch 180/300 (60%) loss=7762.3001 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 69/100] batch 210/300 (70%) loss=7819.3000 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 69/100] batch 240/300 (80%) loss=7850.9985 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 69/100] batch 270/300 (90%) loss=7927.2640 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 69/100] batch 300/300 (100%) loss=7891.0917 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 069/100] remain=31 epochs ep_eta=58.2min (avg 113s/ep)
+[br1_boundary_dice] [epoch 069/100] lr=0.000014  dt=110.7s
+  train loss=7891.0917  ce=0.0879 dice=0.1808  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[br1_boundary_dice] [curriculum] epoch 70: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 70/100] batch 30/300 (10%) loss=7580.0162 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 70/100] batch 60/300 (20%) loss=7697.2464 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 70/100] batch 90/300 (30%) loss=7804.4930 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 70/100] batch 120/300 (40%) loss=7887.9218 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 70/100] batch 150/300 (50%) loss=7864.5469 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 70/100] batch 180/300 (60%) loss=7795.5208 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 70/100] batch 210/300 (70%) loss=7822.0432 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 70/100] batch 240/300 (80%) loss=7865.9269 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 70/100] batch 270/300 (90%) loss=7822.0069 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 70/100] batch 300/300 (100%) loss=7819.9304 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 070/100] remain=30 epochs ep_eta=56.3min (avg 113s/ep)
+[br1_boundary_dice] [epoch 070/100] lr=0.000014  dt=115.6s
+  train loss=7819.9304  ce=0.0877 dice=0.1809  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2792
+  IoU   bg=0.9772  crack=0.5906  spalling=0.8152  | mIoU_fg=0.7029  pix_acc=0.9779
+  Dice  bg=0.9885  crack=0.7426  spalling=0.8982
+  BF1   crack=0.7638  spalling=0.6424  | BF1_fg_mean=0.7031
+[br1_boundary_dice] [curriculum] epoch 71: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 71/100] batch 30/300 (10%) loss=7661.7242 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 71/100] batch 60/300 (20%) loss=7589.1643 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 71/100] batch 90/300 (30%) loss=7545.8184 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 71/100] batch 120/300 (40%) loss=7639.0739 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 71/100] batch 150/300 (50%) loss=7691.9226 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 71/100] batch 180/300 (60%) loss=7760.7068 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 71/100] batch 210/300 (70%) loss=7833.7054 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 71/100] batch 240/300 (80%) loss=7800.7837 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 71/100] batch 270/300 (90%) loss=7814.1934 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 71/100] batch 300/300 (100%) loss=7796.0419 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 071/100] remain=29 epochs ep_eta=54.5min (avg 113s/ep)
+[br1_boundary_dice] [epoch 071/100] lr=0.000013  dt=111.1s
+  train loss=7796.0419  ce=0.0876 dice=0.1812  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[br1_boundary_dice] [curriculum] epoch 72: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 72/100] batch 30/300 (10%) loss=7617.1547 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 72/100] batch 60/300 (20%) loss=7590.5614 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 72/100] batch 90/300 (30%) loss=7650.2300 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 72/100] batch 120/300 (40%) loss=7720.8756 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 72/100] batch 150/300 (50%) loss=7734.0593 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 72/100] batch 180/300 (60%) loss=7712.1658 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 72/100] batch 210/300 (70%) loss=7715.7555 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 72/100] batch 240/300 (80%) loss=7705.0472 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 72/100] batch 270/300 (90%) loss=7749.2343 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 72/100] batch 300/300 (100%) loss=7678.3135 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 072/100] remain=28 epochs ep_eta=52.6min (avg 113s/ep)
+[br1_boundary_dice] [epoch 072/100] lr=0.000012  dt=110.9s
+  train loss=7678.3135  ce=0.0866 dice=0.1778  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[br1_boundary_dice] [curriculum] epoch 73: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 73/100] batch 30/300 (10%) loss=7649.2061 elapsed=11s eta=101s
+  [br1_boundary_dice] [epoch 73/100] batch 60/300 (20%) loss=7686.6978 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 73/100] batch 90/300 (30%) loss=7532.4235 elapsed=33s eta=77s
+  [br1_boundary_dice] [epoch 73/100] batch 120/300 (40%) loss=7536.7595 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 73/100] batch 150/300 (50%) loss=7629.2673 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 73/100] batch 180/300 (60%) loss=7656.9987 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 73/100] batch 210/300 (70%) loss=7682.4238 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 73/100] batch 240/300 (80%) loss=7761.5961 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 73/100] batch 270/300 (90%) loss=7696.5779 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 73/100] batch 300/300 (100%) loss=7643.2392 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 073/100] remain=27 epochs ep_eta=50.7min (avg 113s/ep)
+[br1_boundary_dice] [epoch 073/100] lr=0.000011  dt=110.8s
+  train loss=7643.2392  ce=0.0871 dice=0.1832  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[br1_boundary_dice] [curriculum] epoch 74: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 74/100] batch 30/300 (10%) loss=7404.4441 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 74/100] batch 60/300 (20%) loss=7521.7385 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 74/100] batch 90/300 (30%) loss=7566.8613 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 74/100] batch 120/300 (40%) loss=7734.2689 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 74/100] batch 150/300 (50%) loss=7605.3444 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 74/100] batch 180/300 (60%) loss=7554.7811 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 74/100] batch 210/300 (70%) loss=7514.0742 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 74/100] batch 240/300 (80%) loss=7548.2665 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 74/100] batch 270/300 (90%) loss=7568.1940 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 74/100] batch 300/300 (100%) loss=7587.6181 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 074/100] remain=26 epochs ep_eta=48.8min (avg 113s/ep)
+[br1_boundary_dice] [epoch 074/100] lr=0.000010  dt=111.0s
+  train loss=7587.6181  ce=0.0864 dice=0.1792  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[br1_boundary_dice] [curriculum] epoch 75: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 75/100] batch 30/300 (10%) loss=7898.6522 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 75/100] batch 60/300 (20%) loss=7881.4441 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 75/100] batch 90/300 (30%) loss=7738.6450 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 75/100] batch 120/300 (40%) loss=7626.5210 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 75/100] batch 150/300 (50%) loss=7646.1153 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 75/100] batch 180/300 (60%) loss=7647.2918 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 75/100] batch 210/300 (70%) loss=7685.0313 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 75/100] batch 240/300 (80%) loss=7733.0954 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 75/100] batch 270/300 (90%) loss=7752.0504 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 75/100] batch 300/300 (100%) loss=7712.7577 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 075/100] remain=25 epochs ep_eta=46.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 075/100] lr=0.000010  dt=116.0s
+  train loss=7712.7577  ce=0.0869 dice=0.1795  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2711
+  IoU   bg=0.9775  crack=0.5878  spalling=0.8215  | mIoU_fg=0.7047  pix_acc=0.9781
+  Dice  bg=0.9886  crack=0.7404  spalling=0.9020
+  BF1   crack=0.7638  spalling=0.6647  | BF1_fg_mean=0.7143
+  [br1_boundary_dice] [best] mIoU_fg=0.7047  saved -> best.pt
+[br1_boundary_dice] [curriculum] epoch 76: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 76/100] batch 30/300 (10%) loss=7135.5313 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 76/100] batch 60/300 (20%) loss=7365.0832 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 76/100] batch 90/300 (30%) loss=7314.5883 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 76/100] batch 120/300 (40%) loss=7408.2392 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 76/100] batch 150/300 (50%) loss=7410.3276 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 76/100] batch 180/300 (60%) loss=7418.8001 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 76/100] batch 210/300 (70%) loss=7498.0553 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 76/100] batch 240/300 (80%) loss=7472.8469 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 76/100] batch 270/300 (90%) loss=7451.6852 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 76/100] batch 300/300 (100%) loss=7465.8608 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 076/100] remain=24 epochs ep_eta=45.1min (avg 113s/ep)
+[br1_boundary_dice] [epoch 076/100] lr=0.000009  dt=109.9s
+  train loss=7465.8608  ce=0.0854 dice=0.1785  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[br1_boundary_dice] [curriculum] epoch 77: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 77/100] batch 30/300 (10%) loss=7861.3134 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 77/100] batch 60/300 (20%) loss=7861.5035 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 77/100] batch 90/300 (30%) loss=7791.6889 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 77/100] batch 120/300 (40%) loss=7657.2095 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 77/100] batch 150/300 (50%) loss=7654.0963 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 77/100] batch 180/300 (60%) loss=7511.0899 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 77/100] batch 210/300 (70%) loss=7455.1927 elapsed=77s eta=33s
+  [br1_boundary_dice] [epoch 77/100] batch 240/300 (80%) loss=7433.6480 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 77/100] batch 270/300 (90%) loss=7481.7966 elapsed=99s eta=11s
+  [br1_boundary_dice] [epoch 77/100] batch 300/300 (100%) loss=7460.5894 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 077/100] remain=23 epochs ep_eta=43.2min (avg 113s/ep)
+[br1_boundary_dice] [epoch 077/100] lr=0.000008  dt=110.2s
+  train loss=7460.5894  ce=0.0857 dice=0.1768  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[br1_boundary_dice] [curriculum] epoch 78: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 78/100] batch 30/300 (10%) loss=7005.6549 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 78/100] batch 60/300 (20%) loss=7223.7637 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 78/100] batch 90/300 (30%) loss=7267.0555 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 78/100] batch 120/300 (40%) loss=7364.0016 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 78/100] batch 150/300 (50%) loss=7415.0369 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 78/100] batch 180/300 (60%) loss=7405.0512 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 78/100] batch 210/300 (70%) loss=7385.8045 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 78/100] batch 240/300 (80%) loss=7411.2821 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 78/100] batch 270/300 (90%) loss=7417.4542 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 78/100] batch 300/300 (100%) loss=7434.1663 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 078/100] remain=22 epochs ep_eta=41.3min (avg 113s/ep)
+[br1_boundary_dice] [epoch 078/100] lr=0.000008  dt=111.0s
+  train loss=7434.1663  ce=0.0858 dice=0.1773  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[br1_boundary_dice] [curriculum] epoch 79: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 79/100] batch 30/300 (10%) loss=7580.3294 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 79/100] batch 60/300 (20%) loss=7484.5645 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 79/100] batch 90/300 (30%) loss=7353.7718 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 79/100] batch 120/300 (40%) loss=7394.8256 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 79/100] batch 150/300 (50%) loss=7494.4619 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 79/100] batch 180/300 (60%) loss=7464.7832 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 79/100] batch 210/300 (70%) loss=7414.6796 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 79/100] batch 240/300 (80%) loss=7356.0789 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 79/100] batch 270/300 (90%) loss=7337.0457 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 79/100] batch 300/300 (100%) loss=7344.7277 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 079/100] remain=21 epochs ep_eta=39.4min (avg 113s/ep)
+[br1_boundary_dice] [epoch 079/100] lr=0.000007  dt=110.9s
+  train loss=7344.7277  ce=0.0855 dice=0.1808  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[br1_boundary_dice] [curriculum] epoch 80: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 80/100] batch 30/300 (10%) loss=6854.3912 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 80/100] batch 60/300 (20%) loss=7239.1014 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 80/100] batch 90/300 (30%) loss=7251.8597 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 80/100] batch 120/300 (40%) loss=7287.7257 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 80/100] batch 150/300 (50%) loss=7274.2282 elapsed=55s eta=55s
+  [br1_boundary_dice] [epoch 80/100] batch 180/300 (60%) loss=7328.8068 elapsed=66s eta=44s
+  [br1_boundary_dice] [epoch 80/100] batch 210/300 (70%) loss=7326.9166 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 80/100] batch 240/300 (80%) loss=7320.7628 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 80/100] batch 270/300 (90%) loss=7323.0572 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 80/100] batch 300/300 (100%) loss=7318.9925 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 080/100] remain=20 epochs ep_eta=37.6min (avg 113s/ep)
+[br1_boundary_dice] [epoch 080/100] lr=0.000006  dt=116.0s
+  train loss=7318.9925  ce=0.0850 dice=0.1816  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2681
+  IoU   bg=0.9778  crack=0.5928  spalling=0.8225  | mIoU_fg=0.7076  pix_acc=0.9784
+  Dice  bg=0.9888  crack=0.7443  spalling=0.9026
+  BF1   crack=0.7687  spalling=0.6661  | BF1_fg_mean=0.7174
+  [br1_boundary_dice] [best] mIoU_fg=0.7076  saved -> best.pt
+[br1_boundary_dice] [curriculum] epoch 81: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 81/100] batch 30/300 (10%) loss=7051.0857 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 81/100] batch 60/300 (20%) loss=7426.1183 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 81/100] batch 90/300 (30%) loss=7308.2316 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 81/100] batch 120/300 (40%) loss=7377.6211 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 81/100] batch 150/300 (50%) loss=7332.0901 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 81/100] batch 180/300 (60%) loss=7383.7512 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 81/100] batch 210/300 (70%) loss=7377.0770 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 81/100] batch 240/300 (80%) loss=7410.0776 elapsed=88s eta=22s
+  [br1_boundary_dice] [epoch 81/100] batch 270/300 (90%) loss=7411.5850 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 81/100] batch 300/300 (100%) loss=7357.5503 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 081/100] remain=19 epochs ep_eta=35.7min (avg 113s/ep)
+[br1_boundary_dice] [epoch 081/100] lr=0.000006  dt=110.8s
+  train loss=7357.5503  ce=0.0854 dice=0.1771  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[br1_boundary_dice] [curriculum] epoch 82: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 82/100] batch 30/300 (10%) loss=7090.0781 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 82/100] batch 60/300 (20%) loss=7274.4386 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 82/100] batch 90/300 (30%) loss=7210.2819 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 82/100] batch 120/300 (40%) loss=7154.1186 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 82/100] batch 150/300 (50%) loss=7128.9079 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 82/100] batch 180/300 (60%) loss=7200.9780 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 82/100] batch 210/300 (70%) loss=7308.8722 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 82/100] batch 240/300 (80%) loss=7297.5668 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 82/100] batch 270/300 (90%) loss=7306.1822 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 82/100] batch 300/300 (100%) loss=7286.3200 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 082/100] remain=18 epochs ep_eta=33.8min (avg 113s/ep)
+[br1_boundary_dice] [epoch 082/100] lr=0.000005  dt=111.0s
+  train loss=7286.3200  ce=0.0854 dice=0.1826  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[br1_boundary_dice] [curriculum] epoch 83: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 83/100] batch 30/300 (10%) loss=7099.8654 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 83/100] batch 60/300 (20%) loss=7304.3906 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 83/100] batch 90/300 (30%) loss=7409.9422 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 83/100] batch 120/300 (40%) loss=7508.1927 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 83/100] batch 150/300 (50%) loss=7378.8195 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 83/100] batch 180/300 (60%) loss=7500.5715 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 83/100] batch 210/300 (70%) loss=7458.6566 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 83/100] batch 240/300 (80%) loss=7422.1263 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 83/100] batch 270/300 (90%) loss=7412.4062 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 83/100] batch 300/300 (100%) loss=7370.0435 elapsed=110s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 083/100] remain=17 epochs ep_eta=31.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 083/100] lr=0.000005  dt=110.6s
+  train loss=7370.0435  ce=0.0850 dice=0.1803  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[br1_boundary_dice] [curriculum] epoch 84: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 84/100] batch 30/300 (10%) loss=7393.4015 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 84/100] batch 60/300 (20%) loss=7383.1528 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 84/100] batch 90/300 (30%) loss=7368.3938 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 84/100] batch 120/300 (40%) loss=7364.2084 elapsed=44s eta=67s
+  [br1_boundary_dice] [epoch 84/100] batch 150/300 (50%) loss=7394.8893 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 84/100] batch 180/300 (60%) loss=7400.1748 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 84/100] batch 210/300 (70%) loss=7374.4180 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 84/100] batch 240/300 (80%) loss=7323.9451 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 84/100] batch 270/300 (90%) loss=7292.2741 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 84/100] batch 300/300 (100%) loss=7252.1730 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 084/100] remain=16 epochs ep_eta=30.0min (avg 113s/ep)
+[br1_boundary_dice] [epoch 084/100] lr=0.000004  dt=110.7s
+  train loss=7252.1730  ce=0.0851 dice=0.1780  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[br1_boundary_dice] [curriculum] epoch 85: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 85/100] batch 30/300 (10%) loss=7294.3545 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 85/100] batch 60/300 (20%) loss=7324.8687 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 85/100] batch 90/300 (30%) loss=7345.2812 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 85/100] batch 120/300 (40%) loss=7281.4107 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 85/100] batch 150/300 (50%) loss=7293.0852 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 85/100] batch 180/300 (60%) loss=7413.2071 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 85/100] batch 210/300 (70%) loss=7345.3013 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 85/100] batch 240/300 (80%) loss=7253.4208 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 85/100] batch 270/300 (90%) loss=7222.3049 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 85/100] batch 300/300 (100%) loss=7190.3870 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 085/100] remain=15 epochs ep_eta=28.2min (avg 113s/ep)
+[br1_boundary_dice] [epoch 085/100] lr=0.000004  dt=115.9s
+  train loss=7190.3870  ce=0.0846 dice=0.1770  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2705
+  IoU   bg=0.9779  crack=0.5936  spalling=0.8231  | mIoU_fg=0.7083  pix_acc=0.9786
+  Dice  bg=0.9888  crack=0.7450  spalling=0.9029
+  BF1   crack=0.7681  spalling=0.6596  | BF1_fg_mean=0.7139
+  [br1_boundary_dice] [best] mIoU_fg=0.7083  saved -> best.pt
+[br1_boundary_dice] [curriculum] epoch 86: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 86/100] batch 30/300 (10%) loss=7048.5134 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 86/100] batch 60/300 (20%) loss=7231.4034 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 86/100] batch 90/300 (30%) loss=7148.1705 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 86/100] batch 120/300 (40%) loss=7258.7591 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 86/100] batch 150/300 (50%) loss=7153.8374 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 86/100] batch 180/300 (60%) loss=7112.1860 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 86/100] batch 210/300 (70%) loss=7215.6813 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 86/100] batch 240/300 (80%) loss=7169.4240 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 86/100] batch 270/300 (90%) loss=7164.6825 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 86/100] batch 300/300 (100%) loss=7182.1399 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 086/100] remain=14 epochs ep_eta=26.3min (avg 113s/ep)
+[br1_boundary_dice] [epoch 086/100] lr=0.000003  dt=111.1s
+  train loss=7182.1399  ce=0.0845 dice=0.1781  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[br1_boundary_dice] [curriculum] epoch 87: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 87/100] batch 30/300 (10%) loss=7272.8730 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 87/100] batch 60/300 (20%) loss=7349.2385 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 87/100] batch 90/300 (30%) loss=7455.1365 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 87/100] batch 120/300 (40%) loss=7414.7767 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 87/100] batch 150/300 (50%) loss=7257.7218 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 87/100] batch 180/300 (60%) loss=7304.7835 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 87/100] batch 210/300 (70%) loss=7360.2391 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 87/100] batch 240/300 (80%) loss=7316.9944 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 87/100] batch 270/300 (90%) loss=7280.7584 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 87/100] batch 300/300 (100%) loss=7242.4616 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 087/100] remain=13 epochs ep_eta=24.4min (avg 113s/ep)
+[br1_boundary_dice] [epoch 087/100] lr=0.000003  dt=111.4s
+  train loss=7242.4616  ce=0.0843 dice=0.1728  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[br1_boundary_dice] [curriculum] epoch 88: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 88/100] batch 30/300 (10%) loss=7383.5660 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 88/100] batch 60/300 (20%) loss=7554.1221 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 88/100] batch 90/300 (30%) loss=7248.9942 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 88/100] batch 120/300 (40%) loss=7232.6026 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 88/100] batch 150/300 (50%) loss=7283.9192 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 88/100] batch 180/300 (60%) loss=7252.6202 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 88/100] batch 210/300 (70%) loss=7241.9237 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 88/100] batch 240/300 (80%) loss=7199.0842 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 88/100] batch 270/300 (90%) loss=7174.5307 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 88/100] batch 300/300 (100%) loss=7145.0321 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 088/100] remain=12 epochs ep_eta=22.5min (avg 113s/ep)
+[br1_boundary_dice] [epoch 088/100] lr=0.000002  dt=111.2s
+  train loss=7145.0321  ce=0.0842 dice=0.1766  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[br1_boundary_dice] [curriculum] epoch 89: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 89/100] batch 30/300 (10%) loss=7645.5105 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 89/100] batch 60/300 (20%) loss=7485.6403 elapsed=23s eta=91s
+  [br1_boundary_dice] [epoch 89/100] batch 90/300 (30%) loss=7263.8430 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 89/100] batch 120/300 (40%) loss=7275.9664 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 89/100] batch 150/300 (50%) loss=7129.2497 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 89/100] batch 180/300 (60%) loss=7189.4432 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 89/100] batch 210/300 (70%) loss=7209.3029 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 89/100] batch 240/300 (80%) loss=7297.1530 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 89/100] batch 270/300 (90%) loss=7249.5586 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 89/100] batch 300/300 (100%) loss=7227.1992 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 089/100] remain=11 epochs ep_eta=20.7min (avg 113s/ep)
+[br1_boundary_dice] [epoch 089/100] lr=0.000002  dt=111.4s
+  train loss=7227.1992  ce=0.0847 dice=0.1767  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[br1_boundary_dice] [curriculum] epoch 90: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 90/100] batch 30/300 (10%) loss=7108.1259 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 90/100] batch 60/300 (20%) loss=7275.2597 elapsed=23s eta=91s
+  [br1_boundary_dice] [epoch 90/100] batch 90/300 (30%) loss=7295.5303 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 90/100] batch 120/300 (40%) loss=7272.3098 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 90/100] batch 150/300 (50%) loss=7204.6084 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 90/100] batch 180/300 (60%) loss=7268.8054 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 90/100] batch 210/300 (70%) loss=7239.9235 elapsed=78s eta=34s
+  [br1_boundary_dice] [epoch 90/100] batch 240/300 (80%) loss=7194.3135 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 90/100] batch 270/300 (90%) loss=7164.5477 elapsed=101s eta=11s
+  [br1_boundary_dice] [epoch 90/100] batch 300/300 (100%) loss=7176.8494 elapsed=112s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 090/100] remain=10 epochs ep_eta=18.8min (avg 113s/ep)
+[br1_boundary_dice] [epoch 090/100] lr=0.000002  dt=117.0s
+  train loss=7176.8494  ce=0.0843 dice=0.1777  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2760
+  IoU   bg=0.9776  crack=0.5911  spalling=0.8194  | mIoU_fg=0.7052  pix_acc=0.9783
+  Dice  bg=0.9887  crack=0.7430  spalling=0.9007
+  BF1   crack=0.7655  spalling=0.6499  | BF1_fg_mean=0.7077
+[br1_boundary_dice] [curriculum] epoch 91: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 91/100] batch 30/300 (10%) loss=7362.4668 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 91/100] batch 60/300 (20%) loss=7176.2706 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 91/100] batch 90/300 (30%) loss=7110.9764 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 91/100] batch 120/300 (40%) loss=7149.7260 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 91/100] batch 150/300 (50%) loss=7175.9091 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 91/100] batch 180/300 (60%) loss=7233.7664 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 91/100] batch 210/300 (70%) loss=7207.1979 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 91/100] batch 240/300 (80%) loss=7146.5302 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 91/100] batch 270/300 (90%) loss=7175.8582 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 91/100] batch 300/300 (100%) loss=7142.5384 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 091/100] remain=9 epochs ep_eta=16.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 091/100] lr=0.000001  dt=115.9s
+  train loss=7142.5384  ce=0.0844 dice=0.1802  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2742
+  IoU   bg=0.9777  crack=0.5921  spalling=0.8207  | mIoU_fg=0.7064  pix_acc=0.9784
+  Dice  bg=0.9887  crack=0.7438  spalling=0.9015
+  BF1   crack=0.7675  spalling=0.6510  | BF1_fg_mean=0.7093
+[br1_boundary_dice] [curriculum] epoch 92: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 92/100] batch 30/300 (10%) loss=6926.5130 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 92/100] batch 60/300 (20%) loss=6986.8981 elapsed=23s eta=91s
+  [br1_boundary_dice] [epoch 92/100] batch 90/300 (30%) loss=7036.5743 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 92/100] batch 120/300 (40%) loss=7088.1647 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 92/100] batch 150/300 (50%) loss=7110.6552 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 92/100] batch 180/300 (60%) loss=7203.5283 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 92/100] batch 210/300 (70%) loss=7142.3388 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 92/100] batch 240/300 (80%) loss=7119.1284 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 92/100] batch 270/300 (90%) loss=7153.1216 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 92/100] batch 300/300 (100%) loss=7123.8438 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 092/100] remain=8 epochs ep_eta=15.0min (avg 113s/ep)
+[br1_boundary_dice] [epoch 092/100] lr=0.000001  dt=116.3s
+  train loss=7123.8438  ce=0.0842 dice=0.1761  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2750
+  IoU   bg=0.9776  crack=0.5913  spalling=0.8202  | mIoU_fg=0.7057  pix_acc=0.9782
+  Dice  bg=0.9887  crack=0.7431  spalling=0.9012
+  BF1   crack=0.7647  spalling=0.6466  | BF1_fg_mean=0.7056
+[br1_boundary_dice] [curriculum] epoch 93: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 93/100] batch 30/300 (10%) loss=6964.7079 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 93/100] batch 60/300 (20%) loss=7097.0232 elapsed=23s eta=91s
+  [br1_boundary_dice] [epoch 93/100] batch 90/300 (30%) loss=7099.6600 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 93/100] batch 120/300 (40%) loss=7124.4576 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 93/100] batch 150/300 (50%) loss=7155.3193 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 93/100] batch 180/300 (60%) loss=7114.7402 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 93/100] batch 210/300 (70%) loss=7173.1199 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 93/100] batch 240/300 (80%) loss=7166.4689 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 93/100] batch 270/300 (90%) loss=7131.5619 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 93/100] batch 300/300 (100%) loss=7141.3276 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 093/100] remain=7 epochs ep_eta=13.2min (avg 113s/ep)
+[br1_boundary_dice] [epoch 093/100] lr=0.000001  dt=115.9s
+  train loss=7141.3276  ce=0.0844 dice=0.1758  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2713
+  IoU   bg=0.9775  crack=0.5910  spalling=0.8208  | mIoU_fg=0.7059  pix_acc=0.9782
+  Dice  bg=0.9886  crack=0.7429  spalling=0.9016
+  BF1   crack=0.7654  spalling=0.6576  | BF1_fg_mean=0.7115
+[br1_boundary_dice] [curriculum] epoch 94: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 94/100] batch 30/300 (10%) loss=7032.3253 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 94/100] batch 60/300 (20%) loss=7441.3030 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 94/100] batch 90/300 (30%) loss=7139.8772 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 94/100] batch 120/300 (40%) loss=7190.4634 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 94/100] batch 150/300 (50%) loss=7108.2216 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 94/100] batch 180/300 (60%) loss=7048.1518 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 94/100] batch 210/300 (70%) loss=7072.2449 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 94/100] batch 240/300 (80%) loss=7115.1970 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 94/100] batch 270/300 (90%) loss=7049.5106 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 94/100] batch 300/300 (100%) loss=7120.8461 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 094/100] remain=6 epochs ep_eta=11.3min (avg 113s/ep)
+[br1_boundary_dice] [epoch 094/100] lr=0.000001  dt=115.9s
+  train loss=7120.8461  ce=0.0846 dice=0.1776  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2721
+  IoU   bg=0.9777  crack=0.5920  spalling=0.8214  | mIoU_fg=0.7067  pix_acc=0.9784
+  Dice  bg=0.9887  crack=0.7437  spalling=0.9020
+  BF1   crack=0.7666  spalling=0.6566  | BF1_fg_mean=0.7116
+[br1_boundary_dice] [curriculum] epoch 95: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 95/100] batch 30/300 (10%) loss=7017.5803 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 95/100] batch 60/300 (20%) loss=7115.9991 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 95/100] batch 90/300 (30%) loss=6950.6005 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 95/100] batch 120/300 (40%) loss=6958.9857 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 95/100] batch 150/300 (50%) loss=7046.5035 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 95/100] batch 180/300 (60%) loss=7020.2450 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 95/100] batch 210/300 (70%) loss=7030.2362 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 95/100] batch 240/300 (80%) loss=7051.1091 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 95/100] batch 270/300 (90%) loss=7070.2488 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 95/100] batch 300/300 (100%) loss=7157.6208 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 095/100] remain=5 epochs ep_eta=9.4min (avg 113s/ep)
+[br1_boundary_dice] [epoch 095/100] lr=0.000000  dt=115.7s
+  train loss=7157.6208  ce=0.0844 dice=0.1767  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2716
+  IoU   bg=0.9777  crack=0.5918  spalling=0.8224  | mIoU_fg=0.7071  pix_acc=0.9783
+  Dice  bg=0.9887  crack=0.7435  spalling=0.9025
+  BF1   crack=0.7667  spalling=0.6581  | BF1_fg_mean=0.7124
+[br1_boundary_dice] [curriculum] epoch 96: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 96/100] batch 30/300 (10%) loss=6949.0855 elapsed=11s eta=103s
+  [br1_boundary_dice] [epoch 96/100] batch 60/300 (20%) loss=7004.9770 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 96/100] batch 90/300 (30%) loss=6916.6166 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 96/100] batch 120/300 (40%) loss=7014.1524 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 96/100] batch 150/300 (50%) loss=7046.4048 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 96/100] batch 180/300 (60%) loss=7076.4743 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 96/100] batch 210/300 (70%) loss=7035.0265 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 96/100] batch 240/300 (80%) loss=7074.3728 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 96/100] batch 270/300 (90%) loss=7117.8363 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 96/100] batch 300/300 (100%) loss=7156.9360 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 096/100] remain=4 epochs ep_eta=7.5min (avg 113s/ep)
+[br1_boundary_dice] [epoch 096/100] lr=0.000000  dt=115.5s
+  train loss=7156.9360  ce=0.0841 dice=0.1810  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2711
+  IoU   bg=0.9775  crack=0.5908  spalling=0.8224  | mIoU_fg=0.7066  pix_acc=0.9782
+  Dice  bg=0.9886  crack=0.7428  spalling=0.9026
+  BF1   crack=0.7649  spalling=0.6530  | BF1_fg_mean=0.7089
+[br1_boundary_dice] [curriculum] epoch 97: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 97/100] batch 30/300 (10%) loss=7137.5348 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 97/100] batch 60/300 (20%) loss=7571.2554 elapsed=22s eta=90s
+  [br1_boundary_dice] [epoch 97/100] batch 90/300 (30%) loss=7551.3901 elapsed=34s eta=78s
+  [br1_boundary_dice] [epoch 97/100] batch 120/300 (40%) loss=7378.9888 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 97/100] batch 150/300 (50%) loss=7281.9111 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 97/100] batch 180/300 (60%) loss=7246.2159 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 97/100] batch 210/300 (70%) loss=7192.2500 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 97/100] batch 240/300 (80%) loss=7180.3929 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 97/100] batch 270/300 (90%) loss=7142.9354 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 97/100] batch 300/300 (100%) loss=7130.6568 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 097/100] remain=3 epochs ep_eta=5.6min (avg 113s/ep)
+[br1_boundary_dice] [epoch 097/100] lr=0.000000  dt=115.7s
+  train loss=7130.6568  ce=0.0843 dice=0.1782  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2714
+  IoU   bg=0.9778  crack=0.5924  spalling=0.8224  | mIoU_fg=0.7074  pix_acc=0.9784
+  Dice  bg=0.9888  crack=0.7440  spalling=0.9025
+  BF1   crack=0.7675  spalling=0.6530  | BF1_fg_mean=0.7102
+[br1_boundary_dice] [curriculum] epoch 98: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 98/100] batch 30/300 (10%) loss=7711.6458 elapsed=11s eta=102s
+  [br1_boundary_dice] [epoch 98/100] batch 60/300 (20%) loss=7597.2931 elapsed=22s eta=89s
+  [br1_boundary_dice] [epoch 98/100] batch 90/300 (30%) loss=7427.0065 elapsed=33s eta=78s
+  [br1_boundary_dice] [epoch 98/100] batch 120/300 (40%) loss=7502.4902 elapsed=44s eta=66s
+  [br1_boundary_dice] [epoch 98/100] batch 150/300 (50%) loss=7273.3427 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 98/100] batch 180/300 (60%) loss=7202.9019 elapsed=67s eta=44s
+  [br1_boundary_dice] [epoch 98/100] batch 210/300 (70%) loss=7257.2228 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 98/100] batch 240/300 (80%) loss=7180.8825 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 98/100] batch 270/300 (90%) loss=7110.6881 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 98/100] batch 300/300 (100%) loss=7101.4344 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 098/100] remain=2 epochs ep_eta=3.8min (avg 113s/ep)
+[br1_boundary_dice] [epoch 098/100] lr=0.000000  dt=116.3s
+  train loss=7101.4344  ce=0.0843 dice=0.1770  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2717
+  IoU   bg=0.9776  crack=0.5911  spalling=0.8225  | mIoU_fg=0.7068  pix_acc=0.9783
+  Dice  bg=0.9887  crack=0.7430  spalling=0.9026
+  BF1   crack=0.7652  spalling=0.6563  | BF1_fg_mean=0.7108
+[br1_boundary_dice] [curriculum] epoch 99: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 99/100] batch 30/300 (10%) loss=7686.7615 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 99/100] batch 60/300 (20%) loss=7239.1621 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 99/100] batch 90/300 (30%) loss=7157.4100 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 99/100] batch 120/300 (40%) loss=7225.2705 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 99/100] batch 150/300 (50%) loss=7189.7225 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 99/100] batch 180/300 (60%) loss=7162.2908 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 99/100] batch 210/300 (70%) loss=7166.5806 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 99/100] batch 240/300 (80%) loss=7105.7058 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 99/100] batch 270/300 (90%) loss=7156.8704 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 99/100] batch 300/300 (100%) loss=7100.8873 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 099/100] remain=1 epochs ep_eta=1.9min (avg 113s/ep)
+[br1_boundary_dice] [epoch 099/100] lr=0.000000  dt=116.4s
+  train loss=7100.8873  ce=0.0839 dice=0.1773  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2720
+  IoU   bg=0.9775  crack=0.5910  spalling=0.8222  | mIoU_fg=0.7066  pix_acc=0.9782
+  Dice  bg=0.9886  crack=0.7429  spalling=0.9024
+  BF1   crack=0.7649  spalling=0.6554  | BF1_fg_mean=0.7101
+[br1_boundary_dice] [curriculum] epoch 100: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [br1_boundary_dice] [epoch 100/100] batch 30/300 (10%) loss=7511.0338 elapsed=12s eta=104s
+  [br1_boundary_dice] [epoch 100/100] batch 60/300 (20%) loss=7244.7163 elapsed=23s eta=90s
+  [br1_boundary_dice] [epoch 100/100] batch 90/300 (30%) loss=7179.6434 elapsed=34s eta=79s
+  [br1_boundary_dice] [epoch 100/100] batch 120/300 (40%) loss=7035.3199 elapsed=45s eta=67s
+  [br1_boundary_dice] [epoch 100/100] batch 150/300 (50%) loss=7072.3036 elapsed=56s eta=56s
+  [br1_boundary_dice] [epoch 100/100] batch 180/300 (60%) loss=7080.1580 elapsed=67s eta=45s
+  [br1_boundary_dice] [epoch 100/100] batch 210/300 (70%) loss=7065.3284 elapsed=78s eta=33s
+  [br1_boundary_dice] [epoch 100/100] batch 240/300 (80%) loss=7132.6999 elapsed=89s eta=22s
+  [br1_boundary_dice] [epoch 100/100] batch 270/300 (90%) loss=7072.2921 elapsed=100s eta=11s
+  [br1_boundary_dice] [epoch 100/100] batch 300/300 (100%) loss=7061.5340 elapsed=111s eta=0s
+[br1_boundary_dice] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[br1_boundary_dice] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[br1_boundary_dice] [epoch 100/100] remain=0 epochs ep_eta=0.0min (avg 113s/ep)
+[br1_boundary_dice] [epoch 100/100] lr=0.000000  dt=116.1s
+  train loss=7061.5340  ce=0.0837 dice=0.1747  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2715
+  IoU   bg=0.9775  crack=0.5909  spalling=0.8225  | mIoU_fg=0.7067  pix_acc=0.9782
+  Dice  bg=0.9886  crack=0.7428  spalling=0.9026
+  BF1   crack=0.7653  spalling=0.6568  | BF1_fg_mean=0.7110
+
+[train] final test eval using best checkpoint
+IoU   bg=0.9774  crack=0.5880  spalling=0.8541  | mIoU_fg=0.7210  pix_acc=0.9782
+Dice  bg=0.9886  crack=0.7405  spalling=0.9213
+BF1   crack=0.7567  spalling=0.6922  | BF1_fg_mean=0.7245
+clDice crack=0.8339
+[train] wrote /workspace/dam-segmentation-baselines/full_method/runs/br1_boundary_dice/test_report.txt
+[train] wrote /workspace/dam-segmentation-baselines/full_method/runs/br1_boundary_dice/curves.png
