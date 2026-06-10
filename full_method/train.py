@@ -49,7 +49,10 @@ from full_method.model import SegFormerWithBoundary, DSCformerDam, _PreviewWrapp
 from full_method.sam_model import TopoLoRASAM
 from full_method.calora_model import CrackAdaptiveLoRASAM, compute_router_aux_loss
 from full_method.dinov2_model import DINOv2LoRA
-from full_method.losses import CompositeLoss, confidence_aware_kd_loss, topo_kd_loss
+from full_method.losses import (
+    CompositeLoss, confidence_aware_kd_loss, topo_kd_loss,
+    boundary_privileged_kd_loss, extract_boundary_map,
+)
 from full_method.adaptive_weights import (
     AdaptiveTeacherWeights, adaptive_dual_teacher_ensemble, accw_epoch_update,
 )
@@ -220,7 +223,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
     model.train()
     metrics.reset()
     loss_sum = 0.0
-    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0, "loss_skel_pred": 0.0, "loss_skel_consist": 0.0, "loss_contrastive": 0.0, "loss_kd": 0.0, "loss_topo_kd": 0.0, "loss_router": 0.0}
+    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0, "loss_skel_pred": 0.0, "loss_skel_consist": 0.0, "loss_contrastive": 0.0, "loss_bd_dice": 0.0, "loss_kd": 0.0, "loss_topo_kd": 0.0, "loss_router": 0.0}
     n_batches = 0
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)
@@ -316,8 +319,22 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     info["dgacl_disagree"] = disagree_per_sample.detach().cpu()
                     info["dgacl_gap"] = gap_per_sample.detach().cpu()
 
-                # KD loss: pixel-level confidence-aware or standard
-                if cfg.use_dgacl and cfg.dgacl_pixel_kd and dgacl_disagree_map is not None:
+                # KD loss: boundary-privileged, confidence-aware, or standard
+                if cfg.use_boundary_kd:
+                    boundary_map = extract_boundary_map(
+                        masks, widths=cfg.boundary_kd_widths)
+                    agreement = (dgacl_disagree_map
+                                 if (cfg.boundary_kd_combine_conf
+                                     and cfg.use_dgacl and cfg.dgacl_pixel_kd
+                                     and dgacl_disagree_map is not None)
+                                 else None)
+                    loss_kd = boundary_privileged_kd_loss(
+                        s_logits, t_logits, boundary_map,
+                        agreement_map=agreement,
+                        temperature=cfg.kd_temperature,
+                        boundary_amplify=cfg.boundary_kd_amplify,
+                        body_discount=cfg.boundary_kd_body_discount)
+                elif cfg.use_dgacl and cfg.dgacl_pixel_kd and dgacl_disagree_map is not None:
                     loss_kd = confidence_aware_kd_loss(
                         s_logits, t_logits, dgacl_disagree_map, cfg.kd_temperature)
                 else:

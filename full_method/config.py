@@ -222,6 +222,18 @@ class RunCfg:
     topo_kd_weight: float = 0.10              # weight for topo-KD loss
     topo_kd_iters: int = 5                    # soft skeleton iterations
 
+    # Boundary-Privileged KD (BP-DTKD)
+    use_boundary_kd: bool = False
+    boundary_kd_widths: tuple = (1, 2, 3)
+    boundary_kd_amplify: float = 3.0
+    boundary_kd_body_discount: float = 0.5
+    boundary_kd_combine_conf: bool = True
+
+    # Boundary Dice Loss
+    use_boundary_dice: bool = False
+    boundary_dice_weight: float = 0.15
+    boundary_dice_width: int = 3
+
     # Morphology-Aware Pixel Weighting (MAPW) — inverse-width crack loss
     use_mapw: bool = False                        # enable MAPW per-pixel weights
     mapw_alpha: float = 2.0                       # scaling for inverse-width weight
@@ -2076,6 +2088,125 @@ ABLATION_PRESETS = {
            "mapw_junction_bonus": 1.5, "mapw_boundary_bonus": 1.5,
            "use_tca": True,
            "use_bbox_guided": True, "bbox_fn_weight": 2.0},
+
+    # ===================================================================
+    # Set BR: Boundary-Privileged Dual-Teacher KD (BP-DTKD)
+    # Base: DKD10 (DSCformerDam + DTKD, mIoU_fg=72.35%)
+    # ===================================================================
+
+    # BR1: Boundary Dice loss only (no boundary KD)
+    "BR1": {"name": "br1_boundary_dice",
+            "model_type": "dscformer",
+            "use_kd": True, "use_dual_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+            "kd_teacher2_model_type": "sam_lora",
+            "kd_alpha": 0.5, "kd_temperature": 4.0,
+            "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+            "kd_class_weights": True,
+            "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_boundary_dice": True, "boundary_dice_weight": 0.15,
+            "boundary_dice_width": 3},
+    # BR2: Boundary-privileged KD only (no conf-aware, no boundary Dice)
+    "BR2": {"name": "br2_boundary_kd",
+            "model_type": "dscformer",
+            "use_kd": True, "use_dual_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+            "kd_teacher2_model_type": "sam_lora",
+            "kd_alpha": 0.5, "kd_temperature": 4.0,
+            "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+            "kd_class_weights": True,
+            "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_boundary_kd": True, "boundary_kd_amplify": 3.0,
+            "boundary_kd_body_discount": 0.5,
+            "boundary_kd_combine_conf": False},
+    # BR3: Boundary KD + conf-aware combined (multiplicative)
+    "BR3": {"name": "br3_boundary_kd_conf",
+            "model_type": "dscformer",
+            "use_kd": True, "use_dual_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+            "kd_teacher2_model_type": "sam_lora",
+            "kd_alpha": 0.5, "kd_temperature": 4.0,
+            "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+            "kd_class_weights": True,
+            "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_boundary_kd": True, "boundary_kd_amplify": 3.0,
+            "boundary_kd_body_discount": 0.5,
+            "boundary_kd_combine_conf": True,
+            "use_dgacl": True, "dgacl_pixel_kd": True},
+    # BR4: Full boundary (Dice + KD + conf-aware)
+    "BR4": {"name": "br4_full_boundary",
+            "model_type": "dscformer",
+            "use_kd": True, "use_dual_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+            "kd_teacher2_model_type": "sam_lora",
+            "kd_alpha": 0.5, "kd_temperature": 4.0,
+            "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+            "kd_class_weights": True,
+            "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_boundary_dice": True, "boundary_dice_weight": 0.15,
+            "boundary_dice_width": 3,
+            "use_boundary_kd": True, "boundary_kd_amplify": 3.0,
+            "boundary_kd_body_discount": 0.5,
+            "boundary_kd_combine_conf": True,
+            "use_dgacl": True, "dgacl_pixel_kd": True},
+    # BR5: DGACL3 + all boundary (Phase 2, resume from DKD10)
+    "BR5": {"name": "br5_dgacl_boundary",
+            "model_type": "dscformer",
+            "epochs": 30,
+            "use_kd": True, "use_dual_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+            "kd_teacher2_model_type": "sam_lora",
+            "kd_alpha": 0.5, "kd_temperature": 4.0,
+            "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+            "kd_class_weights": True,
+            "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_boundary_dice": True, "boundary_dice_weight": 0.15,
+            "boundary_dice_width": 3,
+            "use_boundary_kd": True, "boundary_kd_amplify": 3.0,
+            "boundary_kd_body_discount": 0.5,
+            "boundary_kd_combine_conf": True,
+            "use_dgacl": True, "dgacl_pixel_kd": True,
+            "dgacl_phase2_lr": 1e-5, "dgacl_phase2_warmup": 3},
 
     # ACCW2: Adaptive weighting without confidence-aware KD (ablation)
     "ACCW2": {"name": "accw2_adaptive_only",

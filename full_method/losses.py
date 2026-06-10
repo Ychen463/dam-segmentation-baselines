@@ -19,6 +19,137 @@ from . import config as C
 # Confidence-aware KD loss (DGACL pixel-level)
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Boundary-Privileged KD helpers
+# ---------------------------------------------------------------------------
+
+def extract_boundary_map(targets: torch.Tensor,
+                         widths: tuple = (1, 2, 3),
+                         classes: tuple = (1, 2)) -> torch.Tensor:
+    """Extract distance-weighted boundary strip map from GT masks.
+
+    For each FG class, compute boundary strip via dilate-erode at each width.
+    Wider strips get lower weight (1/width), producing a continuous boundary
+    proximity map in [0, 1].
+
+    Args:
+        targets: (B, H, W) integer GT masks.
+        widths: tuple of dilation radii for boundary extraction.
+        classes: FG class indices to extract boundaries for.
+
+    Returns:
+        (B, H, W) boundary map in [0, 1].
+    """
+    B, H, W = targets.shape
+    boundary_map = targets.new_zeros((B, H, W), dtype=torch.float32)
+
+    for cls in classes:
+        cls_mask = (targets == cls).float().unsqueeze(1)  # (B,1,H,W)
+        if cls_mask.sum() < 1:
+            continue
+        for w in widths:
+            ks = 2 * w + 1
+            dil = F.max_pool2d(cls_mask, ks, stride=1, padding=w)
+            ero = -F.max_pool2d(-cls_mask, ks, stride=1, padding=w)
+            strip = ((dil - ero) > 0.5).float()[:, 0]  # (B, H, W)
+            weight = 1.0 / w
+            boundary_map = torch.max(boundary_map, strip * weight)
+
+    return boundary_map
+
+
+def boundary_privileged_kd_loss(student_logits: torch.Tensor,
+                                teacher_logits: torch.Tensor,
+                                boundary_map: torch.Tensor,
+                                agreement_map: torch.Tensor = None,
+                                temperature: float = 4.0,
+                                boundary_amplify: float = 3.0,
+                                body_discount: float = 0.5) -> torch.Tensor:
+    """KD loss with boundary-privileged spatial weighting.
+
+    Boundary pixels get amplified KD weight, body pixels get discounted.
+    Optionally combines with teacher agreement map (conf-aware + boundary-aware).
+
+    Args:
+        student_logits: (B, C, H, W) student logits.
+        teacher_logits: (B, C, H, W) teacher (ensemble) logits.
+        boundary_map: (B, H, W) in [0, 1], boundary proximity weights.
+        agreement_map: (B, H, W) in [0, 1], teacher agreement (optional).
+        temperature: softmax temperature for KD.
+        boundary_amplify: max KD weight at boundary pixels.
+        body_discount: KD weight for body (non-boundary) pixels.
+
+    Returns:
+        Scalar KD loss.
+    """
+    s_log_prob = F.log_softmax(student_logits / temperature, dim=1)
+    t_prob = F.softmax(teacher_logits / temperature, dim=1)
+    kl_per_pixel = (t_prob * (t_prob.log() - s_log_prob)).sum(dim=1)  # (B, H, W)
+
+    # Spatial weight: linearly interpolate between body_discount and boundary_amplify
+    w = body_discount + (boundary_amplify - body_discount) * boundary_map
+
+    # Combine with teacher agreement if provided
+    if agreement_map is not None:
+        w = w * agreement_map
+
+    return (kl_per_pixel * w).mean() * (temperature ** 2)
+
+
+def boundary_dice_loss(logits: torch.Tensor, targets: torch.Tensor,
+                       boundary_width: int = 3,
+                       num_classes: int = C.NUM_CLASSES,
+                       eps: float = 1e-6) -> torch.Tensor:
+    """Dice loss computed only on boundary-strip pixels.
+
+    Focuses Dice on the boundary region where segmentation quality matters
+    most for BF1 metric.
+
+    Args:
+        logits: (B, C, H, W) segmentation logits.
+        targets: (B, H, W) integer GT masks.
+        boundary_width: dilation radius for boundary strip.
+        num_classes: number of classes.
+        eps: numerical stability.
+
+    Returns:
+        Scalar boundary Dice loss (1 - mean Dice on boundary pixels).
+    """
+    # Extract union boundary mask for all FG classes
+    boundary_mask = targets.new_zeros(targets.shape, dtype=torch.float32)
+    for cls in range(1, num_classes):
+        cls_mask = (targets == cls).float().unsqueeze(1)  # (B,1,H,W)
+        if cls_mask.sum() < 1:
+            continue
+        ks = 2 * boundary_width + 1
+        dil = F.max_pool2d(cls_mask, ks, stride=1, padding=boundary_width)
+        ero = -F.max_pool2d(-cls_mask, ks, stride=1, padding=boundary_width)
+        strip = ((dil - ero) > 0.5).float()[:, 0]  # (B, H, W)
+        boundary_mask = torch.max(boundary_mask, strip)
+
+    if boundary_mask.sum() < 1:
+        return logits.new_zeros(())
+
+    probs = logits.softmax(dim=1)  # (B, C, H, W)
+    onehot = F.one_hot(targets, num_classes=num_classes).permute(0, 3, 1, 2).float()
+
+    # Mask both probs and onehot to boundary region
+    bm = boundary_mask.unsqueeze(1)  # (B, 1, H, W)
+    probs_masked = probs * bm
+    onehot_masked = onehot * bm
+
+    dims = (0, 2, 3)
+    inter = (probs_masked * onehot_masked).sum(dims)
+    card = probs_masked.sum(dims) + onehot_masked.sum(dims)
+    dice = (2.0 * inter + eps) / (card + eps)  # [C]
+
+    fg_dice = dice[1:]
+    fg_present = (onehot_masked[:, 1:].sum(dims) > 0)
+    if fg_present.any():
+        return 1.0 - fg_dice[fg_present].mean()
+    return logits.new_zeros(())
+
+
 def confidence_aware_kd_loss(student_logits: torch.Tensor,
                              teacher_logits: torch.Tensor,
                              agreement_map: torch.Tensor,
@@ -746,6 +877,12 @@ class CompositeLoss(nn.Module):
             loss_topo = soft_cldice_loss(p_crack, y_crack,
                                          iters=self.cfg.cldice_iters)
 
+        # Boundary Dice loss (focused on boundary strip)
+        loss_bd_dice = seg_logits.new_zeros(())
+        if self.cfg.use_boundary_dice:
+            loss_bd_dice = boundary_dice_loss(seg_logits, targets,
+                                              boundary_width=self.cfg.boundary_dice_width)
+
         # Loss weights: scheduled vs constant
         if self.cfg.use_class_loss_schedule:
             lam_crack = scheduler.crack_weight(epoch)
@@ -792,7 +929,8 @@ class CompositeLoss(nn.Module):
                  + self.cfg.snake_aux_weight * loss_snake
                  + self.cfg.skel_pred_weight * loss_skel_pred
                  + self.cfg.skel_consist_weight * loss_skel_consist
-                 + self.cfg.contrastive_weight * loss_contrastive)
+                 + self.cfg.contrastive_weight * loss_contrastive
+                 + self.cfg.boundary_dice_weight * loss_bd_dice)
 
         # Per-sample signals for difficulty estimation (detach!)
         ps_ce = per_sample_ce(seg_logits, targets, self.ce_weight).detach()
@@ -808,6 +946,7 @@ class CompositeLoss(nn.Module):
             "loss_skel_pred": loss_skel_pred.item(),
             "loss_skel_consist": loss_skel_consist.item(),
             "loss_contrastive": loss_contrastive.item(),
+            "loss_bd_dice": loss_bd_dice.item(),
             "per_sample_ce": ps_ce.cpu(),
             "per_sample_ent": ps_ent.cpu(),
         }
