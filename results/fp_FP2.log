@@ -1,0 +1,1857 @@
+Some weights of SegformerForSemanticSegmentation were not initialized from the model checkpoint at nvidia/segformer-b2-finetuned-ade-512-512 and are newly initialized because the shapes did not match:
+- decode_head.classifier.weight: found shape torch.Size([150, 768, 1, 1]) in the checkpoint and torch.Size([3, 768, 1, 1]) in the model instantiated
+- decode_head.classifier.bias: found shape torch.Size([150]) in the checkpoint and torch.Size([3]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Some weights of SegformerForSemanticSegmentation were not initialized from the model checkpoint at nvidia/segformer-b2-finetuned-ade-512-512 and are newly initialized because the shapes did not match:
+- decode_head.classifier.weight: found shape torch.Size([150, 768, 1, 1]) in the checkpoint and torch.Size([3, 768, 1, 1]) in the model instantiated
+- decode_head.classifier.bias: found shape torch.Size([150]) in the checkpoint and torch.Size([3]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[train] cuDNN warmup OK
+[train] full_method (fp2_tversky_balanced)
+[train] device=cuda  torch=2.6.0+cu124  transformers=4.44.2
+[train] cfg: pretrained=nvidia/segformer-b2-finetuned-ade-512-512 img=512 bs=4 grad_accum=1 epochs=100 lr=6e-05 warmup=5
+[train] difficulty: alpha=1.0 beta=0.5 gamma=0.3 delta=0.3 ema=0.9 tau=0.5
+[train] bonuses: spalling=0.3 late_hard_crack=0.4
+[train] ablation switches: dynamic_difficulty=False class_sampling_bonus=False class_loss_schedule=False boundary_loss=False tversky_loss=True
+[train] new switches: soft_curriculum=False softmax_sampling=False dynamic_loss_reweight=False (lambda=0.5) soft_boundary=False (start=0.6 max=0.1)
+[train] cldice: use=False weight=0.15 start_epoch=40 iters=7
+[train] srl: use=False weight=0.15 start_epoch=40
+[train] snake_aux: use=False weight=0.1
+[train] model_type=dscformer snake_channels=64 snake_kernel=9
+[train] no_curriculum=True
+[train] competence: hard=False soft=False c0=0.333 duration=70 floors=[0.05,0.02,0.0]
+[train] DGACL: use=False w_disagree=0.5 w_gap=0.3 w_loss=0.2 lambda=1.0 pixel_kd=True phase2_lr=1e-05 warmup=3
+[train] MAC: use=False morph_diff=False adaptive_pacing=False class_loss=False diff_gamma=0.5 weights=[0.4,0.3,0.2,0.1]
+[train] sizes: train=1200 val=150 test=150
+[train] building records (scanning masks for has_spalling) ...
+[train] records: {0: 400, 1: 400, 2: 400}  has_spalling=292/1200
+[train] raw pixel frequency: {'background': 0.9522022684733072, 'crack': 0.03419326375325521, 'spalling': 0.0136044677734375}
+[train] clipped weights    : {'background': 0.25, 'crack': 1.0811465739395691, 'spalling': 1.713974933006328}
+[train] running OOM probe ...
+[train] OOM probe OK
+[train] mixed precision (AMP) enabled
+[train] viz samples (6):
+    Hard/H (99).jpg
+    Hard/H (365).jpg
+    Medium/M (127).jpg
+    Medium/M (422).jpg
+    Hard/H (431).jpg
+    Hard/H (476).jpg
+[KD] loading teacher 1 from /workspace/dam-segmentation-baselines/full_method/runs/dscformer_srl_G1/best.pt
+[KD] teacher 1 loaded (epoch=91, val_mIoU_fg=0.701027307132969)
+[KD] alpha=0.5 temperature=4.0
+[KD] loading teacher 2 from /workspace/dam-segmentation-baselines/full_method/runs/sam_lora_srl_SAM2/best.pt
+[TopoLoRA-SAM] loaded SAM ViT-B from sam_vit_b_01ec64.pth
+[TopoLoRA-SAM] injected LoRA into 48 layers (rank=16)
+[TopoLoRA-SAM] total params: 95.8M, trainable: 6.1M (6.4%)
+[KD] teacher 2 loaded (epoch=40, val_mIoU_fg=0.6944438789823197)
+[KD] dual-teacher mode: class-conditional (t1=0.5, t2=0.5)
+[fp2_tversky_balanced] [curriculum] epoch 1: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 1/100] batch 30/300 (10%) loss=1694716.1583 elapsed=13s eta=113s
+  [fp2_tversky_balanced] [epoch 1/100] batch 60/300 (20%) loss=1709466.0104 elapsed=24s eta=98s
+  [fp2_tversky_balanced] [epoch 1/100] batch 90/300 (30%) loss=1712402.9722 elapsed=36s eta=85s
+  [fp2_tversky_balanced] [epoch 1/100] batch 120/300 (40%) loss=1717945.8562 elapsed=48s eta=72s
+  [fp2_tversky_balanced] [epoch 1/100] batch 150/300 (50%) loss=1719387.2758 elapsed=60s eta=60s
+  [fp2_tversky_balanced] [epoch 1/100] batch 180/300 (60%) loss=1720068.9750 elapsed=71s eta=48s
+  [fp2_tversky_balanced] [epoch 1/100] batch 210/300 (70%) loss=1718056.3792 elapsed=83s eta=36s
+  [fp2_tversky_balanced] [epoch 1/100] batch 240/300 (80%) loss=1716652.2661 elapsed=95s eta=24s
+  [fp2_tversky_balanced] [epoch 1/100] batch 270/300 (90%) loss=1714949.7745 elapsed=107s eta=12s
+  [fp2_tversky_balanced] [epoch 1/100] batch 300/300 (100%) loss=1713603.1196 elapsed=119s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 001/100] remain=99 epochs ep_eta=205.6min (avg 125s/ep)
+[fp2_tversky_balanced] [epoch 001/100] lr=0.000012  dt=124.6s
+  train loss=1713603.1196  ce=1.0913 dice=0.9441  tversky=0.9358 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=1.9402
+  IoU   bg=0.4669  crack=0.0521  spalling=0.0126  | mIoU_fg=0.0323  pix_acc=0.4754
+  Dice  bg=0.6366  crack=0.0990  spalling=0.0249
+  BF1   crack=0.1213  spalling=0.0148  | BF1_fg_mean=0.0680
+  [fp2_tversky_balanced] [best] mIoU_fg=0.0323  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 2: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 2/100] batch 30/300 (10%) loss=1678883.4042 elapsed=12s eta=110s
+  [fp2_tversky_balanced] [epoch 2/100] batch 60/300 (20%) loss=1649849.3521 elapsed=24s eta=95s
+  [fp2_tversky_balanced] [epoch 2/100] batch 90/300 (30%) loss=1627352.9097 elapsed=35s eta=83s
+  [fp2_tversky_balanced] [epoch 2/100] batch 120/300 (40%) loss=1602707.6552 elapsed=47s eta=70s
+  [fp2_tversky_balanced] [epoch 2/100] batch 150/300 (50%) loss=1579149.8292 elapsed=58s eta=58s
+  [fp2_tversky_balanced] [epoch 2/100] batch 180/300 (60%) loss=1554905.9382 elapsed=70s eta=46s
+  [fp2_tversky_balanced] [epoch 2/100] batch 210/300 (70%) loss=1528090.0821 elapsed=81s eta=35s
+  [fp2_tversky_balanced] [epoch 2/100] batch 240/300 (80%) loss=1503331.5495 elapsed=92s eta=23s
+  [fp2_tversky_balanced] [epoch 2/100] batch 270/300 (90%) loss=1476310.9231 elapsed=104s eta=12s
+  [fp2_tversky_balanced] [epoch 2/100] batch 300/300 (100%) loss=1450959.1325 elapsed=115s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 002/100] remain=98 epochs ep_eta=197.3min (avg 121s/ep)
+[fp2_tversky_balanced] [epoch 002/100] lr=0.000024  dt=115.1s
+  train loss=1450959.1325  ce=0.7266 dice=0.9030  tversky=0.8903 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 5)
+[fp2_tversky_balanced] [curriculum] epoch 3: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 3/100] batch 30/300 (10%) loss=1157451.6917 elapsed=12s eta=105s
+  [fp2_tversky_balanced] [epoch 3/100] batch 60/300 (20%) loss=1115600.4708 elapsed=23s eta=92s
+  [fp2_tversky_balanced] [epoch 3/100] batch 90/300 (30%) loss=1079649.4847 elapsed=34s eta=80s
+  [fp2_tversky_balanced] [epoch 3/100] batch 120/300 (40%) loss=1045110.7016 elapsed=46s eta=69s
+  [fp2_tversky_balanced] [epoch 3/100] batch 150/300 (50%) loss=1011727.3904 elapsed=57s eta=57s
+  [fp2_tversky_balanced] [epoch 3/100] batch 180/300 (60%) loss=979490.1007 elapsed=68s eta=46s
+  [fp2_tversky_balanced] [epoch 3/100] batch 210/300 (70%) loss=950262.6247 elapsed=79s eta=34s
+  [fp2_tversky_balanced] [epoch 3/100] batch 240/300 (80%) loss=923351.7042 elapsed=90s eta=23s
+  [fp2_tversky_balanced] [epoch 3/100] batch 270/300 (90%) loss=898591.0194 elapsed=101s eta=11s
+  [fp2_tversky_balanced] [epoch 3/100] batch 300/300 (100%) loss=875945.6835 elapsed=112s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 003/100] remain=97 epochs ep_eta=191.0min (avg 118s/ep)
+[fp2_tversky_balanced] [epoch 003/100] lr=0.000036  dt=112.2s
+  train loss=875945.6835  ce=0.4267 dice=0.7684  tversky=0.7525 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 5)
+[fp2_tversky_balanced] [curriculum] epoch 4: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 4/100] batch 30/300 (10%) loss=627963.6542 elapsed=11s eta=100s
+  [fp2_tversky_balanced] [epoch 4/100] batch 60/300 (20%) loss=613554.5073 elapsed=22s eta=88s
+  [fp2_tversky_balanced] [epoch 4/100] batch 90/300 (30%) loss=594799.1795 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 4/100] batch 120/300 (40%) loss=577862.0161 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 4/100] batch 150/300 (50%) loss=565841.8363 elapsed=54s eta=54s
+  [fp2_tversky_balanced] [epoch 4/100] batch 180/300 (60%) loss=550651.2833 elapsed=65s eta=43s
+  [fp2_tversky_balanced] [epoch 4/100] batch 210/300 (70%) loss=535284.0609 elapsed=76s eta=33s
+  [fp2_tversky_balanced] [epoch 4/100] batch 240/300 (80%) loss=521347.0314 elapsed=87s eta=22s
+  [fp2_tversky_balanced] [epoch 4/100] batch 270/300 (90%) loss=507329.9000 elapsed=98s eta=11s
+  [fp2_tversky_balanced] [epoch 4/100] batch 300/300 (100%) loss=495416.4107 elapsed=108s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 004/100] remain=96 epochs ep_eta=185.4min (avg 116s/ep)
+[fp2_tversky_balanced] [epoch 004/100] lr=0.000048  dt=108.4s
+  train loss=495416.4107  ce=0.4166 dice=0.6892  tversky=0.7106 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 5)
+[fp2_tversky_balanced] [curriculum] epoch 5: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 5/100] batch 30/300 (10%) loss=373055.4135 elapsed=11s eta=100s
+  [fp2_tversky_balanced] [epoch 5/100] batch 60/300 (20%) loss=352792.2630 elapsed=22s eta=88s
+  [fp2_tversky_balanced] [epoch 5/100] batch 90/300 (30%) loss=346515.6806 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 5/100] batch 120/300 (40%) loss=332578.9109 elapsed=44s eta=65s
+  [fp2_tversky_balanced] [epoch 5/100] batch 150/300 (50%) loss=323689.3246 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 5/100] batch 180/300 (60%) loss=314096.0260 elapsed=65s eta=44s
+  [fp2_tversky_balanced] [epoch 5/100] batch 210/300 (70%) loss=304613.8801 elapsed=76s eta=33s
+  [fp2_tversky_balanced] [epoch 5/100] batch 240/300 (80%) loss=296438.6223 elapsed=87s eta=22s
+  [fp2_tversky_balanced] [epoch 5/100] batch 270/300 (90%) loss=289382.0886 elapsed=98s eta=11s
+  [fp2_tversky_balanced] [epoch 5/100] batch 300/300 (100%) loss=282551.3982 elapsed=109s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+/usr/local/lib/python3.11/dist-packages/torch/optim/lr_scheduler.py:243: UserWarning: The epoch parameter in `scheduler.step()` was not necessary and is being deprecated where possible. Please use `scheduler.step()` to step the scheduler. During the deprecation, if epoch is different from None, the closed form is used instead of the new chainable form, where available. Please open an issue if you are unable to replicate your use case: https://github.com/pytorch/pytorch/issues/new/choose.
+  warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
+[fp2_tversky_balanced] [epoch 005/100] remain=95 epochs ep_eta=182.8min (avg 115s/ep)
+[fp2_tversky_balanced] [epoch 005/100] lr=0.000060  dt=113.5s
+  train loss=282551.3982  ce=0.3681 dice=0.5644  tversky=0.5794 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.8769
+  IoU   bg=0.9691  crack=0.4347  spalling=0.6138  | mIoU_fg=0.5243  pix_acc=0.9699
+  Dice  bg=0.9843  crack=0.6060  spalling=0.7607
+  BF1   crack=0.5966  spalling=0.1657  | BF1_fg_mean=0.3812
+  [fp2_tversky_balanced] [best] mIoU_fg=0.5243  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 6: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 6/100] batch 30/300 (10%) loss=202112.8891 elapsed=11s eta=100s
+  [fp2_tversky_balanced] [epoch 6/100] batch 60/300 (20%) loss=198983.7099 elapsed=22s eta=88s
+  [fp2_tversky_balanced] [epoch 6/100] batch 90/300 (30%) loss=191684.1762 elapsed=33s eta=76s
+  [fp2_tversky_balanced] [epoch 6/100] batch 120/300 (40%) loss=186560.9237 elapsed=44s eta=65s
+  [fp2_tversky_balanced] [epoch 6/100] batch 150/300 (50%) loss=181142.1796 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 6/100] batch 180/300 (60%) loss=176312.7830 elapsed=65s eta=44s
+  [fp2_tversky_balanced] [epoch 6/100] batch 210/300 (70%) loss=170059.3564 elapsed=76s eta=33s
+  [fp2_tversky_balanced] [epoch 6/100] batch 240/300 (80%) loss=165669.6298 elapsed=87s eta=22s
+  [fp2_tversky_balanced] [epoch 6/100] batch 270/300 (90%) loss=161597.4013 elapsed=98s eta=11s
+  [fp2_tversky_balanced] [epoch 6/100] batch 300/300 (100%) loss=157686.1849 elapsed=109s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 006/100] remain=94 epochs ep_eta=179.9min (avg 115s/ep)
+[fp2_tversky_balanced] [epoch 006/100] lr=0.000060  dt=109.3s
+  train loss=157686.1849  ce=0.2904 dice=0.4762  tversky=0.4795 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[fp2_tversky_balanced] [curriculum] epoch 7: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 7/100] batch 30/300 (10%) loss=120980.0716 elapsed=12s eta=111s
+  [fp2_tversky_balanced] [epoch 7/100] batch 60/300 (20%) loss=114445.4299 elapsed=23s eta=93s
+  [fp2_tversky_balanced] [epoch 7/100] batch 90/300 (30%) loss=112027.6288 elapsed=34s eta=79s
+  [fp2_tversky_balanced] [epoch 7/100] batch 120/300 (40%) loss=109820.1417 elapsed=45s eta=68s
+  [fp2_tversky_balanced] [epoch 7/100] batch 150/300 (50%) loss=106380.2319 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 7/100] batch 180/300 (60%) loss=103338.1777 elapsed=67s eta=45s
+  [fp2_tversky_balanced] [epoch 7/100] batch 210/300 (70%) loss=101467.1626 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 7/100] batch 240/300 (80%) loss=99957.1155 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 7/100] batch 270/300 (90%) loss=98214.1203 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 7/100] batch 300/300 (100%) loss=97544.4416 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 007/100] remain=93 epochs ep_eta=177.1min (avg 114s/ep)
+[fp2_tversky_balanced] [epoch 007/100] lr=0.000060  dt=110.6s
+  train loss=97544.4416  ce=0.2575 dice=0.4167  tversky=0.4270 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[fp2_tversky_balanced] [curriculum] epoch 8: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 8/100] batch 30/300 (10%) loss=80706.3865 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 8/100] batch 60/300 (20%) loss=79020.3092 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 8/100] batch 90/300 (30%) loss=75358.6997 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 8/100] batch 120/300 (40%) loss=74368.8722 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 8/100] batch 150/300 (50%) loss=74266.7453 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 8/100] batch 180/300 (60%) loss=72390.9356 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 8/100] batch 210/300 (70%) loss=70996.0898 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 8/100] batch 240/300 (80%) loss=70394.7975 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 8/100] batch 270/300 (90%) loss=70548.7654 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 8/100] batch 300/300 (100%) loss=69610.9471 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 008/100] remain=92 epochs ep_eta=174.5min (avg 114s/ep)
+[fp2_tversky_balanced] [epoch 008/100] lr=0.000060  dt=109.7s
+  train loss=69610.9471  ce=0.2329 dice=0.3776  tversky=0.4012 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[fp2_tversky_balanced] [curriculum] epoch 9: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 9/100] batch 30/300 (10%) loss=55558.5673 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 9/100] batch 60/300 (20%) loss=54456.7021 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 9/100] batch 90/300 (30%) loss=54334.1708 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 9/100] batch 120/300 (40%) loss=58615.1128 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 9/100] batch 150/300 (50%) loss=57704.9270 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 9/100] batch 180/300 (60%) loss=57407.7699 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 9/100] batch 210/300 (70%) loss=56590.8517 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 9/100] batch 240/300 (80%) loss=55645.5365 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 9/100] batch 270/300 (90%) loss=55129.1186 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 9/100] batch 300/300 (100%) loss=54335.7288 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 009/100] remain=91 epochs ep_eta=172.0min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 009/100] lr=0.000060  dt=110.0s
+  train loss=54335.7288  ce=0.2194 dice=0.3413  tversky=0.3852 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[fp2_tversky_balanced] [curriculum] epoch 10: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 10/100] batch 30/300 (10%) loss=49708.0072 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 10/100] batch 60/300 (20%) loss=45009.0729 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 10/100] batch 90/300 (30%) loss=44583.5260 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 10/100] batch 120/300 (40%) loss=46526.5027 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 10/100] batch 150/300 (50%) loss=45909.4426 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 10/100] batch 180/300 (60%) loss=45977.7078 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 10/100] batch 210/300 (70%) loss=45189.4040 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 10/100] batch 240/300 (80%) loss=44642.3515 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 10/100] batch 270/300 (90%) loss=44150.4168 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 10/100] batch 300/300 (100%) loss=43342.8093 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 010/100] remain=90 epochs ep_eta=170.4min (avg 114s/ep)
+[fp2_tversky_balanced] [epoch 010/100] lr=0.000060  dt=114.8s
+  train loss=43342.8093  ce=0.1911 dice=0.3044  tversky=0.3734 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.6342
+  IoU   bg=0.9731  crack=0.5340  spalling=0.7287  | mIoU_fg=0.6314  pix_acc=0.9736
+  Dice  bg=0.9864  crack=0.6962  spalling=0.8431
+  BF1   crack=0.6888  spalling=0.5261  | BF1_fg_mean=0.6074
+  [fp2_tversky_balanced] [best] mIoU_fg=0.6314  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 11: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 11/100] batch 30/300 (10%) loss=33242.6950 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 11/100] batch 60/300 (20%) loss=39184.6249 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 11/100] batch 90/300 (30%) loss=39310.8287 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 11/100] batch 120/300 (40%) loss=39027.1713 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 11/100] batch 150/300 (50%) loss=38943.0216 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 11/100] batch 180/300 (60%) loss=39158.7040 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 11/100] batch 210/300 (70%) loss=38959.2914 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 11/100] batch 240/300 (80%) loss=38831.7516 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 11/100] batch 270/300 (90%) loss=38570.2974 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 11/100] batch 300/300 (100%) loss=38200.4766 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 011/100] remain=89 epochs ep_eta=168.3min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 011/100] lr=0.000059  dt=109.9s
+  train loss=38200.4766  ce=0.1825 dice=0.3034  tversky=0.3653 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[fp2_tversky_balanced] [curriculum] epoch 12: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 12/100] batch 30/300 (10%) loss=38959.0331 elapsed=12s eta=105s
+  [fp2_tversky_balanced] [epoch 12/100] batch 60/300 (20%) loss=46234.2972 elapsed=23s eta=91s
+  [fp2_tversky_balanced] [epoch 12/100] batch 90/300 (30%) loss=45553.1735 elapsed=34s eta=79s
+  [fp2_tversky_balanced] [epoch 12/100] batch 120/300 (40%) loss=43007.8724 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 12/100] batch 150/300 (50%) loss=40818.8975 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 12/100] batch 180/300 (60%) loss=39177.8935 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 12/100] batch 210/300 (70%) loss=38298.5829 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 12/100] batch 240/300 (80%) loss=37427.2469 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 12/100] batch 270/300 (90%) loss=37196.4210 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 12/100] batch 300/300 (100%) loss=38270.6032 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 012/100] remain=88 epochs ep_eta=166.1min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 012/100] lr=0.000059  dt=110.4s
+  train loss=38270.6032  ce=0.2043 dice=0.2896  tversky=0.3587 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[fp2_tversky_balanced] [curriculum] epoch 13: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 13/100] batch 30/300 (10%) loss=34707.2246 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 13/100] batch 60/300 (20%) loss=36647.2343 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 13/100] batch 90/300 (30%) loss=35451.7237 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 13/100] batch 120/300 (40%) loss=33928.4172 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 13/100] batch 150/300 (50%) loss=33701.1995 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 13/100] batch 180/300 (60%) loss=33482.5580 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 13/100] batch 210/300 (70%) loss=33300.0064 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 13/100] batch 240/300 (80%) loss=33926.4872 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 13/100] batch 270/300 (90%) loss=34032.5840 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 13/100] batch 300/300 (100%) loss=33621.4205 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 013/100] remain=87 epochs ep_eta=164.0min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 013/100] lr=0.000059  dt=110.2s
+  train loss=33621.4205  ce=0.1834 dice=0.2851  tversky=0.3571 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[fp2_tversky_balanced] [curriculum] epoch 14: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 14/100] batch 30/300 (10%) loss=27259.3229 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 14/100] batch 60/300 (20%) loss=29932.9675 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 14/100] batch 90/300 (30%) loss=28518.2263 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 14/100] batch 120/300 (40%) loss=29228.4568 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 14/100] batch 150/300 (50%) loss=29106.9607 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 14/100] batch 180/300 (60%) loss=29725.8831 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 14/100] batch 210/300 (70%) loss=31200.8842 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 14/100] batch 240/300 (80%) loss=32294.5657 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 14/100] batch 270/300 (90%) loss=32334.1488 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 14/100] batch 300/300 (100%) loss=32175.1897 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 014/100] remain=86 epochs ep_eta=161.8min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 014/100] lr=0.000059  dt=110.1s
+  train loss=32175.1897  ce=0.1862 dice=0.2796  tversky=0.3534 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[fp2_tversky_balanced] [curriculum] epoch 15: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 15/100] batch 30/300 (10%) loss=29435.0343 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 15/100] batch 60/300 (20%) loss=28208.7254 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 15/100] batch 90/300 (30%) loss=32073.8136 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 15/100] batch 120/300 (40%) loss=31270.2466 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 15/100] batch 150/300 (50%) loss=30705.8720 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 15/100] batch 180/300 (60%) loss=29765.5810 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 15/100] batch 210/300 (70%) loss=29059.4794 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 15/100] batch 240/300 (80%) loss=28935.1967 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 15/100] batch 270/300 (90%) loss=28914.0014 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 15/100] batch 300/300 (100%) loss=28562.3940 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 015/100] remain=85 epochs ep_eta=160.2min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 015/100] lr=0.000058  dt=115.2s
+  train loss=28562.3940  ce=0.1703 dice=0.2690  tversky=0.3482 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.6074
+  IoU   bg=0.9761  crack=0.5564  spalling=0.7647  | mIoU_fg=0.6606  pix_acc=0.9765
+  Dice  bg=0.9879  crack=0.7150  spalling=0.8667
+  BF1   crack=0.7217  spalling=0.5325  | BF1_fg_mean=0.6271
+  [fp2_tversky_balanced] [best] mIoU_fg=0.6606  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 16: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 16/100] batch 30/300 (10%) loss=22783.5681 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 16/100] batch 60/300 (20%) loss=23719.2241 elapsed=23s eta=90s
+  [fp2_tversky_balanced] [epoch 16/100] batch 90/300 (30%) loss=25213.5435 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 16/100] batch 120/300 (40%) loss=24497.7090 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 16/100] batch 150/300 (50%) loss=24488.7985 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 16/100] batch 180/300 (60%) loss=24846.5547 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 16/100] batch 210/300 (70%) loss=24561.5083 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 16/100] batch 240/300 (80%) loss=24722.8450 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 16/100] batch 270/300 (90%) loss=24619.1595 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 16/100] batch 300/300 (100%) loss=25000.8315 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 016/100] remain=84 epochs ep_eta=158.3min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 016/100] lr=0.000058  dt=110.3s
+  train loss=25000.8315  ce=0.1556 dice=0.2611  tversky=0.3408 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[fp2_tversky_balanced] [curriculum] epoch 17: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 17/100] batch 30/300 (10%) loss=23612.2674 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 17/100] batch 60/300 (20%) loss=24009.1871 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 17/100] batch 90/300 (30%) loss=24143.8398 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 17/100] batch 120/300 (40%) loss=23878.0811 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 17/100] batch 150/300 (50%) loss=23487.4751 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 17/100] batch 180/300 (60%) loss=22909.8782 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 17/100] batch 210/300 (70%) loss=23297.2359 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 17/100] batch 240/300 (80%) loss=23292.3940 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 17/100] batch 270/300 (90%) loss=23412.6200 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 17/100] batch 300/300 (100%) loss=23320.3498 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 017/100] remain=83 epochs ep_eta=156.2min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 017/100] lr=0.000058  dt=110.3s
+  train loss=23320.3498  ce=0.1528 dice=0.2506  tversky=0.3367 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[fp2_tversky_balanced] [curriculum] epoch 18: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 18/100] batch 30/300 (10%) loss=20948.5541 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 18/100] batch 60/300 (20%) loss=20745.8299 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 18/100] batch 90/300 (30%) loss=23039.9838 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 18/100] batch 120/300 (40%) loss=22444.2019 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 18/100] batch 150/300 (50%) loss=22948.2610 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 18/100] batch 180/300 (60%) loss=22838.6559 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 18/100] batch 210/300 (70%) loss=22621.9850 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 18/100] batch 240/300 (80%) loss=22592.0343 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 18/100] batch 270/300 (90%) loss=22603.4720 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 18/100] batch 300/300 (100%) loss=22550.9386 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 018/100] remain=82 epochs ep_eta=154.2min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 018/100] lr=0.000057  dt=110.5s
+  train loss=22550.9386  ce=0.1466 dice=0.2550  tversky=0.3353 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[fp2_tversky_balanced] [curriculum] epoch 19: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 19/100] batch 30/300 (10%) loss=21166.0887 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 19/100] batch 60/300 (20%) loss=21395.7044 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 19/100] batch 90/300 (30%) loss=21071.1077 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 19/100] batch 120/300 (40%) loss=21099.2989 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 19/100] batch 150/300 (50%) loss=21226.9358 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 19/100] batch 180/300 (60%) loss=21218.6433 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 19/100] batch 210/300 (70%) loss=21253.7773 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 19/100] batch 240/300 (80%) loss=21095.2640 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 19/100] batch 270/300 (90%) loss=20893.9588 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 19/100] batch 300/300 (100%) loss=20792.9180 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 019/100] remain=81 epochs ep_eta=152.1min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 019/100] lr=0.000057  dt=110.2s
+  train loss=20792.9180  ce=0.1435 dice=0.2450  tversky=0.3298 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[fp2_tversky_balanced] [curriculum] epoch 20: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 20/100] batch 30/300 (10%) loss=21186.4564 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 20/100] batch 60/300 (20%) loss=19947.3320 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 20/100] batch 90/300 (30%) loss=19302.7653 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 20/100] batch 120/300 (40%) loss=19397.0659 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 20/100] batch 150/300 (50%) loss=19676.3209 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 20/100] batch 180/300 (60%) loss=19527.7811 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 20/100] batch 210/300 (70%) loss=19310.0637 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 20/100] batch 240/300 (80%) loss=19281.8469 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 20/100] batch 270/300 (90%) loss=19254.0899 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 20/100] batch 300/300 (100%) loss=19197.4168 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 020/100] remain=80 epochs ep_eta=150.5min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 020/100] lr=0.000056  dt=115.2s
+  train loss=19197.4168  ce=0.1361 dice=0.2428  tversky=0.3256 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5972
+  IoU   bg=0.9765  crack=0.5638  spalling=0.7680  | mIoU_fg=0.6659  pix_acc=0.9768
+  Dice  bg=0.9881  crack=0.7210  spalling=0.8688
+  BF1   crack=0.7443  spalling=0.5480  | BF1_fg_mean=0.6462
+  [fp2_tversky_balanced] [best] mIoU_fg=0.6659  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 21: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 21/100] batch 30/300 (10%) loss=18465.6895 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 21/100] batch 60/300 (20%) loss=17704.9189 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 21/100] batch 90/300 (30%) loss=17718.1123 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 21/100] batch 120/300 (40%) loss=17805.3558 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 21/100] batch 150/300 (50%) loss=17800.9277 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 21/100] batch 180/300 (60%) loss=17736.4121 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 21/100] batch 210/300 (70%) loss=17854.7815 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 21/100] batch 240/300 (80%) loss=17997.1302 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 21/100] batch 270/300 (90%) loss=18270.2445 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 21/100] batch 300/300 (100%) loss=18285.0709 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 021/100] remain=79 epochs ep_eta=148.5min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 021/100] lr=0.000056  dt=110.3s
+  train loss=18285.0709  ce=0.1312 dice=0.2270  tversky=0.3236 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[fp2_tversky_balanced] [curriculum] epoch 22: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 22/100] batch 30/300 (10%) loss=16950.2225 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 22/100] batch 60/300 (20%) loss=17135.9562 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 22/100] batch 90/300 (30%) loss=17593.2070 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 22/100] batch 120/300 (40%) loss=17433.1267 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 22/100] batch 150/300 (50%) loss=17130.3723 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 22/100] batch 180/300 (60%) loss=16934.3507 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 22/100] batch 210/300 (70%) loss=16843.3400 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 22/100] batch 240/300 (80%) loss=17117.6751 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 22/100] batch 270/300 (90%) loss=17356.6186 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 22/100] batch 300/300 (100%) loss=17513.9941 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 022/100] remain=78 epochs ep_eta=146.5min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 022/100] lr=0.000055  dt=110.4s
+  train loss=17513.9941  ce=0.1292 dice=0.2274  tversky=0.3204 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[fp2_tversky_balanced] [curriculum] epoch 23: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 23/100] batch 30/300 (10%) loss=18320.3787 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 23/100] batch 60/300 (20%) loss=17414.9778 elapsed=23s eta=90s
+  [fp2_tversky_balanced] [epoch 23/100] batch 90/300 (30%) loss=17568.7012 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 23/100] batch 120/300 (40%) loss=18020.3810 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 23/100] batch 150/300 (50%) loss=17704.2286 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 23/100] batch 180/300 (60%) loss=17447.4532 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 23/100] batch 210/300 (70%) loss=17457.1552 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 23/100] batch 240/300 (80%) loss=17352.9688 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 23/100] batch 270/300 (90%) loss=17279.2689 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 23/100] batch 300/300 (100%) loss=17162.4178 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 023/100] remain=77 epochs ep_eta=144.5min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 023/100] lr=0.000055  dt=110.0s
+  train loss=17162.4178  ce=0.1275 dice=0.2334  tversky=0.3174 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[fp2_tversky_balanced] [curriculum] epoch 24: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 24/100] batch 30/300 (10%) loss=18085.0080 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 24/100] batch 60/300 (20%) loss=16533.5470 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 24/100] batch 90/300 (30%) loss=16664.2099 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 24/100] batch 120/300 (40%) loss=16661.0609 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 24/100] batch 150/300 (50%) loss=16792.2665 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 24/100] batch 180/300 (60%) loss=16693.1952 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 24/100] batch 210/300 (70%) loss=16694.4999 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 24/100] batch 240/300 (80%) loss=16545.9098 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 24/100] batch 270/300 (90%) loss=16689.1722 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 24/100] batch 300/300 (100%) loss=16698.8757 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 024/100] remain=76 epochs ep_eta=142.5min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 024/100] lr=0.000054  dt=109.9s
+  train loss=16698.8757  ce=0.1264 dice=0.2251  tversky=0.3173 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[fp2_tversky_balanced] [curriculum] epoch 25: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 25/100] batch 30/300 (10%) loss=15050.7095 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 25/100] batch 60/300 (20%) loss=15535.4196 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 25/100] batch 90/300 (30%) loss=15643.2044 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 25/100] batch 120/300 (40%) loss=15543.0171 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 25/100] batch 150/300 (50%) loss=15363.1703 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 25/100] batch 180/300 (60%) loss=15626.1433 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 25/100] batch 210/300 (70%) loss=15645.9193 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 25/100] batch 240/300 (80%) loss=15596.1989 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 25/100] batch 270/300 (90%) loss=15656.8219 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 25/100] batch 300/300 (100%) loss=15695.2282 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 025/100] remain=75 epochs ep_eta=140.8min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 025/100] lr=0.000054  dt=115.1s
+  train loss=15695.2282  ce=0.1221 dice=0.2245  tversky=0.3141 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5651
+  IoU   bg=0.9760  crack=0.5725  spalling=0.7716  | mIoU_fg=0.6721  pix_acc=0.9765
+  Dice  bg=0.9878  crack=0.7282  spalling=0.8711
+  BF1   crack=0.7399  spalling=0.6259  | BF1_fg_mean=0.6829
+  [fp2_tversky_balanced] [best] mIoU_fg=0.6721  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 26: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 26/100] batch 30/300 (10%) loss=16646.7970 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 26/100] batch 60/300 (20%) loss=16545.9444 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 26/100] batch 90/300 (30%) loss=16303.9322 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 26/100] batch 120/300 (40%) loss=16218.3741 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 26/100] batch 150/300 (50%) loss=15857.4266 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 26/100] batch 180/300 (60%) loss=15763.6168 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 26/100] batch 210/300 (70%) loss=15778.7993 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 26/100] batch 240/300 (80%) loss=15667.9607 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 26/100] batch 270/300 (90%) loss=15459.6973 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 26/100] batch 300/300 (100%) loss=15380.0078 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 026/100] remain=74 epochs ep_eta=138.9min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 026/100] lr=0.000053  dt=110.2s
+  train loss=15380.0078  ce=0.1199 dice=0.2261  tversky=0.3114 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[fp2_tversky_balanced] [curriculum] epoch 27: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 27/100] batch 30/300 (10%) loss=14028.0484 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 27/100] batch 60/300 (20%) loss=14106.5154 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 27/100] batch 90/300 (30%) loss=14438.8011 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 27/100] batch 120/300 (40%) loss=14819.1447 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 27/100] batch 150/300 (50%) loss=14984.4676 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 27/100] batch 180/300 (60%) loss=14676.3026 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 27/100] batch 210/300 (70%) loss=14535.4857 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 27/100] batch 240/300 (80%) loss=14471.1290 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 27/100] batch 270/300 (90%) loss=14490.5155 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 27/100] batch 300/300 (100%) loss=14515.3701 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 027/100] remain=73 epochs ep_eta=137.0min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 027/100] lr=0.000052  dt=110.6s
+  train loss=14515.3701  ce=0.1178 dice=0.2169  tversky=0.3094 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[fp2_tversky_balanced] [curriculum] epoch 28: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 28/100] batch 30/300 (10%) loss=15041.8917 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 28/100] batch 60/300 (20%) loss=14896.8896 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 28/100] batch 90/300 (30%) loss=14720.3566 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 28/100] batch 120/300 (40%) loss=14763.1124 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 28/100] batch 150/300 (50%) loss=14695.9028 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 28/100] batch 180/300 (60%) loss=14634.4554 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 28/100] batch 210/300 (70%) loss=14422.2531 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 28/100] batch 240/300 (80%) loss=14433.3180 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 28/100] batch 270/300 (90%) loss=14474.0386 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 28/100] batch 300/300 (100%) loss=14414.3602 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 028/100] remain=72 epochs ep_eta=135.0min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 028/100] lr=0.000052  dt=110.4s
+  train loss=14414.3602  ce=0.1174 dice=0.2177  tversky=0.3085 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[fp2_tversky_balanced] [curriculum] epoch 29: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [fp2_tversky_balanced] [epoch 29/100] batch 30/300 (10%) loss=14877.6155 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 29/100] batch 60/300 (20%) loss=14422.1839 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 29/100] batch 90/300 (30%) loss=14804.3104 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 29/100] batch 120/300 (40%) loss=14655.9449 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 29/100] batch 150/300 (50%) loss=14541.0418 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 29/100] batch 180/300 (60%) loss=14184.8304 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 29/100] batch 210/300 (70%) loss=14044.5896 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 29/100] batch 240/300 (80%) loss=13965.6567 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 29/100] batch 270/300 (90%) loss=13923.0061 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 29/100] batch 300/300 (100%) loss=13854.6140 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 029/100] remain=71 epochs ep_eta=133.1min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 029/100] lr=0.000051  dt=110.3s
+  train loss=13854.6140  ce=0.1141 dice=0.2155  tversky=0.3052 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[fp2_tversky_balanced] [curriculum] epoch 30: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 30/100] batch 30/300 (10%) loss=13716.8195 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 30/100] batch 60/300 (20%) loss=14076.4966 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 30/100] batch 90/300 (30%) loss=14405.1960 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 30/100] batch 120/300 (40%) loss=14111.3733 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 30/100] batch 150/300 (50%) loss=13970.2869 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 30/100] batch 180/300 (60%) loss=13894.3620 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 30/100] batch 210/300 (70%) loss=13880.3184 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 30/100] batch 240/300 (80%) loss=13793.4209 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 30/100] batch 270/300 (90%) loss=14029.9368 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 30/100] batch 300/300 (100%) loss=13968.0147 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 030/100] remain=70 epochs ep_eta=131.4min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 030/100] lr=0.000050  dt=115.7s
+  train loss=13968.0147  ce=0.1148 dice=0.2119  tversky=0.3048 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5734
+  IoU   bg=0.9767  crack=0.5767  spalling=0.7686  | mIoU_fg=0.6727  pix_acc=0.9772
+  Dice  bg=0.9882  crack=0.7315  spalling=0.8692
+  BF1   crack=0.7530  spalling=0.6370  | BF1_fg_mean=0.6950
+  [fp2_tversky_balanced] [best] mIoU_fg=0.6727  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 31: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 31/100] batch 30/300 (10%) loss=13702.9331 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 31/100] batch 60/300 (20%) loss=13639.2903 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 31/100] batch 90/300 (30%) loss=13466.5446 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 31/100] batch 120/300 (40%) loss=13359.2748 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 31/100] batch 150/300 (50%) loss=13470.6501 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 31/100] batch 180/300 (60%) loss=13274.7122 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 31/100] batch 210/300 (70%) loss=13159.3305 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 31/100] batch 240/300 (80%) loss=13195.6518 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 31/100] batch 270/300 (90%) loss=13186.6044 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 31/100] batch 300/300 (100%) loss=13166.1267 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 031/100] remain=69 epochs ep_eta=129.5min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 031/100] lr=0.000050  dt=110.1s
+  train loss=13166.1267  ce=0.1115 dice=0.2129  tversky=0.3031 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[fp2_tversky_balanced] [curriculum] epoch 32: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 32/100] batch 30/300 (10%) loss=14335.8680 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 32/100] batch 60/300 (20%) loss=13763.8401 elapsed=23s eta=90s
+  [fp2_tversky_balanced] [epoch 32/100] batch 90/300 (30%) loss=13427.4753 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 32/100] batch 120/300 (40%) loss=13308.8426 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 32/100] batch 150/300 (50%) loss=13328.3421 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 32/100] batch 180/300 (60%) loss=13292.2630 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 32/100] batch 210/300 (70%) loss=13111.3115 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 32/100] batch 240/300 (80%) loss=13016.8150 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 32/100] batch 270/300 (90%) loss=12995.4449 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 32/100] batch 300/300 (100%) loss=13034.3825 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 032/100] remain=68 epochs ep_eta=127.5min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 032/100] lr=0.000049  dt=110.7s
+  train loss=13034.3825  ce=0.1108 dice=0.2094  tversky=0.3019 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[fp2_tversky_balanced] [curriculum] epoch 33: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 33/100] batch 30/300 (10%) loss=12520.5414 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 33/100] batch 60/300 (20%) loss=13873.3057 elapsed=23s eta=90s
+  [fp2_tversky_balanced] [epoch 33/100] batch 90/300 (30%) loss=14199.8289 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 33/100] batch 120/300 (40%) loss=14021.5406 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 33/100] batch 150/300 (50%) loss=13884.4899 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 33/100] batch 180/300 (60%) loss=13627.6256 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 33/100] batch 210/300 (70%) loss=13542.2239 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 33/100] batch 240/300 (80%) loss=13477.4963 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 33/100] batch 270/300 (90%) loss=13335.5459 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 33/100] batch 300/300 (100%) loss=13271.8317 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 033/100] remain=67 epochs ep_eta=125.6min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 033/100] lr=0.000048  dt=110.7s
+  train loss=13271.8317  ce=0.1111 dice=0.2138  tversky=0.3019 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[fp2_tversky_balanced] [curriculum] epoch 34: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 34/100] batch 30/300 (10%) loss=11927.8350 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 34/100] batch 60/300 (20%) loss=11807.2302 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 34/100] batch 90/300 (30%) loss=12257.4055 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 34/100] batch 120/300 (40%) loss=12512.0312 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 34/100] batch 150/300 (50%) loss=12478.8274 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 34/100] batch 180/300 (60%) loss=12439.7643 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 34/100] batch 210/300 (70%) loss=12499.0189 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 34/100] batch 240/300 (80%) loss=12766.7549 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 34/100] batch 270/300 (90%) loss=12706.5891 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 34/100] batch 300/300 (100%) loss=12743.9049 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 034/100] remain=66 epochs ep_eta=123.7min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 034/100] lr=0.000047  dt=110.6s
+  train loss=12743.9049  ce=0.1099 dice=0.2079  tversky=0.2999 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[fp2_tversky_balanced] [curriculum] epoch 35: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 35/100] batch 30/300 (10%) loss=12348.5600 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 35/100] batch 60/300 (20%) loss=12240.9722 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 35/100] batch 90/300 (30%) loss=11985.2342 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 35/100] batch 120/300 (40%) loss=11815.8694 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 35/100] batch 150/300 (50%) loss=11812.8844 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 35/100] batch 180/300 (60%) loss=11672.2616 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 35/100] batch 210/300 (70%) loss=11649.8621 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 35/100] batch 240/300 (80%) loss=11636.0444 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 35/100] batch 270/300 (90%) loss=11718.7786 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 35/100] batch 300/300 (100%) loss=11756.7203 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 035/100] remain=65 epochs ep_eta=121.9min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 035/100] lr=0.000046  dt=116.0s
+  train loss=11756.7203  ce=0.1061 dice=0.2027  tversky=0.2962 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5615
+  IoU   bg=0.9765  crack=0.5731  spalling=0.7920  | mIoU_fg=0.6826  pix_acc=0.9770
+  Dice  bg=0.9881  crack=0.7286  spalling=0.8839
+  BF1   crack=0.7433  spalling=0.6022  | BF1_fg_mean=0.6728
+  [fp2_tversky_balanced] [best] mIoU_fg=0.6826  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 36: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 36/100] batch 30/300 (10%) loss=12732.3321 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 36/100] batch 60/300 (20%) loss=13121.2049 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 36/100] batch 90/300 (30%) loss=12897.2038 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 36/100] batch 120/300 (40%) loss=12709.8803 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 36/100] batch 150/300 (50%) loss=12761.2096 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 36/100] batch 180/300 (60%) loss=12648.7490 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 36/100] batch 210/300 (70%) loss=12476.8774 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 36/100] batch 240/300 (80%) loss=12277.1717 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 36/100] batch 270/300 (90%) loss=12132.7814 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 36/100] batch 300/300 (100%) loss=12208.7831 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 036/100] remain=64 epochs ep_eta=120.1min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 036/100] lr=0.000046  dt=110.6s
+  train loss=12208.7831  ce=0.1078 dice=0.2048  tversky=0.2977 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[fp2_tversky_balanced] [curriculum] epoch 37: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 37/100] batch 30/300 (10%) loss=13590.5161 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 37/100] batch 60/300 (20%) loss=12816.8764 elapsed=23s eta=90s
+  [fp2_tversky_balanced] [epoch 37/100] batch 90/300 (30%) loss=12672.4634 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 37/100] batch 120/300 (40%) loss=12214.9479 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 37/100] batch 150/300 (50%) loss=11940.8324 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 37/100] batch 180/300 (60%) loss=11945.3335 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 37/100] batch 210/300 (70%) loss=11824.4562 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 37/100] batch 240/300 (80%) loss=11742.1057 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 37/100] batch 270/300 (90%) loss=11753.6465 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 37/100] batch 300/300 (100%) loss=11749.1485 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 037/100] remain=63 epochs ep_eta=118.2min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 037/100] lr=0.000045  dt=110.8s
+  train loss=11749.1485  ce=0.1050 dice=0.2005  tversky=0.2949 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[fp2_tversky_balanced] [curriculum] epoch 38: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 38/100] batch 30/300 (10%) loss=11829.4044 elapsed=12s eta=104s
+  [fp2_tversky_balanced] [epoch 38/100] batch 60/300 (20%) loss=12225.3657 elapsed=23s eta=91s
+  [fp2_tversky_balanced] [epoch 38/100] batch 90/300 (30%) loss=11918.8404 elapsed=34s eta=79s
+  [fp2_tversky_balanced] [epoch 38/100] batch 120/300 (40%) loss=11622.7776 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 38/100] batch 150/300 (50%) loss=11332.3505 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 38/100] batch 180/300 (60%) loss=11212.8472 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 38/100] batch 210/300 (70%) loss=11056.4118 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 38/100] batch 240/300 (80%) loss=10992.3688 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 38/100] batch 270/300 (90%) loss=10956.2604 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 38/100] batch 300/300 (100%) loss=11022.6898 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 038/100] remain=62 epochs ep_eta=116.3min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 038/100] lr=0.000044  dt=110.9s
+  train loss=11022.6898  ce=0.1020 dice=0.1990  tversky=0.2921 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[fp2_tversky_balanced] [curriculum] epoch 39: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 39/100] batch 30/300 (10%) loss=10835.0967 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 39/100] batch 60/300 (20%) loss=10875.6895 elapsed=23s eta=90s
+  [fp2_tversky_balanced] [epoch 39/100] batch 90/300 (30%) loss=11058.5835 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 39/100] batch 120/300 (40%) loss=10997.7711 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 39/100] batch 150/300 (50%) loss=10925.7072 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 39/100] batch 180/300 (60%) loss=10764.6634 elapsed=67s eta=45s
+  [fp2_tversky_balanced] [epoch 39/100] batch 210/300 (70%) loss=10853.5319 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 39/100] batch 240/300 (80%) loss=10760.5498 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 39/100] batch 270/300 (90%) loss=10745.9785 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 39/100] batch 300/300 (100%) loss=10733.3798 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 039/100] remain=61 epochs ep_eta=114.4min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 039/100] lr=0.000043  dt=111.1s
+  train loss=10733.3798  ce=0.1005 dice=0.1961  tversky=0.2907 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[fp2_tversky_balanced] [curriculum] epoch 40: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 40/100] batch 30/300 (10%) loss=9926.0634 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 40/100] batch 60/300 (20%) loss=10155.2343 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 40/100] batch 90/300 (30%) loss=10425.7083 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 40/100] batch 120/300 (40%) loss=10391.7535 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 40/100] batch 150/300 (50%) loss=10367.5860 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 40/100] batch 180/300 (60%) loss=10518.1138 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 40/100] batch 210/300 (70%) loss=10675.1858 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 40/100] batch 240/300 (80%) loss=10703.1163 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 40/100] batch 270/300 (90%) loss=10708.1330 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 40/100] batch 300/300 (100%) loss=10652.3241 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 040/100] remain=60 epochs ep_eta=112.6min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 040/100] lr=0.000042  dt=115.5s
+  train loss=10652.3241  ce=0.0999 dice=0.1949  tversky=0.2906 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5578
+  IoU   bg=0.9776  crack=0.5803  spalling=0.7959  | mIoU_fg=0.6881  pix_acc=0.9780
+  Dice  bg=0.9887  crack=0.7344  spalling=0.8864
+  BF1   crack=0.7501  spalling=0.6300  | BF1_fg_mean=0.6900
+  [fp2_tversky_balanced] [best] mIoU_fg=0.6881  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 41: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 41/100] batch 30/300 (10%) loss=11256.5261 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 41/100] batch 60/300 (20%) loss=12049.6408 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 41/100] batch 90/300 (30%) loss=15580.5371 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 41/100] batch 120/300 (40%) loss=15567.2965 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 41/100] batch 150/300 (50%) loss=15145.9297 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 41/100] batch 180/300 (60%) loss=19273.1059 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 41/100] batch 210/300 (70%) loss=25038.1964 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 41/100] batch 240/300 (80%) loss=24532.0637 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 41/100] batch 270/300 (90%) loss=23388.7358 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 41/100] batch 300/300 (100%) loss=22387.6646 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 041/100] remain=59 epochs ep_eta=110.7min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 041/100] lr=0.000041  dt=110.1s
+  train loss=22387.6646  ce=0.1764 dice=0.2268  tversky=0.3056 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[fp2_tversky_balanced] [curriculum] epoch 42: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 42/100] batch 30/300 (10%) loss=13432.1476 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 42/100] batch 60/300 (20%) loss=21429.4688 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 42/100] batch 90/300 (30%) loss=22319.9090 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 42/100] batch 120/300 (40%) loss=21995.6292 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 42/100] batch 150/300 (50%) loss=21298.4798 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 42/100] batch 180/300 (60%) loss=20905.0386 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 42/100] batch 210/300 (70%) loss=20123.4550 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 42/100] batch 240/300 (80%) loss=20346.0728 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 42/100] batch 270/300 (90%) loss=19849.3270 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 42/100] batch 300/300 (100%) loss=19374.7108 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 042/100] remain=58 epochs ep_eta=108.8min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 042/100] lr=0.000040  dt=110.3s
+  train loss=19374.7108  ce=0.1476 dice=0.2372  tversky=0.3065 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[fp2_tversky_balanced] [curriculum] epoch 43: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 43/100] batch 30/300 (10%) loss=13116.1459 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 43/100] batch 60/300 (20%) loss=12887.9915 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 43/100] batch 90/300 (30%) loss=12660.3532 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 43/100] batch 120/300 (40%) loss=12596.8115 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 43/100] batch 150/300 (50%) loss=12379.9113 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 43/100] batch 180/300 (60%) loss=12368.5627 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 43/100] batch 210/300 (70%) loss=12259.8754 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 43/100] batch 240/300 (80%) loss=12088.9950 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 43/100] batch 270/300 (90%) loss=12031.5341 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 43/100] batch 300/300 (100%) loss=11909.6877 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 043/100] remain=57 epochs ep_eta=106.9min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 043/100] lr=0.000039  dt=110.2s
+  train loss=11909.6877  ce=0.1053 dice=0.1984  tversky=0.2969 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[fp2_tversky_balanced] [curriculum] epoch 44: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 44/100] batch 30/300 (10%) loss=11039.7642 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 44/100] batch 60/300 (20%) loss=11263.6052 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 44/100] batch 90/300 (30%) loss=11307.7064 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 44/100] batch 120/300 (40%) loss=11087.0839 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 44/100] batch 150/300 (50%) loss=11085.1326 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 44/100] batch 180/300 (60%) loss=11010.9149 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 44/100] batch 210/300 (70%) loss=10966.4763 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 44/100] batch 240/300 (80%) loss=10994.7181 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 44/100] batch 270/300 (90%) loss=10980.3172 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 44/100] batch 300/300 (100%) loss=10943.1870 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 044/100] remain=56 epochs ep_eta=105.0min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 044/100] lr=0.000038  dt=110.5s
+  train loss=10943.1870  ce=0.1015 dice=0.1999  tversky=0.2920 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[fp2_tversky_balanced] [curriculum] epoch 45: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 45/100] batch 30/300 (10%) loss=10264.8761 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 45/100] batch 60/300 (20%) loss=10741.8243 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 45/100] batch 90/300 (30%) loss=10580.6741 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 45/100] batch 120/300 (40%) loss=10517.2840 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 45/100] batch 150/300 (50%) loss=10531.5632 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 45/100] batch 180/300 (60%) loss=10509.2078 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 45/100] batch 210/300 (70%) loss=10522.6661 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 45/100] batch 240/300 (80%) loss=10657.8983 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 45/100] batch 270/300 (90%) loss=10564.6833 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 45/100] batch 300/300 (100%) loss=10570.1282 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 045/100] remain=55 epochs ep_eta=103.2min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 045/100] lr=0.000037  dt=115.3s
+  train loss=10570.1282  ce=0.1000 dice=0.1922  tversky=0.2894 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5406
+  IoU   bg=0.9765  crack=0.5803  spalling=0.8065  | mIoU_fg=0.6934  pix_acc=0.9773
+  Dice  bg=0.9881  crack=0.7344  spalling=0.8929
+  BF1   crack=0.7456  spalling=0.6502  | BF1_fg_mean=0.6979
+  [fp2_tversky_balanced] [best] mIoU_fg=0.6934  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 46: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 46/100] batch 30/300 (10%) loss=10926.7920 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 46/100] batch 60/300 (20%) loss=10402.8408 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 46/100] batch 90/300 (30%) loss=10281.1586 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 46/100] batch 120/300 (40%) loss=10372.0690 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 46/100] batch 150/300 (50%) loss=10403.7611 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 46/100] batch 180/300 (60%) loss=10365.0109 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 46/100] batch 210/300 (70%) loss=10360.6250 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 46/100] batch 240/300 (80%) loss=10352.3288 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 46/100] batch 270/300 (90%) loss=10275.5993 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 46/100] batch 300/300 (100%) loss=10375.2687 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 046/100] remain=54 epochs ep_eta=101.3min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 046/100] lr=0.000036  dt=110.7s
+  train loss=10375.2687  ce=0.0986 dice=0.1921  tversky=0.2879 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[fp2_tversky_balanced] [curriculum] epoch 47: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 47/100] batch 30/300 (10%) loss=9762.7636 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 47/100] batch 60/300 (20%) loss=10243.0757 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 47/100] batch 90/300 (30%) loss=10503.1351 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 47/100] batch 120/300 (40%) loss=10405.9239 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 47/100] batch 150/300 (50%) loss=10293.9904 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 47/100] batch 180/300 (60%) loss=10155.0214 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 47/100] batch 210/300 (70%) loss=10148.8584 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 47/100] batch 240/300 (80%) loss=10139.8993 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 47/100] batch 270/300 (90%) loss=10060.4081 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 47/100] batch 300/300 (100%) loss=10122.2528 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 047/100] remain=53 epochs ep_eta=99.4min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 047/100] lr=0.000035  dt=110.1s
+  train loss=10122.2528  ce=0.0982 dice=0.1955  tversky=0.2876 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[fp2_tversky_balanced] [curriculum] epoch 48: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 48/100] batch 30/300 (10%) loss=10006.6033 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 48/100] batch 60/300 (20%) loss=9893.3473 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 48/100] batch 90/300 (30%) loss=9831.3330 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 48/100] batch 120/300 (40%) loss=9855.8477 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 48/100] batch 150/300 (50%) loss=9901.2038 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 48/100] batch 180/300 (60%) loss=9917.8123 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 48/100] batch 210/300 (70%) loss=9875.1863 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 48/100] batch 240/300 (80%) loss=9888.3761 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 48/100] batch 270/300 (90%) loss=9898.2850 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 48/100] batch 300/300 (100%) loss=9862.2369 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 048/100] remain=52 epochs ep_eta=97.5min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 048/100] lr=0.000034  dt=110.3s
+  train loss=9862.2369  ce=0.0974 dice=0.1980  tversky=0.2872 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[fp2_tversky_balanced] [curriculum] epoch 49: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 49/100] batch 30/300 (10%) loss=9849.1787 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 49/100] batch 60/300 (20%) loss=10127.5593 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 49/100] batch 90/300 (30%) loss=9951.7890 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 49/100] batch 120/300 (40%) loss=9858.0308 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 49/100] batch 150/300 (50%) loss=9790.1113 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 49/100] batch 180/300 (60%) loss=9694.6673 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 49/100] batch 210/300 (70%) loss=9708.7469 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 49/100] batch 240/300 (80%) loss=9655.8057 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 49/100] batch 270/300 (90%) loss=9625.6121 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 49/100] batch 300/300 (100%) loss=9631.1112 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 049/100] remain=51 epochs ep_eta=95.6min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 049/100] lr=0.000033  dt=110.5s
+  train loss=9631.1112  ce=0.0960 dice=0.1934  tversky=0.2848 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[fp2_tversky_balanced] [curriculum] epoch 50: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 50/100] batch 30/300 (10%) loss=9310.1421 elapsed=12s eta=104s
+  [fp2_tversky_balanced] [epoch 50/100] batch 60/300 (20%) loss=10018.4470 elapsed=23s eta=90s
+  [fp2_tversky_balanced] [epoch 50/100] batch 90/300 (30%) loss=9935.8059 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 50/100] batch 120/300 (40%) loss=9840.4987 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 50/100] batch 150/300 (50%) loss=9693.8690 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 50/100] batch 180/300 (60%) loss=9713.0699 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 50/100] batch 210/300 (70%) loss=9605.5959 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 50/100] batch 240/300 (80%) loss=9601.5029 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 50/100] batch 270/300 (90%) loss=9608.5219 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 50/100] batch 300/300 (100%) loss=9671.3697 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 050/100] remain=50 epochs ep_eta=93.8min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 050/100] lr=0.000032  dt=115.6s
+  train loss=9671.3697  ce=0.0963 dice=0.1928  tversky=0.2866 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5329
+  IoU   bg=0.9769  crack=0.5801  spalling=0.8207  | mIoU_fg=0.7004  pix_acc=0.9776
+  Dice  bg=0.9883  crack=0.7342  spalling=0.9015
+  BF1   crack=0.7509  spalling=0.6533  | BF1_fg_mean=0.7021
+  [fp2_tversky_balanced] [best] mIoU_fg=0.7004  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 51: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 51/100] batch 30/300 (10%) loss=9558.3712 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 51/100] batch 60/300 (20%) loss=9574.3819 elapsed=23s eta=90s
+  [fp2_tversky_balanced] [epoch 51/100] batch 90/300 (30%) loss=9610.7959 elapsed=34s eta=79s
+  [fp2_tversky_balanced] [epoch 51/100] batch 120/300 (40%) loss=9560.1682 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 51/100] batch 150/300 (50%) loss=9610.6971 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 51/100] batch 180/300 (60%) loss=9724.0473 elapsed=67s eta=45s
+  [fp2_tversky_balanced] [epoch 51/100] batch 210/300 (70%) loss=9676.8108 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 51/100] batch 240/300 (80%) loss=9677.7434 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 51/100] batch 270/300 (90%) loss=9696.3739 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 51/100] batch 300/300 (100%) loss=9642.9823 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 051/100] remain=49 epochs ep_eta=91.9min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 051/100] lr=0.000031  dt=111.4s
+  train loss=9642.9823  ce=0.0958 dice=0.1885  tversky=0.2852 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[fp2_tversky_balanced] [curriculum] epoch 52: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 52/100] batch 30/300 (10%) loss=10099.5445 elapsed=12s eta=105s
+  [fp2_tversky_balanced] [epoch 52/100] batch 60/300 (20%) loss=9423.7983 elapsed=23s eta=90s
+  [fp2_tversky_balanced] [epoch 52/100] batch 90/300 (30%) loss=9567.7267 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 52/100] batch 120/300 (40%) loss=9588.9459 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 52/100] batch 150/300 (50%) loss=9535.6678 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 52/100] batch 180/300 (60%) loss=9521.8375 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 52/100] batch 210/300 (70%) loss=9550.4317 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 52/100] batch 240/300 (80%) loss=9552.3934 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 52/100] batch 270/300 (90%) loss=9548.7866 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 52/100] batch 300/300 (100%) loss=9570.6239 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 052/100] remain=48 epochs ep_eta=90.0min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 052/100] lr=0.000030  dt=111.0s
+  train loss=9570.6239  ce=0.0955 dice=0.1905  tversky=0.2838 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[fp2_tversky_balanced] [curriculum] epoch 53: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 53/100] batch 30/300 (10%) loss=8593.0074 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 53/100] batch 60/300 (20%) loss=9263.6690 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 53/100] batch 90/300 (30%) loss=9218.2896 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 53/100] batch 120/300 (40%) loss=9420.4187 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 53/100] batch 150/300 (50%) loss=9449.6667 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 53/100] batch 180/300 (60%) loss=9371.7148 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 53/100] batch 210/300 (70%) loss=9299.4553 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 53/100] batch 240/300 (80%) loss=9264.5499 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 53/100] batch 270/300 (90%) loss=9337.6743 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 53/100] batch 300/300 (100%) loss=9282.2294 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 053/100] remain=47 epochs ep_eta=88.1min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 053/100] lr=0.000030  dt=110.3s
+  train loss=9282.2294  ce=0.0945 dice=0.1925  tversky=0.2827 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[fp2_tversky_balanced] [curriculum] epoch 54: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 54/100] batch 30/300 (10%) loss=8867.8674 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 54/100] batch 60/300 (20%) loss=8937.6718 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 54/100] batch 90/300 (30%) loss=9261.7940 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 54/100] batch 120/300 (40%) loss=9242.0860 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 54/100] batch 150/300 (50%) loss=9107.3558 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 54/100] batch 180/300 (60%) loss=9090.9260 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 54/100] batch 210/300 (70%) loss=9244.5701 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 54/100] batch 240/300 (80%) loss=9165.0078 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 54/100] batch 270/300 (90%) loss=9139.2360 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 54/100] batch 300/300 (100%) loss=9150.0953 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 054/100] remain=46 epochs ep_eta=86.2min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 054/100] lr=0.000029  dt=110.3s
+  train loss=9150.0953  ce=0.0939 dice=0.1912  tversky=0.2815 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[fp2_tversky_balanced] [curriculum] epoch 55: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 55/100] batch 30/300 (10%) loss=9542.6004 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 55/100] batch 60/300 (20%) loss=9640.2437 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 55/100] batch 90/300 (30%) loss=9616.3739 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 55/100] batch 120/300 (40%) loss=9746.6185 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 55/100] batch 150/300 (50%) loss=9712.5507 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 55/100] batch 180/300 (60%) loss=9588.3638 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 55/100] batch 210/300 (70%) loss=9502.6948 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 55/100] batch 240/300 (80%) loss=9392.7104 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 55/100] batch 270/300 (90%) loss=9331.7242 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 55/100] batch 300/300 (100%) loss=9244.3121 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 055/100] remain=45 epochs ep_eta=84.4min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 055/100] lr=0.000028  dt=115.5s
+  train loss=9244.3121  ce=0.0950 dice=0.1859  tversky=0.2829 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5460
+  IoU   bg=0.9762  crack=0.5779  spalling=0.7812  | mIoU_fg=0.6796  pix_acc=0.9768
+  Dice  bg=0.9879  crack=0.7325  spalling=0.8772
+  BF1   crack=0.7569  spalling=0.6665  | BF1_fg_mean=0.7117
+[fp2_tversky_balanced] [curriculum] epoch 56: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 56/100] batch 30/300 (10%) loss=9107.5609 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 56/100] batch 60/300 (20%) loss=9087.7343 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 56/100] batch 90/300 (30%) loss=9054.4922 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 56/100] batch 120/300 (40%) loss=9085.9101 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 56/100] batch 150/300 (50%) loss=9108.1375 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 56/100] batch 180/300 (60%) loss=9106.4775 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 56/100] batch 210/300 (70%) loss=9136.0461 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 56/100] batch 240/300 (80%) loss=9269.0963 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 56/100] batch 270/300 (90%) loss=9244.2045 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 56/100] batch 300/300 (100%) loss=9200.5668 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 056/100] remain=44 epochs ep_eta=82.5min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 056/100] lr=0.000027  dt=109.9s
+  train loss=9200.5668  ce=0.0939 dice=0.1861  tversky=0.2827 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[fp2_tversky_balanced] [curriculum] epoch 57: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 57/100] batch 30/300 (10%) loss=9426.1712 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 57/100] batch 60/300 (20%) loss=9197.4454 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 57/100] batch 90/300 (30%) loss=9100.5946 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 57/100] batch 120/300 (40%) loss=9269.6137 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 57/100] batch 150/300 (50%) loss=9138.7927 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 57/100] batch 180/300 (60%) loss=9182.2854 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 57/100] batch 210/300 (70%) loss=9142.1013 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 57/100] batch 240/300 (80%) loss=9105.0753 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 57/100] batch 270/300 (90%) loss=9028.0851 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 57/100] batch 300/300 (100%) loss=9073.4458 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 057/100] remain=43 epochs ep_eta=80.6min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 057/100] lr=0.000026  dt=110.6s
+  train loss=9073.4458  ce=0.0934 dice=0.1830  tversky=0.2811 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[fp2_tversky_balanced] [curriculum] epoch 58: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 58/100] batch 30/300 (10%) loss=8838.2759 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 58/100] batch 60/300 (20%) loss=8907.3218 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 58/100] batch 90/300 (30%) loss=8886.7840 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 58/100] batch 120/300 (40%) loss=8873.8214 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 58/100] batch 150/300 (50%) loss=8896.3556 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 58/100] batch 180/300 (60%) loss=8804.1376 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 58/100] batch 210/300 (70%) loss=8789.6719 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 58/100] batch 240/300 (80%) loss=8818.6904 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 58/100] batch 270/300 (90%) loss=8802.0685 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 58/100] batch 300/300 (100%) loss=8814.1292 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 058/100] remain=42 epochs ep_eta=78.7min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 058/100] lr=0.000025  dt=110.1s
+  train loss=8814.1292  ce=0.0917 dice=0.1867  tversky=0.2798 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[fp2_tversky_balanced] [curriculum] epoch 59: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 59/100] batch 30/300 (10%) loss=8782.6965 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 59/100] batch 60/300 (20%) loss=8838.5433 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 59/100] batch 90/300 (30%) loss=8652.2994 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 59/100] batch 120/300 (40%) loss=8895.4825 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 59/100] batch 150/300 (50%) loss=8756.2627 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 59/100] batch 180/300 (60%) loss=8687.9699 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 59/100] batch 210/300 (70%) loss=8815.4769 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 59/100] batch 240/300 (80%) loss=8855.3805 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 59/100] batch 270/300 (90%) loss=8872.9731 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 59/100] batch 300/300 (100%) loss=8917.5512 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 059/100] remain=41 epochs ep_eta=76.8min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 059/100] lr=0.000024  dt=109.7s
+  train loss=8917.5512  ce=0.0927 dice=0.1841  tversky=0.2799 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[fp2_tversky_balanced] [curriculum] epoch 60: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 60/100] batch 30/300 (10%) loss=8626.7971 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 60/100] batch 60/300 (20%) loss=8552.4951 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 60/100] batch 90/300 (30%) loss=8707.4650 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 60/100] batch 120/300 (40%) loss=8653.6274 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 60/100] batch 150/300 (50%) loss=8759.7099 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 60/100] batch 180/300 (60%) loss=8726.8864 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 60/100] batch 210/300 (70%) loss=8758.2978 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 60/100] batch 240/300 (80%) loss=8762.9247 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 60/100] batch 270/300 (90%) loss=8824.5894 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 60/100] batch 300/300 (100%) loss=8796.2638 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 060/100] remain=40 epochs ep_eta=75.0min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 060/100] lr=0.000023  dt=115.0s
+  train loss=8796.2638  ce=0.0923 dice=0.1860  tversky=0.2807 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5351
+  IoU   bg=0.9775  crack=0.5848  spalling=0.8027  | mIoU_fg=0.6937  pix_acc=0.9781
+  Dice  bg=0.9886  crack=0.7380  spalling=0.8905
+  BF1   crack=0.7641  spalling=0.6774  | BF1_fg_mean=0.7208
+[fp2_tversky_balanced] [curriculum] epoch 61: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 61/100] batch 30/300 (10%) loss=8925.2517 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 61/100] batch 60/300 (20%) loss=8643.3359 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 61/100] batch 90/300 (30%) loss=8697.6056 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 61/100] batch 120/300 (40%) loss=8664.7802 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 61/100] batch 150/300 (50%) loss=8757.2721 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 61/100] batch 180/300 (60%) loss=8728.5849 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 61/100] batch 210/300 (70%) loss=8733.9827 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 61/100] batch 240/300 (80%) loss=8607.9434 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 61/100] batch 270/300 (90%) loss=8571.5241 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 61/100] batch 300/300 (100%) loss=8622.5643 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 061/100] remain=39 epochs ep_eta=73.1min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 061/100] lr=0.000022  dt=110.0s
+  train loss=8622.5643  ce=0.0918 dice=0.1850  tversky=0.2791 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[fp2_tversky_balanced] [curriculum] epoch 62: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 62/100] batch 30/300 (10%) loss=9278.7863 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 62/100] batch 60/300 (20%) loss=8800.9202 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 62/100] batch 90/300 (30%) loss=8794.4996 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 62/100] batch 120/300 (40%) loss=8835.4552 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 62/100] batch 150/300 (50%) loss=8690.4840 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 62/100] batch 180/300 (60%) loss=8726.9239 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 62/100] batch 210/300 (70%) loss=8572.0364 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 62/100] batch 240/300 (80%) loss=8612.2806 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 62/100] batch 270/300 (90%) loss=8651.4273 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 62/100] batch 300/300 (100%) loss=8587.6096 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 062/100] remain=38 epochs ep_eta=71.2min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 062/100] lr=0.000021  dt=110.2s
+  train loss=8587.6096  ce=0.0907 dice=0.1815  tversky=0.2791 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[fp2_tversky_balanced] [curriculum] epoch 63: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 63/100] batch 30/300 (10%) loss=8828.5338 elapsed=11s eta=100s
+  [fp2_tversky_balanced] [epoch 63/100] batch 60/300 (20%) loss=8432.9408 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 63/100] batch 90/300 (30%) loss=8358.4588 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 63/100] batch 120/300 (40%) loss=8429.6280 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 63/100] batch 150/300 (50%) loss=8468.4427 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 63/100] batch 180/300 (60%) loss=8472.5458 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 63/100] batch 210/300 (70%) loss=8499.2317 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 63/100] batch 240/300 (80%) loss=8471.9958 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 63/100] batch 270/300 (90%) loss=8500.2199 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 63/100] batch 300/300 (100%) loss=8491.6836 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 063/100] remain=37 epochs ep_eta=69.3min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 063/100] lr=0.000020  dt=110.3s
+  train loss=8491.6836  ce=0.0912 dice=0.1846  tversky=0.2784 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[fp2_tversky_balanced] [curriculum] epoch 64: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 64/100] batch 30/300 (10%) loss=8365.5651 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 64/100] batch 60/300 (20%) loss=8329.6747 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 64/100] batch 90/300 (30%) loss=8584.3496 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 64/100] batch 120/300 (40%) loss=8426.7422 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 64/100] batch 150/300 (50%) loss=8392.5731 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 64/100] batch 180/300 (60%) loss=8409.3348 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 64/100] batch 210/300 (70%) loss=8342.3492 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 64/100] batch 240/300 (80%) loss=8415.7962 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 64/100] batch 270/300 (90%) loss=8458.9410 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 64/100] batch 300/300 (100%) loss=8460.3090 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 064/100] remain=36 epochs ep_eta=67.4min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 064/100] lr=0.000019  dt=110.6s
+  train loss=8460.3090  ce=0.0902 dice=0.1861  tversky=0.2781 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[fp2_tversky_balanced] [curriculum] epoch 65: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 65/100] batch 30/300 (10%) loss=9034.8964 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 65/100] batch 60/300 (20%) loss=8215.5584 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 65/100] batch 90/300 (30%) loss=8186.7280 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 65/100] batch 120/300 (40%) loss=8401.3296 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 65/100] batch 150/300 (50%) loss=8430.4853 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 65/100] batch 180/300 (60%) loss=8456.6797 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 65/100] batch 210/300 (70%) loss=8494.3891 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 65/100] batch 240/300 (80%) loss=8483.2534 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 65/100] batch 270/300 (90%) loss=8434.9097 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 65/100] batch 300/300 (100%) loss=8434.9363 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 065/100] remain=35 epochs ep_eta=65.6min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 065/100] lr=0.000018  dt=114.9s
+  train loss=8434.9363  ce=0.0903 dice=0.1844  tversky=0.2778 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5369
+  IoU   bg=0.9772  crack=0.5856  spalling=0.8054  | mIoU_fg=0.6955  pix_acc=0.9778
+  Dice  bg=0.9884  crack=0.7387  spalling=0.8922
+  BF1   crack=0.7561  spalling=0.6781  | BF1_fg_mean=0.7171
+[fp2_tversky_balanced] [curriculum] epoch 66: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 66/100] batch 30/300 (10%) loss=8680.7471 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 66/100] batch 60/300 (20%) loss=8326.8038 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 66/100] batch 90/300 (30%) loss=8430.5422 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 66/100] batch 120/300 (40%) loss=8289.7074 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 66/100] batch 150/300 (50%) loss=8196.4528 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 66/100] batch 180/300 (60%) loss=8227.3297 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 66/100] batch 210/300 (70%) loss=8195.8572 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 66/100] batch 240/300 (80%) loss=8227.6769 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 66/100] batch 270/300 (90%) loss=8320.1519 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 66/100] batch 300/300 (100%) loss=8325.7956 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 066/100] remain=34 epochs ep_eta=63.7min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 066/100] lr=0.000017  dt=110.0s
+  train loss=8325.7956  ce=0.0899 dice=0.1842  tversky=0.2767 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[fp2_tversky_balanced] [curriculum] epoch 67: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 67/100] batch 30/300 (10%) loss=8152.2489 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 67/100] batch 60/300 (20%) loss=7984.3218 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 67/100] batch 90/300 (30%) loss=8200.1350 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 67/100] batch 120/300 (40%) loss=8039.3475 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 67/100] batch 150/300 (50%) loss=8046.2314 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 67/100] batch 180/300 (60%) loss=8014.6368 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 67/100] batch 210/300 (70%) loss=7998.9491 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 67/100] batch 240/300 (80%) loss=8027.4537 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 67/100] batch 270/300 (90%) loss=8078.8272 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 67/100] batch 300/300 (100%) loss=8119.9479 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 067/100] remain=33 epochs ep_eta=61.8min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 067/100] lr=0.000016  dt=109.9s
+  train loss=8119.9479  ce=0.0883 dice=0.1826  tversky=0.2764 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[fp2_tversky_balanced] [curriculum] epoch 68: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 68/100] batch 30/300 (10%) loss=8405.8600 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 68/100] batch 60/300 (20%) loss=8348.1600 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 68/100] batch 90/300 (30%) loss=8181.5218 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 68/100] batch 120/300 (40%) loss=8122.8343 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 68/100] batch 150/300 (50%) loss=8062.3504 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 68/100] batch 180/300 (60%) loss=8123.8929 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 68/100] batch 210/300 (70%) loss=8177.9701 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 68/100] batch 240/300 (80%) loss=8163.0400 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 68/100] batch 270/300 (90%) loss=8120.8615 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 68/100] batch 300/300 (100%) loss=8058.3588 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 068/100] remain=32 epochs ep_eta=59.9min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 068/100] lr=0.000015  dt=110.1s
+  train loss=8058.3588  ce=0.0886 dice=0.1806  tversky=0.2761 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[fp2_tversky_balanced] [curriculum] epoch 69: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [fp2_tversky_balanced] [epoch 69/100] batch 30/300 (10%) loss=8157.5712 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 69/100] batch 60/300 (20%) loss=8129.6785 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 69/100] batch 90/300 (30%) loss=8028.6021 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 69/100] batch 120/300 (40%) loss=7838.4193 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 69/100] batch 150/300 (50%) loss=7879.8452 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 69/100] batch 180/300 (60%) loss=7894.4813 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 69/100] batch 210/300 (70%) loss=7957.2450 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 69/100] batch 240/300 (80%) loss=7993.2549 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 69/100] batch 270/300 (90%) loss=8041.3588 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 69/100] batch 300/300 (100%) loss=8014.3678 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 069/100] remain=31 epochs ep_eta=58.0min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 069/100] lr=0.000014  dt=110.1s
+  train loss=8014.3678  ce=0.0883 dice=0.1810  tversky=0.2760 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[fp2_tversky_balanced] [curriculum] epoch 70: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 70/100] batch 30/300 (10%) loss=7630.3728 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 70/100] batch 60/300 (20%) loss=7789.8152 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 70/100] batch 90/300 (30%) loss=7910.7493 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 70/100] batch 120/300 (40%) loss=8084.1370 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 70/100] batch 150/300 (50%) loss=8056.6013 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 70/100] batch 180/300 (60%) loss=8015.1228 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 70/100] batch 210/300 (70%) loss=8024.7912 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 70/100] batch 240/300 (80%) loss=8052.1204 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 70/100] batch 270/300 (90%) loss=8035.9619 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 70/100] batch 300/300 (100%) loss=8025.5781 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 070/100] remain=30 epochs ep_eta=56.2min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 070/100] lr=0.000014  dt=115.1s
+  train loss=8025.5781  ce=0.0887 dice=0.1819  tversky=0.2756 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5300
+  IoU   bg=0.9775  crack=0.5880  spalling=0.8036  | mIoU_fg=0.6958  pix_acc=0.9781
+  Dice  bg=0.9886  crack=0.7406  spalling=0.8911
+  BF1   crack=0.7597  spalling=0.6843  | BF1_fg_mean=0.7220
+[fp2_tversky_balanced] [curriculum] epoch 71: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 71/100] batch 30/300 (10%) loss=7733.3969 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 71/100] batch 60/300 (20%) loss=7899.9922 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 71/100] batch 90/300 (30%) loss=7821.8561 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 71/100] batch 120/300 (40%) loss=7902.7510 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 71/100] batch 150/300 (50%) loss=7933.5248 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 71/100] batch 180/300 (60%) loss=7987.9125 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 71/100] batch 210/300 (70%) loss=8030.4288 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 71/100] batch 240/300 (80%) loss=7978.3407 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 71/100] batch 270/300 (90%) loss=7961.2885 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 71/100] batch 300/300 (100%) loss=7945.6659 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 071/100] remain=29 epochs ep_eta=54.3min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 071/100] lr=0.000013  dt=110.7s
+  train loss=7945.6659  ce=0.0882 dice=0.1821  tversky=0.2747 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[fp2_tversky_balanced] [curriculum] epoch 72: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 72/100] batch 30/300 (10%) loss=7857.5937 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 72/100] batch 60/300 (20%) loss=7668.1656 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 72/100] batch 90/300 (30%) loss=7729.0805 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 72/100] batch 120/300 (40%) loss=7789.2894 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 72/100] batch 150/300 (50%) loss=7803.8971 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 72/100] batch 180/300 (60%) loss=7743.8457 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 72/100] batch 210/300 (70%) loss=7729.2895 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 72/100] batch 240/300 (80%) loss=7743.1322 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 72/100] batch 270/300 (90%) loss=7804.4698 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 72/100] batch 300/300 (100%) loss=7758.1976 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 072/100] remain=28 epochs ep_eta=52.4min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 072/100] lr=0.000012  dt=110.6s
+  train loss=7758.1976  ce=0.0873 dice=0.1785  tversky=0.2737 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[fp2_tversky_balanced] [curriculum] epoch 73: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 73/100] batch 30/300 (10%) loss=7759.6034 elapsed=11s eta=100s
+  [fp2_tversky_balanced] [epoch 73/100] batch 60/300 (20%) loss=7647.6574 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 73/100] batch 90/300 (30%) loss=7561.9734 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 73/100] batch 120/300 (40%) loss=7561.4760 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 73/100] batch 150/300 (50%) loss=7677.7621 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 73/100] batch 180/300 (60%) loss=7726.7053 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 73/100] batch 210/300 (70%) loss=7734.5788 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 73/100] batch 240/300 (80%) loss=7800.5198 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 73/100] batch 270/300 (90%) loss=7762.3250 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 73/100] batch 300/300 (100%) loss=7716.9764 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 073/100] remain=27 epochs ep_eta=50.5min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 073/100] lr=0.000011  dt=110.5s
+  train loss=7716.9764  ce=0.0869 dice=0.1815  tversky=0.2737 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[fp2_tversky_balanced] [curriculum] epoch 74: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 74/100] batch 30/300 (10%) loss=7581.1360 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 74/100] batch 60/300 (20%) loss=7617.0585 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 74/100] batch 90/300 (30%) loss=7672.6266 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 74/100] batch 120/300 (40%) loss=7877.6663 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 74/100] batch 150/300 (50%) loss=7788.5127 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 74/100] batch 180/300 (60%) loss=7742.6516 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 74/100] batch 210/300 (70%) loss=7712.6195 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 74/100] batch 240/300 (80%) loss=7735.0365 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 74/100] batch 270/300 (90%) loss=7749.0720 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 74/100] batch 300/300 (100%) loss=7744.8019 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 074/100] remain=26 epochs ep_eta=48.7min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 074/100] lr=0.000010  dt=110.4s
+  train loss=7744.8019  ce=0.0874 dice=0.1798  tversky=0.2741 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[fp2_tversky_balanced] [curriculum] epoch 75: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 75/100] batch 30/300 (10%) loss=7953.0994 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 75/100] batch 60/300 (20%) loss=7886.2607 elapsed=23s eta=90s
+  [fp2_tversky_balanced] [epoch 75/100] batch 90/300 (30%) loss=7804.3263 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 75/100] batch 120/300 (40%) loss=7671.3086 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 75/100] batch 150/300 (50%) loss=7719.5790 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 75/100] batch 180/300 (60%) loss=7738.0860 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 75/100] batch 210/300 (70%) loss=7773.3467 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 75/100] batch 240/300 (80%) loss=7807.9464 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 75/100] batch 270/300 (90%) loss=7822.6064 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 75/100] batch 300/300 (100%) loss=7782.3727 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 075/100] remain=25 epochs ep_eta=46.8min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 075/100] lr=0.000010  dt=115.7s
+  train loss=7782.3727  ce=0.0872 dice=0.1804  tversky=0.2744 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5378
+  IoU   bg=0.9773  crack=0.5848  spalling=0.8040  | mIoU_fg=0.6944  pix_acc=0.9779
+  Dice  bg=0.9885  crack=0.7380  spalling=0.8913
+  BF1   crack=0.7648  spalling=0.6891  | BF1_fg_mean=0.7269
+[fp2_tversky_balanced] [curriculum] epoch 76: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 76/100] batch 30/300 (10%) loss=7167.2405 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 76/100] batch 60/300 (20%) loss=7382.5036 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 76/100] batch 90/300 (30%) loss=7456.1752 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 76/100] batch 120/300 (40%) loss=7557.8800 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 76/100] batch 150/300 (50%) loss=7580.4691 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 76/100] batch 180/300 (60%) loss=7576.2025 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 76/100] batch 210/300 (70%) loss=7635.2847 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 76/100] batch 240/300 (80%) loss=7591.5575 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 76/100] batch 270/300 (90%) loss=7587.1881 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 76/100] batch 300/300 (100%) loss=7599.6301 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 076/100] remain=24 epochs ep_eta=44.9min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 076/100] lr=0.000009  dt=110.6s
+  train loss=7599.6301  ce=0.0865 dice=0.1794  tversky=0.2727 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[fp2_tversky_balanced] [curriculum] epoch 77: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 77/100] batch 30/300 (10%) loss=8182.0585 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 77/100] batch 60/300 (20%) loss=7943.4841 elapsed=23s eta=90s
+  [fp2_tversky_balanced] [epoch 77/100] batch 90/300 (30%) loss=7944.4766 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 77/100] batch 120/300 (40%) loss=7814.1448 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 77/100] batch 150/300 (50%) loss=7828.5153 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 77/100] batch 180/300 (60%) loss=7659.9688 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 77/100] batch 210/300 (70%) loss=7580.9056 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 77/100] batch 240/300 (80%) loss=7549.9544 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 77/100] batch 270/300 (90%) loss=7592.2385 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 77/100] batch 300/300 (100%) loss=7577.0852 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 077/100] remain=23 epochs ep_eta=43.1min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 077/100] lr=0.000008  dt=110.6s
+  train loss=7577.0852  ce=0.0865 dice=0.1787  tversky=0.2730 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[fp2_tversky_balanced] [curriculum] epoch 78: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 78/100] batch 30/300 (10%) loss=7134.9329 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 78/100] batch 60/300 (20%) loss=7300.5638 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 78/100] batch 90/300 (30%) loss=7384.3775 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 78/100] batch 120/300 (40%) loss=7496.0057 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 78/100] batch 150/300 (50%) loss=7528.8849 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 78/100] batch 180/300 (60%) loss=7538.6733 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 78/100] batch 210/300 (70%) loss=7516.6404 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 78/100] batch 240/300 (80%) loss=7537.1113 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 78/100] batch 270/300 (90%) loss=7534.1243 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 78/100] batch 300/300 (100%) loss=7540.0689 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 078/100] remain=22 epochs ep_eta=41.2min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 078/100] lr=0.000008  dt=110.5s
+  train loss=7540.0689  ce=0.0862 dice=0.1789  tversky=0.2721 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[fp2_tversky_balanced] [curriculum] epoch 79: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 79/100] batch 30/300 (10%) loss=7647.5844 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 79/100] batch 60/300 (20%) loss=7575.4423 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 79/100] batch 90/300 (30%) loss=7476.8686 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 79/100] batch 120/300 (40%) loss=7503.6396 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 79/100] batch 150/300 (50%) loss=7622.8583 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 79/100] batch 180/300 (60%) loss=7613.9486 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 79/100] batch 210/300 (70%) loss=7573.4679 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 79/100] batch 240/300 (80%) loss=7524.2656 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 79/100] batch 270/300 (90%) loss=7506.7131 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 79/100] batch 300/300 (100%) loss=7519.4322 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 079/100] remain=21 epochs ep_eta=39.3min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 079/100] lr=0.000007  dt=110.3s
+  train loss=7519.4322  ce=0.0868 dice=0.1813  tversky=0.2726 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[fp2_tversky_balanced] [curriculum] epoch 80: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 80/100] batch 30/300 (10%) loss=7127.7749 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 80/100] batch 60/300 (20%) loss=7434.7035 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 80/100] batch 90/300 (30%) loss=7414.3901 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 80/100] batch 120/300 (40%) loss=7426.6071 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 80/100] batch 150/300 (50%) loss=7411.5080 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 80/100] batch 180/300 (60%) loss=7461.3801 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 80/100] batch 210/300 (70%) loss=7458.3902 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 80/100] batch 240/300 (80%) loss=7454.1752 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 80/100] batch 270/300 (90%) loss=7461.3450 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 80/100] batch 300/300 (100%) loss=7466.3501 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 080/100] remain=20 epochs ep_eta=37.5min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 080/100] lr=0.000006  dt=115.3s
+  train loss=7466.3501  ce=0.0858 dice=0.1826  tversky=0.2722 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5303
+  IoU   bg=0.9774  crack=0.5894  spalling=0.8094  | mIoU_fg=0.6994  pix_acc=0.9780
+  Dice  bg=0.9886  crack=0.7417  spalling=0.8947
+  BF1   crack=0.7607  spalling=0.6818  | BF1_fg_mean=0.7213
+[fp2_tversky_balanced] [curriculum] epoch 81: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 81/100] batch 30/300 (10%) loss=7379.7958 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 81/100] batch 60/300 (20%) loss=7507.3406 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 81/100] batch 90/300 (30%) loss=7399.0503 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 81/100] batch 120/300 (40%) loss=7450.9379 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 81/100] batch 150/300 (50%) loss=7411.3882 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 81/100] batch 180/300 (60%) loss=7466.8376 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 81/100] batch 210/300 (70%) loss=7438.9778 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 81/100] batch 240/300 (80%) loss=7475.1038 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 81/100] batch 270/300 (90%) loss=7497.4628 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 81/100] batch 300/300 (100%) loss=7457.3579 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 081/100] remain=19 epochs ep_eta=35.6min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 081/100] lr=0.000006  dt=110.3s
+  train loss=7457.3579  ce=0.0862 dice=0.1772  tversky=0.2722 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[fp2_tversky_balanced] [curriculum] epoch 82: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 82/100] batch 30/300 (10%) loss=7172.6059 elapsed=12s eta=104s
+  [fp2_tversky_balanced] [epoch 82/100] batch 60/300 (20%) loss=7324.5723 elapsed=23s eta=91s
+  [fp2_tversky_balanced] [epoch 82/100] batch 90/300 (30%) loss=7302.0353 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 82/100] batch 120/300 (40%) loss=7256.6153 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 82/100] batch 150/300 (50%) loss=7194.5706 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 82/100] batch 180/300 (60%) loss=7281.0386 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 82/100] batch 210/300 (70%) loss=7413.0712 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 82/100] batch 240/300 (80%) loss=7399.7077 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 82/100] batch 270/300 (90%) loss=7416.9517 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 82/100] batch 300/300 (100%) loss=7401.1295 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 082/100] remain=18 epochs ep_eta=33.7min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 082/100] lr=0.000005  dt=110.5s
+  train loss=7401.1295  ce=0.0858 dice=0.1828  tversky=0.2726 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[fp2_tversky_balanced] [curriculum] epoch 83: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 83/100] batch 30/300 (10%) loss=7336.0305 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 83/100] batch 60/300 (20%) loss=7443.1546 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 83/100] batch 90/300 (30%) loss=7538.9813 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 83/100] batch 120/300 (40%) loss=7493.2688 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 83/100] batch 150/300 (50%) loss=7374.5046 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 83/100] batch 180/300 (60%) loss=7502.9867 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 83/100] batch 210/300 (70%) loss=7483.5385 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 83/100] batch 240/300 (80%) loss=7477.1259 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 83/100] batch 270/300 (90%) loss=7478.5627 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 83/100] batch 300/300 (100%) loss=7446.3104 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 083/100] remain=17 epochs ep_eta=31.8min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 083/100] lr=0.000005  dt=110.3s
+  train loss=7446.3104  ce=0.0860 dice=0.1813  tversky=0.2720 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[fp2_tversky_balanced] [curriculum] epoch 84: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 84/100] batch 30/300 (10%) loss=7667.7651 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 84/100] batch 60/300 (20%) loss=7527.7187 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 84/100] batch 90/300 (30%) loss=7555.7748 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 84/100] batch 120/300 (40%) loss=7522.6188 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 84/100] batch 150/300 (50%) loss=7523.7145 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 84/100] batch 180/300 (60%) loss=7496.4361 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 84/100] batch 210/300 (70%) loss=7445.2598 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 84/100] batch 240/300 (80%) loss=7398.5052 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 84/100] batch 270/300 (90%) loss=7366.7379 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 84/100] batch 300/300 (100%) loss=7325.2108 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 084/100] remain=16 epochs ep_eta=29.9min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 084/100] lr=0.000004  dt=110.6s
+  train loss=7325.2108  ce=0.0855 dice=0.1782  tversky=0.2716 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[fp2_tversky_balanced] [curriculum] epoch 85: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 85/100] batch 30/300 (10%) loss=7419.1062 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 85/100] batch 60/300 (20%) loss=7463.5440 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 85/100] batch 90/300 (30%) loss=7512.1609 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 85/100] batch 120/300 (40%) loss=7462.8471 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 85/100] batch 150/300 (50%) loss=7461.4549 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 85/100] batch 180/300 (60%) loss=7556.8486 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 85/100] batch 210/300 (70%) loss=7505.0699 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 85/100] batch 240/300 (80%) loss=7410.3974 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 85/100] batch 270/300 (90%) loss=7367.7630 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 85/100] batch 300/300 (100%) loss=7327.6331 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 085/100] remain=15 epochs ep_eta=28.1min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 085/100] lr=0.000004  dt=115.2s
+  train loss=7327.6331  ce=0.0849 dice=0.1772  tversky=0.2708 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5285
+  IoU   bg=0.9778  crack=0.5915  spalling=0.8105  | mIoU_fg=0.7010  pix_acc=0.9784
+  Dice  bg=0.9888  crack=0.7433  spalling=0.8954
+  BF1   crack=0.7627  spalling=0.6864  | BF1_fg_mean=0.7246
+  [fp2_tversky_balanced] [best] mIoU_fg=0.7010  saved -> best.pt
+[fp2_tversky_balanced] [curriculum] epoch 86: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 86/100] batch 30/300 (10%) loss=7310.2057 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 86/100] batch 60/300 (20%) loss=7321.3879 elapsed=22s eta=88s
+  [fp2_tversky_balanced] [epoch 86/100] batch 90/300 (30%) loss=7283.4203 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 86/100] batch 120/300 (40%) loss=7374.3207 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 86/100] batch 150/300 (50%) loss=7250.6362 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 86/100] batch 180/300 (60%) loss=7203.9400 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 86/100] batch 210/300 (70%) loss=7308.4538 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 86/100] batch 240/300 (80%) loss=7284.6316 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 86/100] batch 270/300 (90%) loss=7298.4670 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 86/100] batch 300/300 (100%) loss=7324.7148 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 086/100] remain=14 epochs ep_eta=26.2min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 086/100] lr=0.000003  dt=110.5s
+  train loss=7324.7148  ce=0.0850 dice=0.1782  tversky=0.2715 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[fp2_tversky_balanced] [curriculum] epoch 87: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 87/100] batch 30/300 (10%) loss=7259.2854 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 87/100] batch 60/300 (20%) loss=7285.8163 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 87/100] batch 90/300 (30%) loss=7598.8442 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 87/100] batch 120/300 (40%) loss=7579.6431 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 87/100] batch 150/300 (50%) loss=7415.0958 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 87/100] batch 180/300 (60%) loss=7464.9329 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 87/100] batch 210/300 (70%) loss=7505.4538 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 87/100] batch 240/300 (80%) loss=7466.5556 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 87/100] batch 270/300 (90%) loss=7404.0022 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 87/100] batch 300/300 (100%) loss=7360.8403 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 087/100] remain=13 epochs ep_eta=24.3min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 087/100] lr=0.000003  dt=110.5s
+  train loss=7360.8403  ce=0.0857 dice=0.1753  tversky=0.2718 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[fp2_tversky_balanced] [curriculum] epoch 88: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 88/100] batch 30/300 (10%) loss=7583.6019 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 88/100] batch 60/300 (20%) loss=7700.9025 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 88/100] batch 90/300 (30%) loss=7455.8803 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 88/100] batch 120/300 (40%) loss=7400.5227 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 88/100] batch 150/300 (50%) loss=7466.9168 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 88/100] batch 180/300 (60%) loss=7388.3486 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 88/100] batch 210/300 (70%) loss=7357.8672 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 88/100] batch 240/300 (80%) loss=7320.9401 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 88/100] batch 270/300 (90%) loss=7306.2213 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 88/100] batch 300/300 (100%) loss=7275.6858 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 088/100] remain=12 epochs ep_eta=22.5min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 088/100] lr=0.000002  dt=110.9s
+  train loss=7275.6858  ce=0.0848 dice=0.1768  tversky=0.2706 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[fp2_tversky_balanced] [curriculum] epoch 89: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 89/100] batch 30/300 (10%) loss=7776.8869 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 89/100] batch 60/300 (20%) loss=7558.4025 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 89/100] batch 90/300 (30%) loss=7363.0272 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 89/100] batch 120/300 (40%) loss=7376.4358 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 89/100] batch 150/300 (50%) loss=7229.3059 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 89/100] batch 180/300 (60%) loss=7312.9764 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 89/100] batch 210/300 (70%) loss=7330.2010 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 89/100] batch 240/300 (80%) loss=7416.0012 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 89/100] batch 270/300 (90%) loss=7365.3659 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 89/100] batch 300/300 (100%) loss=7311.5533 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 089/100] remain=11 epochs ep_eta=20.6min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 089/100] lr=0.000002  dt=110.6s
+  train loss=7311.5533  ce=0.0849 dice=0.1768  tversky=0.2712 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[fp2_tversky_balanced] [curriculum] epoch 90: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 90/100] batch 30/300 (10%) loss=7216.9562 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 90/100] batch 60/300 (20%) loss=7398.9929 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 90/100] batch 90/300 (30%) loss=7458.3893 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 90/100] batch 120/300 (40%) loss=7424.6736 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 90/100] batch 150/300 (50%) loss=7346.0271 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 90/100] batch 180/300 (60%) loss=7414.0313 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 90/100] batch 210/300 (70%) loss=7378.7737 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 90/100] batch 240/300 (80%) loss=7331.6577 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 90/100] batch 270/300 (90%) loss=7307.7531 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 90/100] batch 300/300 (100%) loss=7320.7943 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 090/100] remain=10 epochs ep_eta=18.7min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 090/100] lr=0.000002  dt=116.1s
+  train loss=7320.7943  ce=0.0852 dice=0.1791  tversky=0.2709 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5315
+  IoU   bg=0.9775  crack=0.5890  spalling=0.8098  | mIoU_fg=0.6994  pix_acc=0.9781
+  Dice  bg=0.9886  crack=0.7413  spalling=0.8949
+  BF1   crack=0.7608  spalling=0.6891  | BF1_fg_mean=0.7249
+[fp2_tversky_balanced] [curriculum] epoch 91: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 91/100] batch 30/300 (10%) loss=7676.1892 elapsed=11s eta=101s
+  [fp2_tversky_balanced] [epoch 91/100] batch 60/300 (20%) loss=7251.3959 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 91/100] batch 90/300 (30%) loss=7117.3769 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 91/100] batch 120/300 (40%) loss=7186.6730 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 91/100] batch 150/300 (50%) loss=7198.9556 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 91/100] batch 180/300 (60%) loss=7288.2640 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 91/100] batch 210/300 (70%) loss=7275.9620 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 91/100] batch 240/300 (80%) loss=7238.1737 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 91/100] batch 270/300 (90%) loss=7263.6805 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 91/100] batch 300/300 (100%) loss=7246.0274 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 091/100] remain=9 epochs ep_eta=16.9min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 091/100] lr=0.000001  dt=115.5s
+  train loss=7246.0274  ce=0.0850 dice=0.1814  tversky=0.2707 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5314
+  IoU   bg=0.9776  crack=0.5902  spalling=0.8089  | mIoU_fg=0.6995  pix_acc=0.9782
+  Dice  bg=0.9887  crack=0.7423  spalling=0.8944
+  BF1   crack=0.7624  spalling=0.6876  | BF1_fg_mean=0.7250
+[fp2_tversky_balanced] [curriculum] epoch 92: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 92/100] batch 30/300 (10%) loss=6847.5868 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 92/100] batch 60/300 (20%) loss=6987.0322 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 92/100] batch 90/300 (30%) loss=7111.3742 elapsed=33s eta=77s
+  [fp2_tversky_balanced] [epoch 92/100] batch 120/300 (40%) loss=7159.3912 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 92/100] batch 150/300 (50%) loss=7162.5543 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 92/100] batch 180/300 (60%) loss=7262.6418 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 92/100] batch 210/300 (70%) loss=7172.0619 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 92/100] batch 240/300 (80%) loss=7144.5923 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 92/100] batch 270/300 (90%) loss=7190.9933 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 92/100] batch 300/300 (100%) loss=7157.9291 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 092/100] remain=8 epochs ep_eta=15.0min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 092/100] lr=0.000001  dt=115.0s
+  train loss=7157.9291  ce=0.0846 dice=0.1760  tversky=0.2706 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5309
+  IoU   bg=0.9776  crack=0.5899  spalling=0.8099  | mIoU_fg=0.6999  pix_acc=0.9782
+  Dice  bg=0.9887  crack=0.7420  spalling=0.8950
+  BF1   crack=0.7609  spalling=0.6880  | BF1_fg_mean=0.7245
+[fp2_tversky_balanced] [curriculum] epoch 93: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 93/100] batch 30/300 (10%) loss=7151.3946 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 93/100] batch 60/300 (20%) loss=7187.2090 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 93/100] batch 90/300 (30%) loss=7204.3749 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 93/100] batch 120/300 (40%) loss=7260.1054 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 93/100] batch 150/300 (50%) loss=7292.5403 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 93/100] batch 180/300 (60%) loss=7204.8427 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 93/100] batch 210/300 (70%) loss=7261.1803 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 93/100] batch 240/300 (80%) loss=7257.5693 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 93/100] batch 270/300 (90%) loss=7217.0873 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 93/100] batch 300/300 (100%) loss=7233.9958 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 093/100] remain=7 epochs ep_eta=13.1min (avg 112s/ep)
+[fp2_tversky_balanced] [epoch 093/100] lr=0.000001  dt=115.3s
+  train loss=7233.9958  ce=0.0851 dice=0.1771  tversky=0.2710 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5306
+  IoU   bg=0.9774  crack=0.5889  spalling=0.8087  | mIoU_fg=0.6988  pix_acc=0.9780
+  Dice  bg=0.9886  crack=0.7412  spalling=0.8942
+  BF1   crack=0.7600  spalling=0.6886  | BF1_fg_mean=0.7243
+[fp2_tversky_balanced] [curriculum] epoch 94: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 94/100] batch 30/300 (10%) loss=7116.7106 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 94/100] batch 60/300 (20%) loss=7473.5477 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 94/100] batch 90/300 (30%) loss=7216.3092 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 94/100] batch 120/300 (40%) loss=7313.7640 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 94/100] batch 150/300 (50%) loss=7239.7667 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 94/100] batch 180/300 (60%) loss=7167.9930 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 94/100] batch 210/300 (70%) loss=7205.1109 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 94/100] batch 240/300 (80%) loss=7244.3714 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 94/100] batch 270/300 (90%) loss=7186.7102 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 94/100] batch 300/300 (100%) loss=7265.1715 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 094/100] remain=6 epochs ep_eta=11.3min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 094/100] lr=0.000001  dt=115.1s
+  train loss=7265.1715  ce=0.0848 dice=0.1787  tversky=0.2709 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5319
+  IoU   bg=0.9776  crack=0.5896  spalling=0.8099  | mIoU_fg=0.6998  pix_acc=0.9782
+  Dice  bg=0.9886  crack=0.7419  spalling=0.8949
+  BF1   crack=0.7612  spalling=0.6898  | BF1_fg_mean=0.7255
+[fp2_tversky_balanced] [curriculum] epoch 95: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 95/100] batch 30/300 (10%) loss=7141.9569 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 95/100] batch 60/300 (20%) loss=7174.1286 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 95/100] batch 90/300 (30%) loss=7104.3560 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 95/100] batch 120/300 (40%) loss=7106.0215 elapsed=44s eta=66s
+  [fp2_tversky_balanced] [epoch 95/100] batch 150/300 (50%) loss=7194.2747 elapsed=55s eta=55s
+  [fp2_tversky_balanced] [epoch 95/100] batch 180/300 (60%) loss=7158.9639 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 95/100] batch 210/300 (70%) loss=7159.1859 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 95/100] batch 240/300 (80%) loss=7166.6545 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 95/100] batch 270/300 (90%) loss=7176.3242 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 95/100] batch 300/300 (100%) loss=7265.7906 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 095/100] remain=5 epochs ep_eta=9.4min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 095/100] lr=0.000000  dt=115.3s
+  train loss=7265.7906  ce=0.0853 dice=0.1786  tversky=0.2715 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5317
+  IoU   bg=0.9776  crack=0.5900  spalling=0.8103  | mIoU_fg=0.7001  pix_acc=0.9782
+  Dice  bg=0.9887  crack=0.7421  spalling=0.8952
+  BF1   crack=0.7622  spalling=0.6917  | BF1_fg_mean=0.7270
+[fp2_tversky_balanced] [curriculum] epoch 96: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 96/100] batch 30/300 (10%) loss=7137.2931 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 96/100] batch 60/300 (20%) loss=7042.3372 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 96/100] batch 90/300 (30%) loss=7009.9771 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 96/100] batch 120/300 (40%) loss=7147.8207 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 96/100] batch 150/300 (50%) loss=7145.7887 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 96/100] batch 180/300 (60%) loss=7165.6028 elapsed=66s eta=44s
+  [fp2_tversky_balanced] [epoch 96/100] batch 210/300 (70%) loss=7142.1614 elapsed=77s eta=33s
+  [fp2_tversky_balanced] [epoch 96/100] batch 240/300 (80%) loss=7174.2693 elapsed=88s eta=22s
+  [fp2_tversky_balanced] [epoch 96/100] batch 270/300 (90%) loss=7196.9547 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 96/100] batch 300/300 (100%) loss=7247.9256 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 096/100] remain=4 epochs ep_eta=7.5min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 096/100] lr=0.000000  dt=115.4s
+  train loss=7247.9256  ce=0.0850 dice=0.1819  tversky=0.2710 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5313
+  IoU   bg=0.9775  crack=0.5892  spalling=0.8105  | mIoU_fg=0.6998  pix_acc=0.9781
+  Dice  bg=0.9886  crack=0.7415  spalling=0.8953
+  BF1   crack=0.7608  spalling=0.6879  | BF1_fg_mean=0.7243
+[fp2_tversky_balanced] [curriculum] epoch 97: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 97/100] batch 30/300 (10%) loss=7174.6418 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 97/100] batch 60/300 (20%) loss=7487.2636 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 97/100] batch 90/300 (30%) loss=7563.5060 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 97/100] batch 120/300 (40%) loss=7446.7338 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 97/100] batch 150/300 (50%) loss=7336.8222 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 97/100] batch 180/300 (60%) loss=7304.2712 elapsed=67s eta=45s
+  [fp2_tversky_balanced] [epoch 97/100] batch 210/300 (70%) loss=7257.0796 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 97/100] batch 240/300 (80%) loss=7242.1178 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 97/100] batch 270/300 (90%) loss=7204.6296 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 97/100] batch 300/300 (100%) loss=7194.1300 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 097/100] remain=3 epochs ep_eta=5.6min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 097/100] lr=0.000000  dt=116.1s
+  train loss=7194.1300  ce=0.0847 dice=0.1786  tversky=0.2704 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5314
+  IoU   bg=0.9776  crack=0.5901  spalling=0.8101  | mIoU_fg=0.7001  pix_acc=0.9782
+  Dice  bg=0.9887  crack=0.7422  spalling=0.8951
+  BF1   crack=0.7625  spalling=0.6876  | BF1_fg_mean=0.7251
+[fp2_tversky_balanced] [curriculum] epoch 98: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 98/100] batch 30/300 (10%) loss=7889.5164 elapsed=11s eta=102s
+  [fp2_tversky_balanced] [epoch 98/100] batch 60/300 (20%) loss=7640.7369 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 98/100] batch 90/300 (30%) loss=7479.0506 elapsed=33s eta=78s
+  [fp2_tversky_balanced] [epoch 98/100] batch 120/300 (40%) loss=7550.0127 elapsed=44s eta=67s
+  [fp2_tversky_balanced] [epoch 98/100] batch 150/300 (50%) loss=7334.0840 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 98/100] batch 180/300 (60%) loss=7265.1190 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 98/100] batch 210/300 (70%) loss=7321.6947 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 98/100] batch 240/300 (80%) loss=7271.1730 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 98/100] batch 270/300 (90%) loss=7196.5754 elapsed=99s eta=11s
+  [fp2_tversky_balanced] [epoch 98/100] batch 300/300 (100%) loss=7196.2288 elapsed=110s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 098/100] remain=2 epochs ep_eta=3.8min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 098/100] lr=0.000000  dt=115.6s
+  train loss=7196.2288  ce=0.0847 dice=0.1774  tversky=0.2710 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5315
+  IoU   bg=0.9774  crack=0.5891  spalling=0.8102  | mIoU_fg=0.6996  pix_acc=0.9780
+  Dice  bg=0.9886  crack=0.7414  spalling=0.8951
+  BF1   crack=0.7602  spalling=0.6882  | BF1_fg_mean=0.7242
+[fp2_tversky_balanced] [curriculum] epoch 99: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 99/100] batch 30/300 (10%) loss=7859.3914 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 99/100] batch 60/300 (20%) loss=7334.6992 elapsed=22s eta=89s
+  [fp2_tversky_balanced] [epoch 99/100] batch 90/300 (30%) loss=7248.9897 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 99/100] batch 120/300 (40%) loss=7336.0043 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 99/100] batch 150/300 (50%) loss=7326.7946 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 99/100] batch 180/300 (60%) loss=7274.6572 elapsed=67s eta=45s
+  [fp2_tversky_balanced] [epoch 99/100] batch 210/300 (70%) loss=7267.3139 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 99/100] batch 240/300 (80%) loss=7216.1815 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 99/100] batch 270/300 (90%) loss=7263.2270 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 99/100] batch 300/300 (100%) loss=7202.1791 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 099/100] remain=1 epochs ep_eta=1.9min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 099/100] lr=0.000000  dt=116.1s
+  train loss=7202.1791  ce=0.0848 dice=0.1783  tversky=0.2713 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5316
+  IoU   bg=0.9775  crack=0.5892  spalling=0.8103  | mIoU_fg=0.6998  pix_acc=0.9781
+  Dice  bg=0.9886  crack=0.7415  spalling=0.8952
+  BF1   crack=0.7607  spalling=0.6881  | BF1_fg_mean=0.7244
+[fp2_tversky_balanced] [curriculum] epoch 100: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [fp2_tversky_balanced] [epoch 100/100] batch 30/300 (10%) loss=7635.8782 elapsed=11s eta=103s
+  [fp2_tversky_balanced] [epoch 100/100] batch 60/300 (20%) loss=7306.3190 elapsed=22s eta=90s
+  [fp2_tversky_balanced] [epoch 100/100] batch 90/300 (30%) loss=7360.3857 elapsed=34s eta=78s
+  [fp2_tversky_balanced] [epoch 100/100] batch 120/300 (40%) loss=7233.4885 elapsed=45s eta=67s
+  [fp2_tversky_balanced] [epoch 100/100] batch 150/300 (50%) loss=7220.0430 elapsed=56s eta=56s
+  [fp2_tversky_balanced] [epoch 100/100] batch 180/300 (60%) loss=7229.1091 elapsed=67s eta=44s
+  [fp2_tversky_balanced] [epoch 100/100] batch 210/300 (70%) loss=7209.3805 elapsed=78s eta=33s
+  [fp2_tversky_balanced] [epoch 100/100] batch 240/300 (80%) loss=7255.4961 elapsed=89s eta=22s
+  [fp2_tversky_balanced] [epoch 100/100] batch 270/300 (90%) loss=7196.9873 elapsed=100s eta=11s
+  [fp2_tversky_balanced] [epoch 100/100] batch 300/300 (100%) loss=7171.8668 elapsed=111s eta=0s
+[fp2_tversky_balanced] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[fp2_tversky_balanced] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[fp2_tversky_balanced] [epoch 100/100] remain=0 epochs ep_eta=0.0min (avg 113s/ep)
+[fp2_tversky_balanced] [epoch 100/100] lr=0.000000  dt=115.9s
+  train loss=7171.8668  ce=0.0849 dice=0.1757  tversky=0.2705 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5309
+  IoU   bg=0.9774  crack=0.5889  spalling=0.8105  | mIoU_fg=0.6997  pix_acc=0.9780
+  Dice  bg=0.9886  crack=0.7413  spalling=0.8953
+  BF1   crack=0.7605  spalling=0.6898  | BF1_fg_mean=0.7252
+
+[train] final test eval using best checkpoint
+IoU   bg=0.9774  crack=0.5885  spalling=0.8541  | mIoU_fg=0.7213  pix_acc=0.9782
+Dice  bg=0.9886  crack=0.7410  spalling=0.9213
+BF1   crack=0.7641  spalling=0.6566  | BF1_fg_mean=0.7104
+clDice crack=0.8428
+[train] wrote /workspace/dam-segmentation-baselines/full_method/runs/fp2_tversky_balanced/test_report.txt
+[train] wrote /workspace/dam-segmentation-baselines/full_method/runs/fp2_tversky_balanced/curves.png
