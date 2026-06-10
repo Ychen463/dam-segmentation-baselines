@@ -233,6 +233,7 @@ class RunCfg:
     use_boundary_dice: bool = False
     boundary_dice_weight: float = 0.15
     boundary_dice_width: int = 3
+    boundary_dice_classes: tuple = (1,)        # crack only by default
 
     # Morphology-Aware Pixel Weighting (MAPW) — inverse-width crack loss
     use_mapw: bool = False                        # enable MAPW per-pixel weights
@@ -2114,6 +2115,26 @@ ABLATION_PRESETS = {
             "use_soft_boundary_schedule": False,
             "use_boundary_dice": True, "boundary_dice_weight": 0.15,
             "boundary_dice_width": 3},
+    # BR1b: Crack-only boundary Dice (avoid spalling regression from BR1)
+    "BR1b": {"name": "br1b_crack_boundary_dice",
+             "model_type": "dscformer",
+             "use_kd": True, "use_dual_kd": True,
+             "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+             "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+             "kd_teacher2_model_type": "sam_lora",
+             "kd_alpha": 0.5, "kd_temperature": 4.0,
+             "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+             "kd_class_weights": True,
+             "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+             "no_curriculum": True,
+             "use_soft_curriculum": False, "use_softmax_sampling": False,
+             "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+             "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+             "use_boundary_loss": False, "use_tversky_loss": False,
+             "use_cldice_loss": False, "use_srl_loss": False,
+             "use_soft_boundary_schedule": False,
+             "use_boundary_dice": True, "boundary_dice_weight": 0.15,
+             "boundary_dice_width": 3, "boundary_dice_classes": (1,)},
     # BR2: Boundary-privileged KD only (no conf-aware, no boundary Dice)
     "BR2": {"name": "br2_boundary_kd",
             "model_type": "dscformer",

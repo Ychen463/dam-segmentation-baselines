@@ -99,25 +99,23 @@ def boundary_privileged_kd_loss(student_logits: torch.Tensor,
 def boundary_dice_loss(logits: torch.Tensor, targets: torch.Tensor,
                        boundary_width: int = 3,
                        num_classes: int = C.NUM_CLASSES,
+                       classes: tuple = (1,),
                        eps: float = 1e-6) -> torch.Tensor:
-    """Dice loss computed only on boundary-strip pixels.
-
-    Focuses Dice on the boundary region where segmentation quality matters
-    most for BF1 metric.
+    """Dice loss computed only on boundary-strip pixels for specified classes.
 
     Args:
         logits: (B, C, H, W) segmentation logits.
         targets: (B, H, W) integer GT masks.
         boundary_width: dilation radius for boundary strip.
         num_classes: number of classes.
+        classes: which classes to compute boundary Dice for (default: crack only).
         eps: numerical stability.
 
     Returns:
         Scalar boundary Dice loss (1 - mean Dice on boundary pixels).
     """
-    # Extract union boundary mask for all FG classes
     boundary_mask = targets.new_zeros(targets.shape, dtype=torch.float32)
-    for cls in range(1, num_classes):
+    for cls in classes:
         cls_mask = (targets == cls).float().unsqueeze(1)  # (B,1,H,W)
         if cls_mask.sum() < 1:
             continue
@@ -138,15 +136,15 @@ def boundary_dice_loss(logits: torch.Tensor, targets: torch.Tensor,
     probs_masked = probs * bm
     onehot_masked = onehot * bm
 
-    dims = (0, 2, 3)
-    inter = (probs_masked * onehot_masked).sum(dims)
-    card = probs_masked.sum(dims) + onehot_masked.sum(dims)
-    dice = (2.0 * inter + eps) / (card + eps)  # [C]
+    # Only compute Dice for the specified classes
+    cls_indices = torch.tensor(list(classes), device=logits.device)
+    cls_inter = (probs_masked * onehot_masked).sum((0, 2, 3))[cls_indices]
+    cls_card = (probs_masked.sum((0, 2, 3)) + onehot_masked.sum((0, 2, 3)))[cls_indices]
+    dice = (2.0 * cls_inter + eps) / (cls_card + eps)
 
-    fg_dice = dice[1:]
-    fg_present = (onehot_masked[:, 1:].sum(dims) > 0)
-    if fg_present.any():
-        return 1.0 - fg_dice[fg_present].mean()
+    present = (onehot_masked[:, cls_indices].sum((0, 2, 3)) > 0)
+    if present.any():
+        return 1.0 - dice[present].mean()
     return logits.new_zeros(())
 
 
@@ -881,7 +879,8 @@ class CompositeLoss(nn.Module):
         loss_bd_dice = seg_logits.new_zeros(())
         if self.cfg.use_boundary_dice:
             loss_bd_dice = boundary_dice_loss(seg_logits, targets,
-                                              boundary_width=self.cfg.boundary_dice_width)
+                                              boundary_width=self.cfg.boundary_dice_width,
+                                              classes=self.cfg.boundary_dice_classes)
 
         # Loss weights: scheduled vs constant
         if self.cfg.use_class_loss_schedule:
