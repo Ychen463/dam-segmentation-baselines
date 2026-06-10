@@ -66,13 +66,15 @@ def load_model(run_dir: Path, device: str, ablation: str | None = None,
         cfg.model_type = mtype
         print(f"[eval] using explicit model_type='{mtype}'")
     else:
-        # Fallback: detect from run name
+        # Fallback: detect from run name, then from state_dict keys
         run_name = run_dir.name.lower()
         if "dinov2" in run_name:
             mtype = "dinov2_lora"
         elif "sam_lora" in run_name or "sam" in run_name:
             mtype = "sam_lora"
         elif "dscformer" in run_name or "dsc" in run_name:
+            mtype = "dscformer"
+        elif any(k.startswith("snake_branch.") for k in state["model"]):
             mtype = "dscformer"
         else:
             mtype = "segformer"
