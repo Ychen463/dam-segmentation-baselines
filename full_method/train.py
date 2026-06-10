@@ -1181,6 +1181,13 @@ def main() -> None:
             sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage, tier_mix=tier_mix)
             mix_str = " ".join(f"t{t}={r:.0%}" for t, r in tier_mix.items())
             print(f"[{cfg.name}] [curriculum] epoch {epoch}: stage={stage} tier_mix=[{mix_str}]")
+        elif getattr(cfg, 'use_hard_finetune', False):
+            htft_w = cfg.hard_ft_tier_weights
+            weights = {0: htft_w[0], 1: htft_w[1], 2: htft_w[2]}
+            sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage,
+                              competence_tier_weights=weights)
+            print(f"[{cfg.name}] [HTFT] epoch {epoch}: "
+                  f"tier_weights={{0:{weights[0]:.2f}, 1:{weights[1]:.2f}, 2:{weights[2]:.2f}}}")
         else:
             sampler.set_epoch(epoch, total_epochs, cfg.warmup_epochs, stage)
             allowed = sampler._allowed_tiers()

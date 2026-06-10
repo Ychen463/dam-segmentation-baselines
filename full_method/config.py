@@ -252,6 +252,18 @@ class RunCfg:
     use_bbox_guided: bool = False                 # enable bbox-guided pixel weights
     bbox_fn_weight: float = 2.0                   # weight for BG pixels inside damage bboxes
 
+    # Width-Aware Boundary Loss (WABL) — penalize FP at thin crack boundaries
+    use_wabl: bool = False
+    wabl_weight: float = 0.20                     # loss weight
+    wabl_width_threshold: float = 8.0             # cracks thinner than this get boosted penalty
+    wabl_fp_penalty: float = 3.0                  # CE weight for BG pixels in thin-crack boundary
+    wabl_fn_boost: float = 2.0                    # scaling for thin crack pixel inverse-width weight
+    wabl_boundary_width: int = 3                  # dilation radius for FP penalty zone
+
+    # Hard-Tier Fine-Tuning (HTFT) — oversample Hard tier in late training
+    use_hard_finetune: bool = False
+    hard_ft_tier_weights: tuple = (0.1, 0.2, 0.7)  # (Easy, Medium, Hard) sampling weights
+
     # Tier-Conditional Augmentation (TCA)
     use_tca: bool = False                         # tier-specific augmentation
 
@@ -2341,6 +2353,103 @@ ABLATION_PRESETS = {
             "use_soft_boundary_schedule": False,
             "use_boundary_dice": True, "boundary_dice_weight": 0.15,
             "boundary_dice_width": 3, "boundary_dice_classes": (1,)},
+
+    # Set WA: Width-Aware Boundary Loss experiments (based on DKD2 config)
+    # WA1: WABL only (baseline + WABL)
+    "WA1": {"name": "wa1_wabl_only",
+            "model_type": "dscformer",
+            "use_kd": True, "use_dual_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+            "kd_teacher2_model_type": "sam_lora",
+            "kd_alpha": 0.5, "kd_temperature": 4.0,
+            "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+            "kd_class_weights": True,
+            "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_wabl": True, "wabl_weight": 0.20,
+            "wabl_width_threshold": 8.0, "wabl_fp_penalty": 3.0,
+            "wabl_fn_boost": 2.0, "wabl_boundary_width": 3},
+    # WA2: WABL + balanced Tversky (FP2 + WABL)
+    "WA2": {"name": "wa2_wabl_tversky",
+            "model_type": "dscformer",
+            "use_kd": True, "use_dual_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+            "kd_teacher2_model_type": "sam_lora",
+            "kd_alpha": 0.5, "kd_temperature": 4.0,
+            "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+            "kd_class_weights": True,
+            "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False,
+            "use_tversky_loss": True,
+            "loss_tversky_alpha": 0.5, "loss_tversky_beta": 0.5,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_wabl": True, "wabl_weight": 0.20,
+            "wabl_width_threshold": 8.0, "wabl_fp_penalty": 3.0,
+            "wabl_fn_boost": 2.0, "wabl_boundary_width": 3},
+
+    # Set HF: Hard-Tier Fine-Tuning (resume from DKD2, oversample Hard)
+    # HF1: Hard-heavy sampling + precision Tversky
+    "HF1": {"name": "hf1_hard_finetune",
+            "model_type": "dscformer",
+            "use_kd": True, "use_dual_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+            "kd_teacher2_model_type": "sam_lora",
+            "kd_alpha": 0.5, "kd_temperature": 4.0,
+            "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+            "kd_class_weights": True,
+            "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False,
+            "use_tversky_loss": True,
+            "loss_tversky_alpha": 0.6, "loss_tversky_beta": 0.4,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_hard_finetune": True,
+            "hard_ft_tier_weights": (0.1, 0.2, 0.7),
+            "lr": 2e-5},
+    # HF2: Hard-heavy + WABL + balanced Tversky (the full combo)
+    "HF2": {"name": "hf2_hard_wabl",
+            "model_type": "dscformer",
+            "use_kd": True, "use_dual_kd": True,
+            "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+            "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+            "kd_teacher2_model_type": "sam_lora",
+            "kd_alpha": 0.5, "kd_temperature": 4.0,
+            "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+            "kd_class_weights": True,
+            "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False,
+            "use_tversky_loss": True,
+            "loss_tversky_alpha": 0.5, "loss_tversky_beta": 0.5,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False,
+            "use_hard_finetune": True,
+            "hard_ft_tier_weights": (0.1, 0.2, 0.7),
+            "use_wabl": True, "wabl_weight": 0.20,
+            "wabl_width_threshold": 8.0, "wabl_fp_penalty": 3.0,
+            "wabl_fn_boost": 2.0, "wabl_boundary_width": 3,
+            "lr": 2e-5},
 
     # ACCW2: Adaptive weighting without confidence-aware KD (ablation)
     "ACCW2": {"name": "accw2_adaptive_only",

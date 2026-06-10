@@ -461,6 +461,76 @@ def bbox_guided_pixel_weights(targets, bbox_masks, w_fn_in_bbox=2.0):
     return weights
 
 
+def width_aware_boundary_loss(logits: torch.Tensor, targets: torch.Tensor,
+                               crack_class: int = 1,
+                               width_threshold: float = 8.0,
+                               fp_penalty: float = 3.0,
+                               fn_boost: float = 2.0,
+                               boundary_width: int = 3,
+                               num_classes: int = C.NUM_CLASSES,
+                               eps: float = 1e-6) -> torch.Tensor:
+    """Width-Aware Boundary Loss: penalize FP at thin crack boundaries.
+
+    Thin cracks (width < threshold) suffer from boundary leakage where the
+    model predicts too wide. This loss creates a precision-focused penalty zone
+    around thin crack boundaries:
+      - Non-crack pixels near thin cracks (FP-prone zone): extra FP penalty
+      - Thin crack pixels themselves: extra FN penalty (inverse-width)
+
+    Args:
+        logits: (B, C, H, W) segmentation logits.
+        targets: (B, H, W) integer GT masks.
+        crack_class: class index for crack.
+        width_threshold: cracks thinner than this get boosted boundary penalty.
+        fp_penalty: CE weight for background pixels in the thin-crack boundary zone.
+        fn_boost: scaling factor for thin crack pixel weights (1 + fn_boost * (1 - w/thr)).
+        boundary_width: dilation radius for the FP penalty zone.
+        num_classes: number of classes.
+        eps: numerical stability.
+
+    Returns:
+        Scalar loss (weighted CE focused on thin crack boundaries).
+    """
+    crack_mask = (targets == crack_class).float().unsqueeze(1)  # (B,1,H,W)
+    if crack_mask.sum() < 1:
+        return logits.new_zeros(())
+
+    # Width estimation via multi-scale erosion
+    width_map = torch.zeros_like(crack_mask)
+    for r in [1, 2, 3, 5]:
+        ks = 2 * r + 1
+        eroded = -F.max_pool2d(-crack_mask, ks, stride=1, padding=r)
+        width_map = width_map + eroded * 2.0
+    width_map = width_map.clamp(min=1.0)[:, 0]  # (B, H, W)
+
+    # Thin crack mask
+    thin_crack = (crack_mask[:, 0] > 0.5) & (width_map < width_threshold)
+    if thin_crack.sum() < 1:
+        return logits.new_zeros(())
+
+    # FP penalty zone: non-crack pixels adjacent to thin cracks
+    thin_4d = thin_crack.float().unsqueeze(1)
+    ks_b = 2 * boundary_width + 1
+    thin_dilated = F.max_pool2d(thin_4d, ks_b, stride=1, padding=boundary_width)[:, 0]
+    fp_zone = (thin_dilated > 0.5) & (targets != crack_class)
+
+    # Build weight map
+    weights = torch.ones_like(targets, dtype=torch.float32)
+    # FP zone: penalize background predictions near thin cracks
+    weights[fp_zone] = fp_penalty
+    # Thin crack pixels: inverse-width boosted FN penalty
+    inv_width_w = 1.0 + fn_boost * F.relu(1.0 - width_map / width_threshold)
+    weights = torch.where(thin_crack, inv_width_w, weights)
+
+    # Weighted CE on the boundary region only (FP zone + thin crack pixels)
+    region_mask = fp_zone | thin_crack
+    if region_mask.sum() < 1:
+        return logits.new_zeros(())
+
+    ce = F.cross_entropy(logits, targets, reduction='none')  # (B, H, W)
+    return (ce * weights * region_mask.float()).sum() / region_mask.float().sum()
+
+
 def skeleton_recall_loss(pred_prob, skel_gt, eps=1e-6):
     """Skeleton Recall Loss: mean predicted probability at GT skeleton pixels.
 
@@ -919,6 +989,17 @@ class CompositeLoss(nn.Module):
                         n_samples=self.cfg.contrastive_n_samples,
                     )
 
+        # Width-Aware Boundary Loss (WABL)
+        loss_wabl = seg_logits.new_zeros(())
+        if self.cfg.use_wabl:
+            loss_wabl = width_aware_boundary_loss(
+                seg_logits, targets,
+                width_threshold=self.cfg.wabl_width_threshold,
+                fp_penalty=self.cfg.wabl_fp_penalty,
+                fn_boost=self.cfg.wabl_fn_boost,
+                boundary_width=self.cfg.wabl_boundary_width,
+            )
+
         dice_w = self.cfg.lovasz_weight if self.cfg.use_lovasz_loss else self.cfg.loss_dice_w
         total = (self.cfg.loss_ce_w * loss_ce
                  + dice_w * loss_dice
@@ -929,7 +1010,8 @@ class CompositeLoss(nn.Module):
                  + self.cfg.skel_pred_weight * loss_skel_pred
                  + self.cfg.skel_consist_weight * loss_skel_consist
                  + self.cfg.contrastive_weight * loss_contrastive
-                 + self.cfg.boundary_dice_weight * loss_bd_dice)
+                 + self.cfg.boundary_dice_weight * loss_bd_dice
+                 + self.cfg.wabl_weight * loss_wabl)
 
         # Per-sample signals for difficulty estimation (detach!)
         ps_ce = per_sample_ce(seg_logits, targets, self.ce_weight).detach()
@@ -946,6 +1028,7 @@ class CompositeLoss(nn.Module):
             "loss_skel_consist": loss_skel_consist.item(),
             "loss_contrastive": loss_contrastive.item(),
             "loss_bd_dice": loss_bd_dice.item(),
+            "loss_wabl": loss_wabl.item(),
             "per_sample_ce": ps_ce.cpu(),
             "per_sample_ent": ps_ent.cpu(),
         }
