@@ -130,8 +130,8 @@ def main():
         fpfn = compute_fp_fn(pred[0], gt[0])
 
         gt_np = gt[0].numpy()
-        has_crack = (gt_np == 1).any()
-        has_spalling = (gt_np == 2).any()
+        has_crack = bool((gt_np == 1).any())
+        has_spalling = bool((gt_np == 2).any())
         crack_area = int((gt_np == 1).sum())
         spalling_area = int((gt_np == 2).sum())
 
