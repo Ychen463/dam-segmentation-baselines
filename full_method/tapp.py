@@ -285,6 +285,52 @@ def skeleton_guided_gap_filling(
 
 
 # ---------------------------------------------------------------------------
+# Module 3: Crack Boundary Erosion (CBE) — reduce boundary leakage FP
+# ---------------------------------------------------------------------------
+
+def crack_boundary_erosion(
+    mask: np.ndarray,
+    crack_class: int = 1,
+    erosion_radius: int = 1,
+) -> np.ndarray:
+    """Erode crack predictions by a thin margin to reduce boundary leakage.
+
+    FN/FP analysis shows 61% of false positives are boundary leakage (predicted
+    crack is too "fat"). A 1px erosion trims these while preserving thin cracks
+    via skeleton-guided restoration.
+
+    Args:
+        mask: (H, W) prediction mask with class labels.
+        crack_class: label value for crack (default 1).
+        erosion_radius: radius of erosion in pixels.
+
+    Returns:
+        Refined mask with crack boundaries thinned.
+    """
+    crack_binary = (mask == crack_class).astype(np.uint8)
+    if not crack_binary.any():
+        return mask
+
+    # Skeleton before erosion (to restore thin cracks that would vanish)
+    skel = skeletonize(crack_binary > 0)
+
+    # Erode
+    struct = disk(erosion_radius)
+    eroded = ndimage.binary_erosion(crack_binary, structure=struct)
+
+    # Restore skeleton pixels (prevents thin crack deletion)
+    eroded = eroded | skel
+
+    # Apply
+    refined = mask.copy()
+    # Pixels that were crack but are no longer after erosion → background
+    removed = (crack_binary > 0) & (~eroded)
+    refined[removed] = 0
+
+    return refined
+
+
+# ---------------------------------------------------------------------------
 # Combined TAPP Pipeline
 # ---------------------------------------------------------------------------
 
@@ -299,14 +345,14 @@ def tapp_postprocess(
     sgf_max_gap: int = 15,
     sgf_max_angle_deg: float = 45.0,
     sgf_dilate_radius: int = 2,
+    # CBE parameters
+    cbe_erosion_radius: int = 1,
     # Module switches
     use_msf: bool = True,
     use_sgf: bool = True,
+    use_cbe: bool = False,
 ) -> np.ndarray:
-    """Full TAPP pipeline: MSF (remove false positives) then SGF (fill gaps).
-
-    Order matters: MSF first removes noise, then SGF bridges real crack gaps
-    without being confused by false-positive clusters.
+    """Full TAPP pipeline: CBE (thin boundaries) → MSF (remove blobs) → SGF (fill gaps).
 
     Args:
         mask: (H, W) integer array with class labels (0=bg, 1=crack, 2=spalling).
@@ -315,6 +361,12 @@ def tapp_postprocess(
         Refined mask.
     """
     result = mask.copy()
+
+    if use_cbe:
+        result = crack_boundary_erosion(
+            result, crack_class=crack_class,
+            erosion_radius=cbe_erosion_radius,
+        )
 
     if use_msf:
         result = morphological_shape_filter(
