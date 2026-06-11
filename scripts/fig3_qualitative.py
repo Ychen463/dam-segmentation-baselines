@@ -100,7 +100,7 @@ DISPLAY_NAMES = {
     "segformer_b2_staticcurr_512": "SegFormer+Curr",
     "mask2former_swin_small_512": "Mask2Former",
     "dscformer_plain_G0": "TopoDistill",
-    "dscformer_srl_G1": "TopoDistill+SRL",
+    "dscformer_srl_G1": "TopoDistill",
     "dkd10_no_srl": "TopoDistill+DTKD",
     "dataopt_baseline_N0": "TopoDistill+SRL (T1)",
 }
@@ -133,7 +133,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--models", nargs="+",
                         default=["segformer_b2_plain_512",
-                                 "dscformer_plain_G0",
+                                 "dscformer_srl_G1",
                                  "dkd10_no_srl"])
     parser.add_argument("--samples", nargs="+", default=None,
                         help="Specific sample rel paths (e.g. 'Hard/H (184).jpg')")
