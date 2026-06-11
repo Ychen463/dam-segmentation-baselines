@@ -179,9 +179,14 @@ def main():
     n_rows = len(samples)
     n_cols = 2 + n_models  # Image, GT, model1, model2, ...
 
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(3.5 * n_cols, 3.5 * n_rows))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(3.8 * n_cols, 3.8 * n_rows))
     if n_rows == 1:
         axes = axes[np.newaxis, :]
+
+    # Column headers (row 0 only)
+    col_headers = ["Input", "Ground Truth"] + [
+        DISPLAY_NAMES.get(m, m) for m in models.keys()
+    ]
 
     for i, rel in enumerate(samples):
         # Read raw image and GT
@@ -192,12 +197,12 @@ def main():
         # Col 0: Image
         axes[i, 0].imshow(img_raw)
         tier = rel.split("/")[0]
-        axes[i, 0].set_title(f"{tier}: {Path(rel).stem}", fontsize=9)
+        axes[i, 0].set_ylabel(f"{tier}: {Path(rel).stem}", fontsize=10,
+                               rotation=0, labelpad=80, va="center")
         axes[i, 0].axis("off")
 
         # Col 1: GT overlay
         axes[i, 1].imshow(overlay(img_raw, gt))
-        axes[i, 1].set_title("Ground Truth", fontsize=9)
         axes[i, 1].axis("off")
 
         # Cols 2+: Model predictions
@@ -221,11 +226,16 @@ def main():
 
             ax = axes[i, 2 + j]
             ax.imshow(overlay(img_raw, pred))
-            dname = DISPLAY_NAMES.get(mname, mname)
             iou_str = f"Cr:{iou_cr:.2f} Sp:{iou_sp:.2f}" if not (
                 np.isnan(iou_cr) and np.isnan(iou_sp)) else ""
-            ax.set_title(f"{dname}\n{iou_str}", fontsize=9)
+            # IoU scores below each prediction
+            if iou_str:
+                ax.set_xlabel(iou_str, fontsize=9)
             ax.axis("off")
+
+    # Column titles on top row only
+    for j, header in enumerate(col_headers):
+        axes[0, j].set_title(header, fontsize=11, fontweight="bold", pad=10)
 
     # Legend
     legend_patches = [
@@ -235,7 +245,7 @@ def main():
     fig.legend(handles=legend_patches, loc="lower center", ncol=2,
                fontsize=11, frameon=True, bbox_to_anchor=(0.5, -0.01))
 
-    fig.tight_layout(rect=[0, 0.02, 1, 0.98])
+    fig.tight_layout(rect=[0, 0.03, 1, 0.97])
 
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)

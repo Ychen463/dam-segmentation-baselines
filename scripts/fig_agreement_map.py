@@ -202,9 +202,10 @@ def main():
 
         # Col 0: Input
         axes[i, 0].imshow(img_raw)
-        tier = rel.split("/")[0]
-        axes[i, 0].set_title(f"{tier}: {Path(rel).stem}" if i == 0
-                              else Path(rel).stem, fontsize=9)
+        # Row label on the left side
+        row_label = f"{rel.split('/')[0]}: {Path(rel).stem}"
+        axes[i, 0].set_ylabel(row_label, fontsize=9,
+                               rotation=0, labelpad=70, va="center")
 
         # Col 1: GT
         axes[i, 1].imshow(overlay(img_raw, gt))

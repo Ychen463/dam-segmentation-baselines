@@ -14,6 +14,10 @@ import sys
 from pathlib import Path
 
 import cv2
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -27,13 +31,6 @@ from scripts.eval_cross_dataset import S2DSDataset
 CODES_DIR = Path(__file__).resolve().parent.parent
 S2DS_DIR = CODES_DIR / "Dataset" / "S2DS"
 
-# Colors: bg=black, crack=red, spalling=green
-COLORS = np.array([
-    [0, 0, 0],        # 0 bg
-    [255, 0, 0],      # 1 crack
-    [0, 255, 0],      # 2 spalling
-], dtype=np.uint8)
-
 MODELS = [
     ("SegFormer-B2", "segformer_b2_plain_512"),
     ("Mask2Former", "mask2former_swin_small_512"),
@@ -42,15 +39,14 @@ MODELS = [
 ]
 
 
-def mask_to_rgb(mask: np.ndarray) -> np.ndarray:
-    return COLORS[mask]
-
-
 def overlay(img: np.ndarray, mask: np.ndarray, alpha: float = 0.45) -> np.ndarray:
-    colored = mask_to_rgb(mask)
-    fg = mask > 0
     out = img.copy()
-    out[fg] = (img[fg] * (1 - alpha) + colored[fg] * alpha).astype(np.uint8)
+    cr = mask == 1
+    sp = mask == 2
+    if cr.any():
+        out[cr] = (np.array([255, 60, 60]) * alpha + out[cr] * (1 - alpha)).astype(np.uint8)
+    if sp.any():
+        out[sp] = (np.array([60, 200, 60]) * alpha + out[sp] * (1 - alpha)).astype(np.uint8)
     return out
 
 
@@ -98,20 +94,22 @@ def generate_vis(data_dir: Path, device: str, num_images: int, output_path: Path
     dataset = S2DSDataset(data_dir, stems, transform=transform)
 
     # Load models
-    models = {}
+    loaded_models = {}
+    col_labels = ["Input", "GT"]
     for label, name in MODELS:
         try:
-            models[label] = load_model(name, device=device)
+            loaded_models[label] = load_model(name, device=device)
+            col_labels.append(label)
             print(f"[vis] Loaded {label} ({name})")
         except (KeyError, FileNotFoundError) as e:
             print(f"[vis] Skipping {label}: {e}")
 
-    # Generate predictions
-    cell_size = 256  # display size per cell
-    n_cols = 2 + len(models)  # input + GT + models
+    n_cols = len(col_labels)
     n_rows = len(stems)
 
-    grid = np.zeros((n_rows * cell_size, n_cols * cell_size, 3), dtype=np.uint8)
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(3.5 * n_cols, 3.5 * n_rows))
+    if n_rows == 1:
+        axes = axes[np.newaxis, :]
 
     for row_idx in range(len(stems)):
         stem = stems[row_idx]
@@ -120,47 +118,58 @@ def generate_vis(data_dir: Path, device: str, num_images: int, output_path: Path
         # Raw image for display
         img_raw = cv2.imread(str(data_dir / "images" / f"{stem}.png"), cv2.IMREAD_COLOR)
         img_raw = cv2.cvtColor(img_raw, cv2.COLOR_BGR2RGB)
-        img_raw = cv2.resize(img_raw, (cell_size, cell_size))
 
         # GT mask
         gt_mask = cv2.imread(str(data_dir / "masks" / f"{stem}.png"), cv2.IMREAD_GRAYSCALE)
-        gt_overlay = overlay(img_raw, cv2.resize(gt_mask, (cell_size, cell_size),
-                                                  interpolation=cv2.INTER_NEAREST))
+        gt_resized = cv2.resize(gt_mask, (img_raw.shape[1], img_raw.shape[0]),
+                                interpolation=cv2.INTER_NEAREST)
 
-        # Place input and GT
-        y0 = row_idx * cell_size
-        grid[y0:y0 + cell_size, 0:cell_size] = img_raw
-        grid[y0:y0 + cell_size, cell_size:2 * cell_size] = gt_overlay
+        # Col 0: Input
+        axes[row_idx, 0].imshow(img_raw)
+        axes[row_idx, 0].axis("off")
+
+        # Col 1: GT overlay
+        axes[row_idx, 1].imshow(overlay(img_raw, gt_resized))
+        axes[row_idx, 1].axis("off")
 
         # Model predictions
         x_batch = img_t.unsqueeze(0).to(device)
-        for col_idx, (label, _) in enumerate(MODELS):
-            if label not in models:
+        col_idx = 2
+        for label, _ in MODELS:
+            if label not in loaded_models:
                 continue
-            model = models[label]
+            model = loaded_models[label]
             logits = model(x_batch)
             pred = logits.argmax(dim=1)[0].cpu().numpy()
-            pred_resized = cv2.resize(pred.astype(np.uint8), (cell_size, cell_size),
-                                       interpolation=cv2.INTER_NEAREST)
-            pred_overlay = overlay(img_raw, pred_resized)
+            pred_resized = cv2.resize(pred.astype(np.uint8),
+                                      (img_raw.shape[1], img_raw.shape[0]),
+                                      interpolation=cv2.INTER_NEAREST)
+            axes[row_idx, col_idx].imshow(overlay(img_raw, pred_resized))
+            axes[row_idx, col_idx].axis("off")
+            col_idx += 1
 
-            x0 = (2 + col_idx) * cell_size
-            grid[y0:y0 + cell_size, x0:x0 + cell_size] = pred_overlay
+    # Column titles
+    for j, label in enumerate(col_labels):
+        axes[0, j].set_title(label, fontsize=11, fontweight="bold", pad=10)
 
-    # Add column headers
-    header_h = 30
-    header = np.ones((header_h, n_cols * cell_size, 3), dtype=np.uint8) * 255
-    col_labels = ["Input", "GT"] + [label for label, _ in MODELS]
-    for i, label in enumerate(col_labels):
-        x = i * cell_size + 10
-        cv2.putText(header, label, (x, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+    # Legend
+    legend_patches = [
+        mpatches.Patch(color=(1, 0.24, 0.24), label="Crack"),
+        mpatches.Patch(color=(0.24, 0.78, 0.24), label="Spalling"),
+    ]
+    fig.legend(handles=legend_patches, loc="lower center", ncol=2,
+               fontsize=11, frameon=True, bbox_to_anchor=(0.5, -0.01))
 
-    final = np.vstack([header, grid])
+    fig.tight_layout(rect=[0, 0.03, 1, 0.97])
 
     # Save
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(output_path), cv2.cvtColor(final, cv2.COLOR_RGB2BGR))
+    fig.savefig(str(output_path), dpi=200, bbox_inches="tight")
     print(f"[vis] Saved: {output_path}")
+    pdf_path = output_path.with_suffix(".pdf")
+    fig.savefig(str(pdf_path), dpi=200, bbox_inches="tight")
+    print(f"[vis] Saved: {pdf_path}")
+    plt.close(fig)
 
 
 def main():
