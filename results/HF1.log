@@ -55,3 +55,1176 @@ You should probably TRAIN this model on a down-stream task to be able to use it 
   [hf1_hard_finetune] [epoch 66/130] batch 90/300 (30%) loss=8116.6373 elapsed=34s eta=80s
   [hf1_hard_finetune] [epoch 66/130] batch 120/300 (40%) loss=7888.1957 elapsed=45s eta=68s
   [hf1_hard_finetune] [epoch 66/130] batch 150/300 (50%) loss=7821.9607 elapsed=57s eta=57s
+  [hf1_hard_finetune] [epoch 66/130] batch 180/300 (60%) loss=7678.8612 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 66/130] batch 210/300 (70%) loss=7708.0452 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 66/130] batch 240/300 (80%) loss=7726.6636 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 66/130] batch 270/300 (90%) loss=7726.5589 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 66/130] batch 300/300 (100%) loss=7750.5313 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 066/130] remain=64 epochs ep_eta=119.8min (avg 112s/ep)
+[hf1_hard_finetune] [epoch 066/130] lr=0.000017  dt=112.3s
+  train loss=7750.5313  ce=0.0876 dice=0.1813  tversky=0.2856 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[hf1_hard_finetune] [HTFT] epoch 67: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 67/130] batch 30/300 (10%) loss=8191.4597 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 67/130] batch 60/300 (20%) loss=7958.2953 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 67/130] batch 90/300 (30%) loss=7834.9074 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 67/130] batch 120/300 (40%) loss=7823.6423 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 67/130] batch 150/300 (50%) loss=7952.0447 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 67/130] batch 180/300 (60%) loss=7838.6666 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 67/130] batch 210/300 (70%) loss=7753.6576 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 67/130] batch 240/300 (80%) loss=7703.8390 elapsed=89s eta=22s
+  [hf1_hard_finetune] [epoch 67/130] batch 270/300 (90%) loss=7745.0133 elapsed=100s eta=11s
+  [hf1_hard_finetune] [epoch 67/130] batch 300/300 (100%) loss=7721.6480 elapsed=111s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 067/130] remain=63 epochs ep_eta=117.8min (avg 112s/ep)
+[hf1_hard_finetune] [epoch 067/130] lr=0.000016  dt=111.6s
+  train loss=7721.6480  ce=0.0875 dice=0.1813  tversky=0.2849 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[hf1_hard_finetune] [HTFT] epoch 68: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 68/130] batch 30/300 (10%) loss=7733.0221 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 68/130] batch 60/300 (20%) loss=7513.7441 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 68/130] batch 90/300 (30%) loss=7461.1405 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 68/130] batch 120/300 (40%) loss=7510.1728 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 68/130] batch 150/300 (50%) loss=7568.9450 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 68/130] batch 180/300 (60%) loss=7606.3982 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 68/130] batch 210/300 (70%) loss=7632.4290 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 68/130] batch 240/300 (80%) loss=7619.2807 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 68/130] batch 270/300 (90%) loss=7550.5655 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 68/130] batch 300/300 (100%) loss=7544.9142 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 068/130] remain=62 epochs ep_eta=116.1min (avg 112s/ep)
+[hf1_hard_finetune] [epoch 068/130] lr=0.000015  dt=112.2s
+  train loss=7544.9142  ce=0.0862 dice=0.1784  tversky=0.2838 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[hf1_hard_finetune] [HTFT] epoch 69: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 69/130] batch 30/300 (10%) loss=7931.2322 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 69/130] batch 60/300 (20%) loss=7806.6738 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 69/130] batch 90/300 (30%) loss=8097.6169 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 69/130] batch 120/300 (40%) loss=7940.1404 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 69/130] batch 150/300 (50%) loss=7851.3543 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 69/130] batch 180/300 (60%) loss=7796.6279 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 69/130] batch 210/300 (70%) loss=7663.2849 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 69/130] batch 240/300 (80%) loss=7640.2545 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 69/130] batch 270/300 (90%) loss=7627.8283 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 69/130] batch 300/300 (100%) loss=7645.5107 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 069/130] remain=61 epochs ep_eta=114.4min (avg 112s/ep)
+[hf1_hard_finetune] [epoch 069/130] lr=0.000014  dt=112.3s
+  train loss=7645.5107  ce=0.0862 dice=0.1826  tversky=0.2844 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[hf1_hard_finetune] [HTFT] epoch 70: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 70/130] batch 30/300 (10%) loss=7334.1542 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 70/130] batch 60/300 (20%) loss=7580.5532 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 70/130] batch 90/300 (30%) loss=7574.0976 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 70/130] batch 120/300 (40%) loss=7446.7573 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 70/130] batch 150/300 (50%) loss=7495.8325 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 70/130] batch 180/300 (60%) loss=7514.2762 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 70/130] batch 210/300 (70%) loss=7474.4571 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 70/130] batch 240/300 (80%) loss=7440.9768 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 70/130] batch 270/300 (90%) loss=7425.7446 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 70/130] batch 300/300 (100%) loss=7454.1799 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 070/130] remain=60 epochs ep_eta=113.5min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 070/130] lr=0.000014  dt=117.1s
+  train loss=7454.1799  ce=0.0856 dice=0.1756  tversky=0.2839 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5350
+  IoU   bg=0.9781  crack=0.5855  spalling=0.8224  | mIoU_fg=0.7040  pix_acc=0.9785
+  Dice  bg=0.9889  crack=0.7386  spalling=0.9026
+  BF1   crack=0.7633  spalling=0.6654  | BF1_fg_mean=0.7144
+[hf1_hard_finetune] [HTFT] epoch 71: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 71/130] batch 30/300 (10%) loss=8225.5458 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 71/130] batch 60/300 (20%) loss=7698.8031 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 71/130] batch 90/300 (30%) loss=7631.1110 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 71/130] batch 120/300 (40%) loss=7558.2517 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 71/130] batch 150/300 (50%) loss=7663.3475 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 71/130] batch 180/300 (60%) loss=7655.0973 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 71/130] batch 210/300 (70%) loss=7613.1704 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 71/130] batch 240/300 (80%) loss=7658.5587 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 71/130] batch 270/300 (90%) loss=7638.7951 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 71/130] batch 300/300 (100%) loss=7565.6948 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 071/130] remain=59 epochs ep_eta=111.7min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 071/130] lr=0.000013  dt=112.4s
+  train loss=7565.6948  ce=0.0861 dice=0.1831  tversky=0.2842 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[hf1_hard_finetune] [HTFT] epoch 72: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 72/130] batch 30/300 (10%) loss=7087.8830 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 72/130] batch 60/300 (20%) loss=6955.9553 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 72/130] batch 90/300 (30%) loss=7118.8256 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 72/130] batch 120/300 (40%) loss=7216.5420 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 72/130] batch 150/300 (50%) loss=7314.9284 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 72/130] batch 180/300 (60%) loss=7364.8343 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 72/130] batch 210/300 (70%) loss=7339.6516 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 72/130] batch 240/300 (80%) loss=7370.6704 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 72/130] batch 270/300 (90%) loss=7407.7589 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 72/130] batch 300/300 (100%) loss=7503.4955 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 072/130] remain=58 epochs ep_eta=109.7min (avg 113s/ep)
+[hf1_hard_finetune] [epoch 072/130] lr=0.000012  dt=112.0s
+  train loss=7503.4955  ce=0.0853 dice=0.1764  tversky=0.2841 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[hf1_hard_finetune] [HTFT] epoch 73: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 73/130] batch 30/300 (10%) loss=7682.1561 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 73/130] batch 60/300 (20%) loss=7329.0632 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 73/130] batch 90/300 (30%) loss=7241.6906 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 73/130] batch 120/300 (40%) loss=7378.6044 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 73/130] batch 150/300 (50%) loss=7444.2176 elapsed=57s eta=57s
+  [hf1_hard_finetune] [epoch 73/130] batch 180/300 (60%) loss=7444.9162 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 73/130] batch 210/300 (70%) loss=7392.1496 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 73/130] batch 240/300 (80%) loss=7387.0925 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 73/130] batch 270/300 (90%) loss=7396.8786 elapsed=102s eta=11s
+  [hf1_hard_finetune] [epoch 73/130] batch 300/300 (100%) loss=7348.4697 elapsed=113s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 073/130] remain=57 epochs ep_eta=107.8min (avg 113s/ep)
+[hf1_hard_finetune] [epoch 073/130] lr=0.000011  dt=112.9s
+  train loss=7348.4697  ce=0.0852 dice=0.1798  tversky=0.2836 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[hf1_hard_finetune] [HTFT] epoch 74: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 74/130] batch 30/300 (10%) loss=7178.9715 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 74/130] batch 60/300 (20%) loss=7145.9265 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 74/130] batch 90/300 (30%) loss=7231.1921 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 74/130] batch 120/300 (40%) loss=7388.0420 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 74/130] batch 150/300 (50%) loss=7321.0526 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 74/130] batch 180/300 (60%) loss=7397.0305 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 74/130] batch 210/300 (70%) loss=7458.0493 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 74/130] batch 240/300 (80%) loss=7434.1365 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 74/130] batch 270/300 (90%) loss=7407.3582 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 74/130] batch 300/300 (100%) loss=7381.3609 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 074/130] remain=56 epochs ep_eta=105.8min (avg 113s/ep)
+[hf1_hard_finetune] [epoch 074/130] lr=0.000010  dt=112.4s
+  train loss=7381.3609  ce=0.0849 dice=0.1768  tversky=0.2828 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[hf1_hard_finetune] [HTFT] epoch 75: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 75/130] batch 30/300 (10%) loss=7271.9747 elapsed=12s eta=105s
+  [hf1_hard_finetune] [epoch 75/130] batch 60/300 (20%) loss=7138.9535 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 75/130] batch 90/300 (30%) loss=7054.0294 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 75/130] batch 120/300 (40%) loss=7226.6120 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 75/130] batch 150/300 (50%) loss=7327.9212 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 75/130] batch 180/300 (60%) loss=7370.7404 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 75/130] batch 210/300 (70%) loss=7289.2705 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 75/130] batch 240/300 (80%) loss=7282.7762 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 75/130] batch 270/300 (90%) loss=7256.3341 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 75/130] batch 300/300 (100%) loss=7314.0940 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 075/130] remain=55 epochs ep_eta=104.3min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 075/130] lr=0.000010  dt=117.2s
+  train loss=7314.0940  ce=0.0853 dice=0.1812  tversky=0.2837 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5476
+  IoU   bg=0.9778  crack=0.5848  spalling=0.8121  | mIoU_fg=0.6985  pix_acc=0.9781
+  Dice  bg=0.9888  crack=0.7380  spalling=0.8963
+  BF1   crack=0.7631  spalling=0.6706  | BF1_fg_mean=0.7168
+[hf1_hard_finetune] [HTFT] epoch 76: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 76/130] batch 30/300 (10%) loss=6812.1955 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 76/130] batch 60/300 (20%) loss=7077.2781 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 76/130] batch 90/300 (30%) loss=7147.1558 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 76/130] batch 120/300 (40%) loss=7085.8829 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 76/130] batch 150/300 (50%) loss=7133.1413 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 76/130] batch 180/300 (60%) loss=7122.9928 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 76/130] batch 210/300 (70%) loss=7099.0031 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 76/130] batch 240/300 (80%) loss=7179.3316 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 76/130] batch 270/300 (90%) loss=7255.8062 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 76/130] batch 300/300 (100%) loss=7233.1989 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 076/130] remain=54 epochs ep_eta=102.4min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 076/130] lr=0.000009  dt=112.4s
+  train loss=7233.1989  ce=0.0848 dice=0.1779  tversky=0.2829 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[hf1_hard_finetune] [HTFT] epoch 77: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 77/130] batch 30/300 (10%) loss=7825.0358 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 77/130] batch 60/300 (20%) loss=7300.8528 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 77/130] batch 90/300 (30%) loss=7268.4392 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 77/130] batch 120/300 (40%) loss=7156.7905 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 77/130] batch 150/300 (50%) loss=7177.7206 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 77/130] batch 180/300 (60%) loss=7210.2289 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 77/130] batch 210/300 (70%) loss=7198.7741 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 77/130] batch 240/300 (80%) loss=7211.4243 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 77/130] batch 270/300 (90%) loss=7229.5921 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 77/130] batch 300/300 (100%) loss=7247.6821 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 077/130] remain=53 epochs ep_eta=100.5min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 077/130] lr=0.000008  dt=112.2s
+  train loss=7247.6821  ce=0.0846 dice=0.1779  tversky=0.2826 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[hf1_hard_finetune] [HTFT] epoch 78: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 78/130] batch 30/300 (10%) loss=7278.7112 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 78/130] batch 60/300 (20%) loss=7236.3937 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 78/130] batch 90/300 (30%) loss=7261.8633 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 78/130] batch 120/300 (40%) loss=7155.9182 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 78/130] batch 150/300 (50%) loss=7208.4338 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 78/130] batch 180/300 (60%) loss=7187.5660 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 78/130] batch 210/300 (70%) loss=7167.2217 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 78/130] batch 240/300 (80%) loss=7144.3919 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 78/130] batch 270/300 (90%) loss=7122.2083 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 78/130] batch 300/300 (100%) loss=7102.9301 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 078/130] remain=52 epochs ep_eta=98.5min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 078/130] lr=0.000008  dt=112.2s
+  train loss=7102.9301  ce=0.0847 dice=0.1789  tversky=0.2825 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[hf1_hard_finetune] [HTFT] epoch 79: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 79/130] batch 30/300 (10%) loss=6907.9200 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 79/130] batch 60/300 (20%) loss=6995.9662 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 79/130] batch 90/300 (30%) loss=6868.2074 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 79/130] batch 120/300 (40%) loss=7091.1086 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 79/130] batch 150/300 (50%) loss=6997.2554 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 79/130] batch 180/300 (60%) loss=6956.7871 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 79/130] batch 210/300 (70%) loss=6988.1859 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 79/130] batch 240/300 (80%) loss=6972.2347 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 79/130] batch 270/300 (90%) loss=6979.1857 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 79/130] batch 300/300 (100%) loss=7024.9901 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 079/130] remain=51 epochs ep_eta=96.6min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 079/130] lr=0.000007  dt=112.3s
+  train loss=7024.9901  ce=0.0836 dice=0.1777  tversky=0.2816 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[hf1_hard_finetune] [HTFT] epoch 80: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 80/130] batch 30/300 (10%) loss=7504.6371 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 80/130] batch 60/300 (20%) loss=7438.7188 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 80/130] batch 90/300 (30%) loss=7267.3331 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 80/130] batch 120/300 (40%) loss=7284.3197 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 80/130] batch 150/300 (50%) loss=7261.4373 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 80/130] batch 180/300 (60%) loss=7136.0538 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 80/130] batch 210/300 (70%) loss=7097.1800 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 80/130] batch 240/300 (80%) loss=7092.9246 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 80/130] batch 270/300 (90%) loss=7036.9301 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 80/130] batch 300/300 (100%) loss=7022.4195 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 080/130] remain=50 epochs ep_eta=94.9min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 080/130] lr=0.000006  dt=117.2s
+  train loss=7022.4195  ce=0.0837 dice=0.1747  tversky=0.2825 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5336
+  IoU   bg=0.9779  crack=0.5842  spalling=0.8332  | mIoU_fg=0.7087  pix_acc=0.9783
+  Dice  bg=0.9888  crack=0.7375  spalling=0.9090
+  BF1   crack=0.7619  spalling=0.6592  | BF1_fg_mean=0.7105
+  [hf1_hard_finetune] [best] mIoU_fg=0.7087  saved -> best.pt
+[hf1_hard_finetune] [HTFT] epoch 81: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 81/130] batch 30/300 (10%) loss=6728.3529 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 81/130] batch 60/300 (20%) loss=6672.5987 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 81/130] batch 90/300 (30%) loss=7102.7301 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 81/130] batch 120/300 (40%) loss=6942.5789 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 81/130] batch 150/300 (50%) loss=6983.0022 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 81/130] batch 180/300 (60%) loss=6977.0007 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 81/130] batch 210/300 (70%) loss=6945.0576 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 81/130] batch 240/300 (80%) loss=6999.9864 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 81/130] batch 270/300 (90%) loss=7004.8644 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 81/130] batch 300/300 (100%) loss=7105.3734 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 081/130] remain=49 epochs ep_eta=93.0min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 081/130] lr=0.000006  dt=112.5s
+  train loss=7105.3734  ce=0.0835 dice=0.1761  tversky=0.2809 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[hf1_hard_finetune] [HTFT] epoch 82: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 82/130] batch 30/300 (10%) loss=6784.6488 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 82/130] batch 60/300 (20%) loss=7212.7168 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 82/130] batch 90/300 (30%) loss=7181.6870 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 82/130] batch 120/300 (40%) loss=7130.8093 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 82/130] batch 150/300 (50%) loss=7043.6935 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 82/130] batch 180/300 (60%) loss=6917.0549 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 82/130] batch 210/300 (70%) loss=6947.3154 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 82/130] batch 240/300 (80%) loss=6939.7582 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 82/130] batch 270/300 (90%) loss=6970.8564 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 82/130] batch 300/300 (100%) loss=6960.9082 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 082/130] remain=48 epochs ep_eta=91.1min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 082/130] lr=0.000005  dt=112.5s
+  train loss=6960.9082  ce=0.0833 dice=0.1765  tversky=0.2811 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[hf1_hard_finetune] [HTFT] epoch 83: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 83/130] batch 30/300 (10%) loss=6936.0280 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 83/130] batch 60/300 (20%) loss=6876.0500 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 83/130] batch 90/300 (30%) loss=6989.8056 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 83/130] batch 120/300 (40%) loss=6921.6482 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 83/130] batch 150/300 (50%) loss=6953.5890 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 83/130] batch 180/300 (60%) loss=6994.4410 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 83/130] batch 210/300 (70%) loss=6980.2320 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 83/130] batch 240/300 (80%) loss=7028.8529 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 83/130] batch 270/300 (90%) loss=7042.0042 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 83/130] batch 300/300 (100%) loss=7062.5672 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 083/130] remain=47 epochs ep_eta=89.2min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 083/130] lr=0.000005  dt=112.3s
+  train loss=7062.5672  ce=0.0833 dice=0.1769  tversky=0.2812 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[hf1_hard_finetune] [HTFT] epoch 84: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 84/130] batch 30/300 (10%) loss=7361.6003 elapsed=12s eta=105s
+  [hf1_hard_finetune] [epoch 84/130] batch 60/300 (20%) loss=7323.1890 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 84/130] batch 90/300 (30%) loss=7258.1436 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 84/130] batch 120/300 (40%) loss=7221.1089 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 84/130] batch 150/300 (50%) loss=7235.8004 elapsed=57s eta=57s
+  [hf1_hard_finetune] [epoch 84/130] batch 180/300 (60%) loss=7150.6728 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 84/130] batch 210/300 (70%) loss=7042.9891 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 84/130] batch 240/300 (80%) loss=7042.0353 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 84/130] batch 270/300 (90%) loss=6967.7964 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 84/130] batch 300/300 (100%) loss=6931.7236 elapsed=113s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 084/130] remain=46 epochs ep_eta=87.2min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 084/130] lr=0.000004  dt=112.8s
+  train loss=6931.7236  ce=0.0828 dice=0.1718  tversky=0.2809 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[hf1_hard_finetune] [HTFT] epoch 85: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 85/130] batch 30/300 (10%) loss=7070.2420 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 85/130] batch 60/300 (20%) loss=6987.9755 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 85/130] batch 90/300 (30%) loss=6975.5636 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 85/130] batch 120/300 (40%) loss=6928.6995 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 85/130] batch 150/300 (50%) loss=6936.1112 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 85/130] batch 180/300 (60%) loss=6947.0558 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 85/130] batch 210/300 (70%) loss=6881.9965 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 85/130] batch 240/300 (80%) loss=6901.6568 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 85/130] batch 270/300 (90%) loss=6909.5056 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 85/130] batch 300/300 (100%) loss=6914.4462 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 085/130] remain=45 epochs ep_eta=85.5min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 085/130] lr=0.000004  dt=117.4s
+  train loss=6914.4462  ce=0.0834 dice=0.1758  tversky=0.2806 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5377
+  IoU   bg=0.9777  crack=0.5842  spalling=0.8180  | mIoU_fg=0.7011  pix_acc=0.9781
+  Dice  bg=0.9887  crack=0.7375  spalling=0.8999
+  BF1   crack=0.7618  spalling=0.6869  | BF1_fg_mean=0.7243
+[hf1_hard_finetune] [HTFT] epoch 86: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 86/130] batch 30/300 (10%) loss=6867.5897 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 86/130] batch 60/300 (20%) loss=6718.5200 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 86/130] batch 90/300 (30%) loss=6828.6469 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 86/130] batch 120/300 (40%) loss=6802.9063 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 86/130] batch 150/300 (50%) loss=6776.5139 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 86/130] batch 180/300 (60%) loss=6774.3753 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 86/130] batch 210/300 (70%) loss=6766.8214 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 86/130] batch 240/300 (80%) loss=6789.2880 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 86/130] batch 270/300 (90%) loss=6876.3445 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 86/130] batch 300/300 (100%) loss=6881.3186 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 086/130] remain=44 epochs ep_eta=83.6min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 086/130] lr=0.000003  dt=112.0s
+  train loss=6881.3186  ce=0.0833 dice=0.1751  tversky=0.2809 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[hf1_hard_finetune] [HTFT] epoch 87: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 87/130] batch 30/300 (10%) loss=6838.6356 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 87/130] batch 60/300 (20%) loss=6736.0064 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 87/130] batch 90/300 (30%) loss=6782.2333 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 87/130] batch 120/300 (40%) loss=6828.9980 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 87/130] batch 150/300 (50%) loss=6762.2177 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 87/130] batch 180/300 (60%) loss=6730.2100 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 87/130] batch 210/300 (70%) loss=6678.9284 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 87/130] batch 240/300 (80%) loss=6737.7325 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 87/130] batch 270/300 (90%) loss=6789.6465 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 87/130] batch 300/300 (100%) loss=6845.3650 elapsed=113s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 087/130] remain=43 epochs ep_eta=81.7min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 087/130] lr=0.000003  dt=112.8s
+  train loss=6845.3650  ce=0.0830 dice=0.1749  tversky=0.2811 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[hf1_hard_finetune] [HTFT] epoch 88: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 88/130] batch 30/300 (10%) loss=6941.1244 elapsed=12s eta=105s
+  [hf1_hard_finetune] [epoch 88/130] batch 60/300 (20%) loss=6773.6359 elapsed=23s eta=92s
+  [hf1_hard_finetune] [epoch 88/130] batch 90/300 (30%) loss=6750.7988 elapsed=34s eta=80s
+  [hf1_hard_finetune] [epoch 88/130] batch 120/300 (40%) loss=6983.5005 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 88/130] batch 150/300 (50%) loss=6924.3454 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 88/130] batch 180/300 (60%) loss=6861.9369 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 88/130] batch 210/300 (70%) loss=6864.5141 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 88/130] batch 240/300 (80%) loss=6875.1871 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 88/130] batch 270/300 (90%) loss=6855.3578 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 88/130] batch 300/300 (100%) loss=6853.3594 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 088/130] remain=42 epochs ep_eta=79.7min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 088/130] lr=0.000002  dt=112.0s
+  train loss=6853.3594  ce=0.0826 dice=0.1765  tversky=0.2803 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[hf1_hard_finetune] [HTFT] epoch 89: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 89/130] batch 30/300 (10%) loss=6979.9326 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 89/130] batch 60/300 (20%) loss=6716.8605 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 89/130] batch 90/300 (30%) loss=6735.4056 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 89/130] batch 120/300 (40%) loss=6795.0963 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 89/130] batch 150/300 (50%) loss=6836.7789 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 89/130] batch 180/300 (60%) loss=6772.1200 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 89/130] batch 210/300 (70%) loss=6793.4639 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 89/130] batch 240/300 (80%) loss=6812.2211 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 89/130] batch 270/300 (90%) loss=6837.7592 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 89/130] batch 300/300 (100%) loss=6823.5665 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 089/130] remain=41 epochs ep_eta=77.8min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 089/130] lr=0.000002  dt=112.1s
+  train loss=6823.5665  ce=0.0825 dice=0.1717  tversky=0.2805 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[hf1_hard_finetune] [HTFT] epoch 90: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 90/130] batch 30/300 (10%) loss=6637.9348 elapsed=11s eta=102s
+  [hf1_hard_finetune] [epoch 90/130] batch 60/300 (20%) loss=6606.1852 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 90/130] batch 90/300 (30%) loss=6623.7136 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 90/130] batch 120/300 (40%) loss=6698.7843 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 90/130] batch 150/300 (50%) loss=6670.2301 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 90/130] batch 180/300 (60%) loss=6701.3696 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 90/130] batch 210/300 (70%) loss=6745.8963 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 90/130] batch 240/300 (80%) loss=6796.8507 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 90/130] batch 270/300 (90%) loss=6824.3609 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 90/130] batch 300/300 (100%) loss=6843.8961 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 090/130] remain=40 epochs ep_eta=76.0min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 090/130] lr=0.000002  dt=117.7s
+  train loss=6843.8961  ce=0.0829 dice=0.1784  tversky=0.2807 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5318
+  IoU   bg=0.9781  crack=0.5854  spalling=0.8307  | mIoU_fg=0.7081  pix_acc=0.9785
+  Dice  bg=0.9889  crack=0.7385  spalling=0.9075
+  BF1   crack=0.7644  spalling=0.6703  | BF1_fg_mean=0.7173
+[hf1_hard_finetune] [HTFT] epoch 91: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 91/130] batch 30/300 (10%) loss=6910.0856 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 91/130] batch 60/300 (20%) loss=7372.0739 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 91/130] batch 90/300 (30%) loss=7197.9743 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 91/130] batch 120/300 (40%) loss=7142.6994 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 91/130] batch 150/300 (50%) loss=7004.9056 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 91/130] batch 180/300 (60%) loss=6970.2805 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 91/130] batch 210/300 (70%) loss=6903.1938 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 91/130] batch 240/300 (80%) loss=6926.4856 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 91/130] batch 270/300 (90%) loss=6882.2434 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 91/130] batch 300/300 (100%) loss=6871.8090 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 091/130] remain=39 epochs ep_eta=74.1min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 091/130] lr=0.000001  dt=112.2s
+  train loss=6871.8090  ce=0.0831 dice=0.1757  tversky=0.2804 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 95)
+[hf1_hard_finetune] [HTFT] epoch 92: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 92/130] batch 30/300 (10%) loss=6805.1194 elapsed=11s eta=102s
+  [hf1_hard_finetune] [epoch 92/130] batch 60/300 (20%) loss=6855.8793 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 92/130] batch 90/300 (30%) loss=6932.9610 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 92/130] batch 120/300 (40%) loss=6882.6300 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 92/130] batch 150/300 (50%) loss=6956.9372 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 92/130] batch 180/300 (60%) loss=6806.1268 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 92/130] batch 210/300 (70%) loss=6821.0847 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 92/130] batch 240/300 (80%) loss=6806.1438 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 92/130] batch 270/300 (90%) loss=6822.7706 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 92/130] batch 300/300 (100%) loss=6824.7159 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 092/130] remain=38 epochs ep_eta=72.2min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 092/130] lr=0.000001  dt=112.3s
+  train loss=6824.7159  ce=0.0830 dice=0.1731  tversky=0.2809 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 95)
+[hf1_hard_finetune] [HTFT] epoch 93: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 93/130] batch 30/300 (10%) loss=7397.4734 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 93/130] batch 60/300 (20%) loss=7085.2438 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 93/130] batch 90/300 (30%) loss=6968.8519 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 93/130] batch 120/300 (40%) loss=6962.1837 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 93/130] batch 150/300 (50%) loss=6910.5872 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 93/130] batch 180/300 (60%) loss=6857.4968 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 93/130] batch 210/300 (70%) loss=6790.4572 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 93/130] batch 240/300 (80%) loss=6814.1451 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 93/130] batch 270/300 (90%) loss=6825.2183 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 93/130] batch 300/300 (100%) loss=6821.4644 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 093/130] remain=37 epochs ep_eta=70.2min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 093/130] lr=0.000001  dt=112.1s
+  train loss=6821.4644  ce=0.0828 dice=0.1699  tversky=0.2808 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 95)
+[hf1_hard_finetune] [HTFT] epoch 94: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 94/130] batch 30/300 (10%) loss=6780.4127 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 94/130] batch 60/300 (20%) loss=6883.7736 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 94/130] batch 90/300 (30%) loss=6958.2569 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 94/130] batch 120/300 (40%) loss=6946.0249 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 94/130] batch 150/300 (50%) loss=6974.0767 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 94/130] batch 180/300 (60%) loss=6876.4669 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 94/130] batch 210/300 (70%) loss=6877.5579 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 94/130] batch 240/300 (80%) loss=6872.4440 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 94/130] batch 270/300 (90%) loss=6872.4630 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 94/130] batch 300/300 (100%) loss=6844.9936 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 094/130] remain=36 epochs ep_eta=68.3min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 094/130] lr=0.000001  dt=112.1s
+  train loss=6844.9936  ce=0.0830 dice=0.1781  tversky=0.2802 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 95)
+[hf1_hard_finetune] [HTFT] epoch 95: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 95/130] batch 30/300 (10%) loss=6329.3258 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 95/130] batch 60/300 (20%) loss=6635.2107 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 95/130] batch 90/300 (30%) loss=6857.5778 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 95/130] batch 120/300 (40%) loss=6744.0175 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 95/130] batch 150/300 (50%) loss=6774.4797 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 95/130] batch 180/300 (60%) loss=6769.4398 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 95/130] batch 210/300 (70%) loss=6782.2977 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 95/130] batch 240/300 (80%) loss=6781.3177 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 95/130] batch 270/300 (90%) loss=6885.4657 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 95/130] batch 300/300 (100%) loss=6848.2972 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 095/130] remain=35 epochs ep_eta=66.5min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 095/130] lr=0.000000  dt=117.1s
+  train loss=6848.2972  ce=0.0827 dice=0.1753  tversky=0.2799 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5344
+  IoU   bg=0.9778  crack=0.5845  spalling=0.8252  | mIoU_fg=0.7049  pix_acc=0.9782
+  Dice  bg=0.9888  crack=0.7378  spalling=0.9043
+  BF1   crack=0.7635  spalling=0.6649  | BF1_fg_mean=0.7142
+[hf1_hard_finetune] [HTFT] epoch 96: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 96/130] batch 30/300 (10%) loss=6813.9485 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 96/130] batch 60/300 (20%) loss=6590.4772 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 96/130] batch 90/300 (30%) loss=7022.8133 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 96/130] batch 120/300 (40%) loss=6911.7107 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 96/130] batch 150/300 (50%) loss=6944.3678 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 96/130] batch 180/300 (60%) loss=6896.0188 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 96/130] batch 210/300 (70%) loss=6847.4571 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 96/130] batch 240/300 (80%) loss=6833.3927 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 96/130] batch 270/300 (90%) loss=6841.3824 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 96/130] batch 300/300 (100%) loss=6832.5394 elapsed=113s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 096/130] remain=34 epochs ep_eta=64.6min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 096/130] lr=0.000000  dt=112.6s
+  train loss=6832.5394  ce=0.0857 dice=0.1768  tversky=0.2794 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 100)
+[hf1_hard_finetune] [HTFT] epoch 97: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 97/130] batch 30/300 (10%) loss=6986.2266 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 97/130] batch 60/300 (20%) loss=6914.6112 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 97/130] batch 90/300 (30%) loss=6899.8516 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 97/130] batch 120/300 (40%) loss=6836.0108 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 97/130] batch 150/300 (50%) loss=6819.7579 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 97/130] batch 180/300 (60%) loss=6759.8683 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 97/130] batch 210/300 (70%) loss=6699.9217 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 97/130] batch 240/300 (80%) loss=6729.3643 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 97/130] batch 270/300 (90%) loss=6759.9959 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 97/130] batch 300/300 (100%) loss=6746.4440 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 097/130] remain=33 epochs ep_eta=62.7min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 097/130] lr=0.000000  dt=112.6s
+  train loss=6746.4440  ce=0.0825 dice=0.1749  tversky=0.2801 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 100)
+[hf1_hard_finetune] [HTFT] epoch 98: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 98/130] batch 30/300 (10%) loss=6953.9103 elapsed=12s eta=105s
+  [hf1_hard_finetune] [epoch 98/130] batch 60/300 (20%) loss=7087.0849 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 98/130] batch 90/300 (30%) loss=6986.8500 elapsed=34s eta=80s
+  [hf1_hard_finetune] [epoch 98/130] batch 120/300 (40%) loss=7021.1977 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 98/130] batch 150/300 (50%) loss=6961.9452 elapsed=57s eta=57s
+  [hf1_hard_finetune] [epoch 98/130] batch 180/300 (60%) loss=6856.8255 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 98/130] batch 210/300 (70%) loss=6851.8014 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 98/130] batch 240/300 (80%) loss=6845.0095 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 98/130] batch 270/300 (90%) loss=6810.5930 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 98/130] batch 300/300 (100%) loss=6769.8038 elapsed=113s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 098/130] remain=32 epochs ep_eta=60.8min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 098/130] lr=0.000000  dt=112.7s
+  train loss=6769.8038  ce=0.0827 dice=0.1769  tversky=0.2807 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 100)
+[hf1_hard_finetune] [HTFT] epoch 99: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 99/130] batch 30/300 (10%) loss=6436.9859 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 99/130] batch 60/300 (20%) loss=6576.6539 elapsed=22s eta=90s
+  [hf1_hard_finetune] [epoch 99/130] batch 90/300 (30%) loss=6587.2508 elapsed=34s eta=78s
+  [hf1_hard_finetune] [epoch 99/130] batch 120/300 (40%) loss=6763.1979 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 99/130] batch 150/300 (50%) loss=6809.0621 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 99/130] batch 180/300 (60%) loss=6839.0327 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 99/130] batch 210/300 (70%) loss=6907.7226 elapsed=78s eta=33s
+  [hf1_hard_finetune] [epoch 99/130] batch 240/300 (80%) loss=6898.1604 elapsed=89s eta=22s
+  [hf1_hard_finetune] [epoch 99/130] batch 270/300 (90%) loss=6845.3845 elapsed=100s eta=11s
+  [hf1_hard_finetune] [epoch 99/130] batch 300/300 (100%) loss=6839.0106 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 099/130] remain=31 epochs ep_eta=58.8min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 099/130] lr=0.000000  dt=111.8s
+  train loss=6839.0106  ce=0.0828 dice=0.1746  tversky=0.2804 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 100)
+[hf1_hard_finetune] [HTFT] epoch 100: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 100/130] batch 30/300 (10%) loss=6820.5877 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 100/130] batch 60/300 (20%) loss=6802.4882 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 100/130] batch 90/300 (30%) loss=6708.2375 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 100/130] batch 120/300 (40%) loss=6732.2461 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 100/130] batch 150/300 (50%) loss=6751.8863 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 100/130] batch 180/300 (60%) loss=6730.3936 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 100/130] batch 210/300 (70%) loss=6684.0818 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 100/130] batch 240/300 (80%) loss=6678.1185 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 100/130] batch 270/300 (90%) loss=6739.7967 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 100/130] batch 300/300 (100%) loss=6769.3020 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 100/130] remain=30 epochs ep_eta=57.0min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 100/130] lr=0.000000  dt=117.1s
+  train loss=6769.3020  ce=0.0825 dice=0.1724  tversky=0.2799 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5343
+  IoU   bg=0.9778  crack=0.5845  spalling=0.8262  | mIoU_fg=0.7053  pix_acc=0.9782
+  Dice  bg=0.9888  crack=0.7377  spalling=0.9048
+  BF1   crack=0.7635  spalling=0.6631  | BF1_fg_mean=0.7133
+[hf1_hard_finetune] [HTFT] epoch 101: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 101/130] batch 30/300 (10%) loss=6722.5274 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 101/130] batch 60/300 (20%) loss=6860.6418 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 101/130] batch 90/300 (30%) loss=6899.3737 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 101/130] batch 120/300 (40%) loss=6873.1292 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 101/130] batch 150/300 (50%) loss=6958.1782 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 101/130] batch 180/300 (60%) loss=7001.4326 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 101/130] batch 210/300 (70%) loss=6977.0759 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 101/130] batch 240/300 (80%) loss=6878.2203 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 101/130] batch 270/300 (90%) loss=6814.9704 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 101/130] batch 300/300 (100%) loss=6824.5758 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 101/130] remain=29 epochs ep_eta=55.1min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 101/130] lr=0.000000  dt=112.5s
+  train loss=6824.5758  ce=0.0830 dice=0.1734  tversky=0.2808 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 105)
+[hf1_hard_finetune] [HTFT] epoch 102: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 102/130] batch 30/300 (10%) loss=7736.6459 elapsed=12s eta=105s
+  [hf1_hard_finetune] [epoch 102/130] batch 60/300 (20%) loss=7315.0073 elapsed=23s eta=92s
+  [hf1_hard_finetune] [epoch 102/130] batch 90/300 (30%) loss=7007.6312 elapsed=34s eta=80s
+  [hf1_hard_finetune] [epoch 102/130] batch 120/300 (40%) loss=6882.3715 elapsed=46s eta=68s
+  [hf1_hard_finetune] [epoch 102/130] batch 150/300 (50%) loss=6842.4785 elapsed=57s eta=57s
+  [hf1_hard_finetune] [epoch 102/130] batch 180/300 (60%) loss=6845.6843 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 102/130] batch 210/300 (70%) loss=6792.1937 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 102/130] batch 240/300 (80%) loss=6801.0287 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 102/130] batch 270/300 (90%) loss=6820.8902 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 102/130] batch 300/300 (100%) loss=6861.4659 elapsed=113s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 102/130] remain=28 epochs ep_eta=53.2min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 102/130] lr=0.000000  dt=112.7s
+  train loss=6861.4659  ce=0.0833 dice=0.1746  tversky=0.2811 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 105)
+[hf1_hard_finetune] [HTFT] epoch 103: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 103/130] batch 30/300 (10%) loss=7509.5578 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 103/130] batch 60/300 (20%) loss=7682.8575 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 103/130] batch 90/300 (30%) loss=7368.8471 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 103/130] batch 120/300 (40%) loss=7161.0901 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 103/130] batch 150/300 (50%) loss=6989.0000 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 103/130] batch 180/300 (60%) loss=6914.5417 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 103/130] batch 210/300 (70%) loss=6807.0957 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 103/130] batch 240/300 (80%) loss=6782.1558 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 103/130] batch 270/300 (90%) loss=6763.9618 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 103/130] batch 300/300 (100%) loss=6791.9224 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 103/130] remain=27 epochs ep_eta=51.3min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 103/130] lr=0.000000  dt=112.2s
+  train loss=6791.9224  ce=0.0830 dice=0.1767  tversky=0.2802 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 105)
+[hf1_hard_finetune] [HTFT] epoch 104: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 104/130] batch 30/300 (10%) loss=7016.4607 elapsed=12s eta=105s
+  [hf1_hard_finetune] [epoch 104/130] batch 60/300 (20%) loss=7026.2371 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 104/130] batch 90/300 (30%) loss=7031.1756 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 104/130] batch 120/300 (40%) loss=6962.3534 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 104/130] batch 150/300 (50%) loss=6900.9069 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 104/130] batch 180/300 (60%) loss=6828.5813 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 104/130] batch 210/300 (70%) loss=6875.1736 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 104/130] batch 240/300 (80%) loss=6799.2264 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 104/130] batch 270/300 (90%) loss=6815.2491 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 104/130] batch 300/300 (100%) loss=6819.9847 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 104/130] remain=26 epochs ep_eta=49.4min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 104/130] lr=0.000000  dt=112.3s
+  train loss=6819.9847  ce=0.0831 dice=0.1743  tversky=0.2809 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 105)
+[hf1_hard_finetune] [HTFT] epoch 105: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 105/130] batch 30/300 (10%) loss=6433.5271 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 105/130] batch 60/300 (20%) loss=6611.6339 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 105/130] batch 90/300 (30%) loss=6733.0937 elapsed=34s eta=80s
+  [hf1_hard_finetune] [epoch 105/130] batch 120/300 (40%) loss=6720.3894 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 105/130] batch 150/300 (50%) loss=6633.7852 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 105/130] batch 180/300 (60%) loss=6689.1025 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 105/130] batch 210/300 (70%) loss=6751.7779 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 105/130] batch 240/300 (80%) loss=6772.3252 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 105/130] batch 270/300 (90%) loss=6773.6979 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 105/130] batch 300/300 (100%) loss=6755.4399 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 105/130] remain=25 epochs ep_eta=47.5min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 105/130] lr=0.000000  dt=117.6s
+  train loss=6755.4399  ce=0.0825 dice=0.1762  tversky=0.2804 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5343
+  IoU   bg=0.9779  crack=0.5850  spalling=0.8259  | mIoU_fg=0.7055  pix_acc=0.9782
+  Dice  bg=0.9888  crack=0.7382  spalling=0.9047
+  BF1   crack=0.7636  spalling=0.6658  | BF1_fg_mean=0.7147
+[hf1_hard_finetune] [HTFT] epoch 106: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 106/130] batch 30/300 (10%) loss=6849.0895 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 106/130] batch 60/300 (20%) loss=6927.9879 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 106/130] batch 90/300 (30%) loss=6796.2308 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 106/130] batch 120/300 (40%) loss=6820.2213 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 106/130] batch 150/300 (50%) loss=6763.9138 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 106/130] batch 180/300 (60%) loss=6824.7764 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 106/130] batch 210/300 (70%) loss=6831.4726 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 106/130] batch 240/300 (80%) loss=6886.6729 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 106/130] batch 270/300 (90%) loss=6862.4286 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 106/130] batch 300/300 (100%) loss=6821.0341 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 106/130] remain=24 epochs ep_eta=45.6min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 106/130] lr=0.000001  dt=112.5s
+  train loss=6821.0341  ce=0.0828 dice=0.1744  tversky=0.2811 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 110)
+[hf1_hard_finetune] [HTFT] epoch 107: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 107/130] batch 30/300 (10%) loss=6986.6743 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 107/130] batch 60/300 (20%) loss=6756.4614 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 107/130] batch 90/300 (30%) loss=6785.0779 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 107/130] batch 120/300 (40%) loss=6769.9926 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 107/130] batch 150/300 (50%) loss=6840.6341 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 107/130] batch 180/300 (60%) loss=6839.1039 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 107/130] batch 210/300 (70%) loss=6819.3085 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 107/130] batch 240/300 (80%) loss=6843.2057 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 107/130] batch 270/300 (90%) loss=6834.1038 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 107/130] batch 300/300 (100%) loss=6821.6270 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 107/130] remain=23 epochs ep_eta=43.7min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 107/130] lr=0.000001  dt=112.0s
+  train loss=6821.6270  ce=0.0828 dice=0.1732  tversky=0.2810 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 110)
+[hf1_hard_finetune] [HTFT] epoch 108: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 108/130] batch 30/300 (10%) loss=6645.4831 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 108/130] batch 60/300 (20%) loss=6682.7621 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 108/130] batch 90/300 (30%) loss=6717.8289 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 108/130] batch 120/300 (40%) loss=6791.0622 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 108/130] batch 150/300 (50%) loss=6819.2640 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 108/130] batch 180/300 (60%) loss=6885.4349 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 108/130] batch 210/300 (70%) loss=6881.0628 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 108/130] batch 240/300 (80%) loss=6846.5397 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 108/130] batch 270/300 (90%) loss=6813.3233 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 108/130] batch 300/300 (100%) loss=6771.7515 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 108/130] remain=22 epochs ep_eta=41.8min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 108/130] lr=0.000001  dt=112.2s
+  train loss=6771.7515  ce=0.0831 dice=0.1752  tversky=0.2804 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 110)
+[hf1_hard_finetune] [HTFT] epoch 109: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 109/130] batch 30/300 (10%) loss=6508.7858 elapsed=11s eta=102s
+  [hf1_hard_finetune] [epoch 109/130] batch 60/300 (20%) loss=6801.2878 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 109/130] batch 90/300 (30%) loss=6896.8939 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 109/130] batch 120/300 (40%) loss=6758.7174 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 109/130] batch 150/300 (50%) loss=6720.5208 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 109/130] batch 180/300 (60%) loss=6695.1393 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 109/130] batch 210/300 (70%) loss=6701.2352 elapsed=78s eta=33s
+  [hf1_hard_finetune] [epoch 109/130] batch 240/300 (80%) loss=6761.2715 elapsed=89s eta=22s
+  [hf1_hard_finetune] [epoch 109/130] batch 270/300 (90%) loss=6771.2131 elapsed=100s eta=11s
+  [hf1_hard_finetune] [epoch 109/130] batch 300/300 (100%) loss=6789.7160 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 109/130] remain=21 epochs ep_eta=39.9min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 109/130] lr=0.000001  dt=111.8s
+  train loss=6789.7160  ce=0.0827 dice=0.1752  tversky=0.2803 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 110)
+[hf1_hard_finetune] [HTFT] epoch 110: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 110/130] batch 30/300 (10%) loss=6772.5429 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 110/130] batch 60/300 (20%) loss=6888.8961 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 110/130] batch 90/300 (30%) loss=7075.4603 elapsed=34s eta=80s
+  [hf1_hard_finetune] [epoch 110/130] batch 120/300 (40%) loss=6926.2544 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 110/130] batch 150/300 (50%) loss=6949.6927 elapsed=57s eta=57s
+  [hf1_hard_finetune] [epoch 110/130] batch 180/300 (60%) loss=6900.0195 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 110/130] batch 210/300 (70%) loss=6838.3704 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 110/130] batch 240/300 (80%) loss=6862.6123 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 110/130] batch 270/300 (90%) loss=6804.9781 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 110/130] batch 300/300 (100%) loss=6771.2314 elapsed=113s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 110/130] remain=20 epochs ep_eta=38.0min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 110/130] lr=0.000002  dt=117.6s
+  train loss=6771.2314  ce=0.0860 dice=0.1736  tversky=0.2794 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5315
+  IoU   bg=0.9782  crack=0.5858  spalling=0.8308  | mIoU_fg=0.7083  pix_acc=0.9785
+  Dice  bg=0.9890  crack=0.7388  spalling=0.9076
+  BF1   crack=0.7663  spalling=0.6578  | BF1_fg_mean=0.7120
+[hf1_hard_finetune] [HTFT] epoch 111: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 111/130] batch 30/300 (10%) loss=7138.8863 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 111/130] batch 60/300 (20%) loss=6899.0627 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 111/130] batch 90/300 (30%) loss=6751.2032 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 111/130] batch 120/300 (40%) loss=6860.1724 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 111/130] batch 150/300 (50%) loss=6836.0344 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 111/130] batch 180/300 (60%) loss=6829.1637 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 111/130] batch 210/300 (70%) loss=6816.9137 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 111/130] batch 240/300 (80%) loss=6842.4230 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 111/130] batch 270/300 (90%) loss=6810.2448 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 111/130] batch 300/300 (100%) loss=6878.9032 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 111/130] remain=19 epochs ep_eta=36.1min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 111/130] lr=0.000002  dt=112.2s
+  train loss=6878.9032  ce=0.0827 dice=0.1761  tversky=0.2801 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 115)
+[hf1_hard_finetune] [HTFT] epoch 112: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 112/130] batch 30/300 (10%) loss=6421.9797 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 112/130] batch 60/300 (20%) loss=6800.0593 elapsed=23s eta=92s
+  [hf1_hard_finetune] [epoch 112/130] batch 90/300 (30%) loss=7017.7294 elapsed=34s eta=80s
+  [hf1_hard_finetune] [epoch 112/130] batch 120/300 (40%) loss=6905.8622 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 112/130] batch 150/300 (50%) loss=6813.1756 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 112/130] batch 180/300 (60%) loss=6737.7716 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 112/130] batch 210/300 (70%) loss=6730.7195 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 112/130] batch 240/300 (80%) loss=6718.6089 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 112/130] batch 270/300 (90%) loss=6665.7561 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 112/130] batch 300/300 (100%) loss=6739.9108 elapsed=113s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 112/130] remain=18 epochs ep_eta=34.2min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 112/130] lr=0.000002  dt=112.6s
+  train loss=6739.9108  ce=0.0824 dice=0.1758  tversky=0.2800 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 115)
+[hf1_hard_finetune] [HTFT] epoch 113: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 113/130] batch 30/300 (10%) loss=6904.7224 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 113/130] batch 60/300 (20%) loss=6760.5931 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 113/130] batch 90/300 (30%) loss=6697.6126 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 113/130] batch 120/300 (40%) loss=6712.8076 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 113/130] batch 150/300 (50%) loss=6755.2182 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 113/130] batch 180/300 (60%) loss=6727.9615 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 113/130] batch 210/300 (70%) loss=6691.4051 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 113/130] batch 240/300 (80%) loss=6724.9679 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 113/130] batch 270/300 (90%) loss=6749.1030 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 113/130] batch 300/300 (100%) loss=6727.0951 elapsed=113s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 113/130] remain=17 epochs ep_eta=32.3min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 113/130] lr=0.000003  dt=112.6s
+  train loss=6727.0951  ce=0.0827 dice=0.1805  tversky=0.2799 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 115)
+[hf1_hard_finetune] [HTFT] epoch 114: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 114/130] batch 30/300 (10%) loss=6678.4810 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 114/130] batch 60/300 (20%) loss=7027.5768 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 114/130] batch 90/300 (30%) loss=6902.4833 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 114/130] batch 120/300 (40%) loss=6821.1827 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 114/130] batch 150/300 (50%) loss=6813.3222 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 114/130] batch 180/300 (60%) loss=6752.2420 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 114/130] batch 210/300 (70%) loss=6758.1883 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 114/130] batch 240/300 (80%) loss=6730.6007 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 114/130] batch 270/300 (90%) loss=6713.6840 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 114/130] batch 300/300 (100%) loss=6721.6189 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 114/130] remain=16 epochs ep_eta=30.4min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 114/130] lr=0.000003  dt=112.3s
+  train loss=6721.6189  ce=0.0824 dice=0.1774  tversky=0.2805 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 115)
+[hf1_hard_finetune] [HTFT] epoch 115: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 115/130] batch 30/300 (10%) loss=6418.1679 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 115/130] batch 60/300 (20%) loss=6929.9717 elapsed=23s eta=92s
+  [hf1_hard_finetune] [epoch 115/130] batch 90/300 (30%) loss=6930.2757 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 115/130] batch 120/300 (40%) loss=6827.8541 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 115/130] batch 150/300 (50%) loss=6733.7433 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 115/130] batch 180/300 (60%) loss=6722.0562 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 115/130] batch 210/300 (70%) loss=6631.6602 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 115/130] batch 240/300 (80%) loss=6675.6226 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 115/130] batch 270/300 (90%) loss=6695.9277 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 115/130] batch 300/300 (100%) loss=6744.1737 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 115/130] remain=15 epochs ep_eta=28.5min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 115/130] lr=0.000004  dt=117.1s
+  train loss=6744.1737  ce=0.0824 dice=0.1752  tversky=0.2801 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5357
+  IoU   bg=0.9778  crack=0.5842  spalling=0.8243  | mIoU_fg=0.7043  pix_acc=0.9782
+  Dice  bg=0.9888  crack=0.7376  spalling=0.9037
+  BF1   crack=0.7624  spalling=0.6605  | BF1_fg_mean=0.7115
+[hf1_hard_finetune] [HTFT] epoch 116: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 116/130] batch 30/300 (10%) loss=6690.2798 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 116/130] batch 60/300 (20%) loss=6707.3314 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 116/130] batch 90/300 (30%) loss=6696.1591 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 116/130] batch 120/300 (40%) loss=6636.3900 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 116/130] batch 150/300 (50%) loss=6719.9819 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 116/130] batch 180/300 (60%) loss=6749.0429 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 116/130] batch 210/300 (70%) loss=6737.6197 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 116/130] batch 240/300 (80%) loss=6764.2172 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 116/130] batch 270/300 (90%) loss=6782.2933 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 116/130] batch 300/300 (100%) loss=6747.4244 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 116/130] remain=14 epochs ep_eta=26.6min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 116/130] lr=0.000004  dt=112.3s
+  train loss=6747.4244  ce=0.0824 dice=0.1734  tversky=0.2801 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 120)
+[hf1_hard_finetune] [HTFT] epoch 117: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 117/130] batch 30/300 (10%) loss=7110.7887 elapsed=12s eta=105s
+  [hf1_hard_finetune] [epoch 117/130] batch 60/300 (20%) loss=6785.0498 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 117/130] batch 90/300 (30%) loss=6801.0437 elapsed=34s eta=80s
+  [hf1_hard_finetune] [epoch 117/130] batch 120/300 (40%) loss=6835.7014 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 117/130] batch 150/300 (50%) loss=6815.2255 elapsed=57s eta=57s
+  [hf1_hard_finetune] [epoch 117/130] batch 180/300 (60%) loss=6849.7383 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 117/130] batch 210/300 (70%) loss=6878.7726 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 117/130] batch 240/300 (80%) loss=6900.4817 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 117/130] batch 270/300 (90%) loss=6882.7962 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 117/130] batch 300/300 (100%) loss=6873.5337 elapsed=113s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 117/130] remain=13 epochs ep_eta=24.7min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 117/130] lr=0.000005  dt=112.9s
+  train loss=6873.5337  ce=0.0824 dice=0.1757  tversky=0.2800 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 120)
+[hf1_hard_finetune] [HTFT] epoch 118: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 118/130] batch 30/300 (10%) loss=6387.5758 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 118/130] batch 60/300 (20%) loss=6754.3268 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 118/130] batch 90/300 (30%) loss=6699.9374 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 118/130] batch 120/300 (40%) loss=6839.0999 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 118/130] batch 150/300 (50%) loss=6858.7777 elapsed=57s eta=57s
+  [hf1_hard_finetune] [epoch 118/130] batch 180/300 (60%) loss=6828.7584 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 118/130] batch 210/300 (70%) loss=6785.3200 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 118/130] batch 240/300 (80%) loss=6742.5173 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 118/130] batch 270/300 (90%) loss=6789.7770 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 118/130] batch 300/300 (100%) loss=6749.6330 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 118/130] remain=12 epochs ep_eta=22.8min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 118/130] lr=0.000005  dt=112.5s
+  train loss=6749.6330  ce=0.0823 dice=0.1785  tversky=0.2798 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 120)
+[hf1_hard_finetune] [HTFT] epoch 119: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 119/130] batch 30/300 (10%) loss=6348.7908 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 119/130] batch 60/300 (20%) loss=6542.2640 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 119/130] batch 90/300 (30%) loss=6788.4785 elapsed=34s eta=80s
+  [hf1_hard_finetune] [epoch 119/130] batch 120/300 (40%) loss=6750.4426 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 119/130] batch 150/300 (50%) loss=6693.1977 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 119/130] batch 180/300 (60%) loss=6664.9600 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 119/130] batch 210/300 (70%) loss=6749.6746 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 119/130] batch 240/300 (80%) loss=6716.5990 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 119/130] batch 270/300 (90%) loss=6719.7082 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 119/130] batch 300/300 (100%) loss=6740.8713 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 119/130] remain=11 epochs ep_eta=20.9min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 119/130] lr=0.000006  dt=112.4s
+  train loss=6740.8713  ce=0.0825 dice=0.1774  tversky=0.2794 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 120)
+[hf1_hard_finetune] [HTFT] epoch 120: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 120/130] batch 30/300 (10%) loss=6847.9697 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 120/130] batch 60/300 (20%) loss=7099.4844 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 120/130] batch 90/300 (30%) loss=7089.8648 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 120/130] batch 120/300 (40%) loss=7134.6490 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 120/130] batch 150/300 (50%) loss=7120.9641 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 120/130] batch 180/300 (60%) loss=7043.5639 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 120/130] batch 210/300 (70%) loss=6975.4904 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 120/130] batch 240/300 (80%) loss=6919.2003 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 120/130] batch 270/300 (90%) loss=6877.7713 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 120/130] batch 300/300 (100%) loss=6797.5295 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 120/130] remain=10 epochs ep_eta=19.0min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 120/130] lr=0.000006  dt=117.0s
+  train loss=6797.5295  ce=0.0826 dice=0.1739  tversky=0.2806 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5352
+  IoU   bg=0.9779  crack=0.5842  spalling=0.8293  | mIoU_fg=0.7067  pix_acc=0.9783
+  Dice  bg=0.9888  crack=0.7375  spalling=0.9067
+  BF1   crack=0.7640  spalling=0.6831  | BF1_fg_mean=0.7235
+[hf1_hard_finetune] [HTFT] epoch 121: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 121/130] batch 30/300 (10%) loss=6716.2368 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 121/130] batch 60/300 (20%) loss=6756.7260 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 121/130] batch 90/300 (30%) loss=6692.9844 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 121/130] batch 120/300 (40%) loss=6697.7888 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 121/130] batch 150/300 (50%) loss=6729.7211 elapsed=57s eta=57s
+  [hf1_hard_finetune] [epoch 121/130] batch 180/300 (60%) loss=6722.5759 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 121/130] batch 210/300 (70%) loss=6726.8209 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 121/130] batch 240/300 (80%) loss=6817.3340 elapsed=90s eta=23s
+  [hf1_hard_finetune] [epoch 121/130] batch 270/300 (90%) loss=6788.1012 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 121/130] batch 300/300 (100%) loss=6754.8983 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 121/130] remain=9 epochs ep_eta=17.1min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 121/130] lr=0.000007  dt=117.6s
+  train loss=6754.8983  ce=0.0821 dice=0.1730  tversky=0.2794 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5350
+  IoU   bg=0.9779  crack=0.5839  spalling=0.8295  | mIoU_fg=0.7067  pix_acc=0.9783
+  Dice  bg=0.9888  crack=0.7373  spalling=0.9068
+  BF1   crack=0.7635  spalling=0.6611  | BF1_fg_mean=0.7123
+[hf1_hard_finetune] [HTFT] epoch 122: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 122/130] batch 30/300 (10%) loss=7017.5793 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 122/130] batch 60/300 (20%) loss=6838.7599 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 122/130] batch 90/300 (30%) loss=6824.9252 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 122/130] batch 120/300 (40%) loss=6943.8594 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 122/130] batch 150/300 (50%) loss=6832.4445 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 122/130] batch 180/300 (60%) loss=6819.0052 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 122/130] batch 210/300 (70%) loss=6777.3545 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 122/130] batch 240/300 (80%) loss=6731.0792 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 122/130] batch 270/300 (90%) loss=6679.0469 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 122/130] batch 300/300 (100%) loss=6715.5450 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 122/130] remain=8 epochs ep_eta=15.2min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 122/130] lr=0.000008  dt=117.4s
+  train loss=6715.5450  ce=0.0824 dice=0.1716  tversky=0.2804 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5332
+  IoU   bg=0.9778  crack=0.5835  spalling=0.8323  | mIoU_fg=0.7079  pix_acc=0.9782
+  Dice  bg=0.9888  crack=0.7370  spalling=0.9085
+  BF1   crack=0.7637  spalling=0.6591  | BF1_fg_mean=0.7114
+[hf1_hard_finetune] [HTFT] epoch 123: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 123/130] batch 30/300 (10%) loss=6575.9512 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 123/130] batch 60/300 (20%) loss=6722.0003 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 123/130] batch 90/300 (30%) loss=6679.9587 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 123/130] batch 120/300 (40%) loss=6732.8856 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 123/130] batch 150/300 (50%) loss=6751.3355 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 123/130] batch 180/300 (60%) loss=6664.3219 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 123/130] batch 210/300 (70%) loss=6643.3858 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 123/130] batch 240/300 (80%) loss=6681.7611 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 123/130] batch 270/300 (90%) loss=6671.5697 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 123/130] batch 300/300 (100%) loss=6687.2807 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 123/130] remain=7 epochs ep_eta=13.3min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 123/130] lr=0.000008  dt=117.3s
+  train loss=6687.2807  ce=0.0820 dice=0.1762  tversky=0.2798 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5335
+  IoU   bg=0.9780  crack=0.5844  spalling=0.8336  | mIoU_fg=0.7090  pix_acc=0.9784
+  Dice  bg=0.9889  crack=0.7377  spalling=0.9093
+  BF1   crack=0.7636  spalling=0.6682  | BF1_fg_mean=0.7159
+  [hf1_hard_finetune] [best] mIoU_fg=0.7090  saved -> best.pt
+[hf1_hard_finetune] [HTFT] epoch 124: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 124/130] batch 30/300 (10%) loss=6832.1036 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 124/130] batch 60/300 (20%) loss=6901.3511 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 124/130] batch 90/300 (30%) loss=6736.4822 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 124/130] batch 120/300 (40%) loss=6886.4773 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 124/130] batch 150/300 (50%) loss=6759.1940 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 124/130] batch 180/300 (60%) loss=6711.8143 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 124/130] batch 210/300 (70%) loss=6791.7280 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 124/130] batch 240/300 (80%) loss=6789.0485 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 124/130] batch 270/300 (90%) loss=6772.7227 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 124/130] batch 300/300 (100%) loss=6802.3266 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 124/130] remain=6 epochs ep_eta=11.4min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 124/130] lr=0.000009  dt=118.0s
+  train loss=6802.3266  ce=0.0824 dice=0.1742  tversky=0.2798 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5353
+  IoU   bg=0.9772  crack=0.5818  spalling=0.8261  | mIoU_fg=0.7040  pix_acc=0.9776
+  Dice  bg=0.9885  crack=0.7356  spalling=0.9048
+  BF1   crack=0.7598  spalling=0.6725  | BF1_fg_mean=0.7161
+[hf1_hard_finetune] [HTFT] epoch 125: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 125/130] batch 30/300 (10%) loss=6396.0652 elapsed=12s eta=104s
+  [hf1_hard_finetune] [epoch 125/130] batch 60/300 (20%) loss=6516.2223 elapsed=23s eta=91s
+  [hf1_hard_finetune] [epoch 125/130] batch 90/300 (30%) loss=6622.7120 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 125/130] batch 120/300 (40%) loss=6614.9726 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 125/130] batch 150/300 (50%) loss=6682.3669 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 125/130] batch 180/300 (60%) loss=6660.2638 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 125/130] batch 210/300 (70%) loss=6664.6887 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 125/130] batch 240/300 (80%) loss=6689.9250 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 125/130] batch 270/300 (90%) loss=6753.6424 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 125/130] batch 300/300 (100%) loss=6768.9048 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 125/130] remain=5 epochs ep_eta=9.5min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 125/130] lr=0.000010  dt=117.4s
+  train loss=6768.9048  ce=0.0823 dice=0.1741  tversky=0.2799 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5312
+  IoU   bg=0.9779  crack=0.5843  spalling=0.8313  | mIoU_fg=0.7078  pix_acc=0.9783
+  Dice  bg=0.9888  crack=0.7376  spalling=0.9079
+  BF1   crack=0.7621  spalling=0.6850  | BF1_fg_mean=0.7235
+[hf1_hard_finetune] [HTFT] epoch 126: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 126/130] batch 30/300 (10%) loss=6926.3321 elapsed=12s eta=106s
+  [hf1_hard_finetune] [epoch 126/130] batch 60/300 (20%) loss=6748.2487 elapsed=23s eta=92s
+  [hf1_hard_finetune] [epoch 126/130] batch 90/300 (30%) loss=6806.4984 elapsed=34s eta=80s
+  [hf1_hard_finetune] [epoch 126/130] batch 120/300 (40%) loss=6798.5709 elapsed=45s eta=68s
+  [hf1_hard_finetune] [epoch 126/130] batch 150/300 (50%) loss=6832.4504 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 126/130] batch 180/300 (60%) loss=6797.5873 elapsed=68s eta=45s
+  [hf1_hard_finetune] [epoch 126/130] batch 210/300 (70%) loss=6793.4893 elapsed=79s eta=34s
+  [hf1_hard_finetune] [epoch 126/130] batch 240/300 (80%) loss=6686.1671 elapsed=90s eta=22s
+  [hf1_hard_finetune] [epoch 126/130] batch 270/300 (90%) loss=6659.9547 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 126/130] batch 300/300 (100%) loss=6702.3755 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 126/130] remain=4 epochs ep_eta=7.6min (avg 114s/ep)
+[hf1_hard_finetune] [epoch 126/130] lr=0.000010  dt=117.5s
+  train loss=6702.3755  ce=0.0824 dice=0.1720  tversky=0.2801 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5312
+  IoU   bg=0.9777  crack=0.5829  spalling=0.8370  | mIoU_fg=0.7099  pix_acc=0.9781
+  Dice  bg=0.9887  crack=0.7365  spalling=0.9112
+  BF1   crack=0.7611  spalling=0.6864  | BF1_fg_mean=0.7237
+  [hf1_hard_finetune] [best] mIoU_fg=0.7099  saved -> best.pt
+[hf1_hard_finetune] [HTFT] epoch 127: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 127/130] batch 30/300 (10%) loss=7177.1100 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 127/130] batch 60/300 (20%) loss=6825.9259 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 127/130] batch 90/300 (30%) loss=6853.4069 elapsed=34s eta=78s
+  [hf1_hard_finetune] [epoch 127/130] batch 120/300 (40%) loss=6861.4798 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 127/130] batch 150/300 (50%) loss=6775.0712 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 127/130] batch 180/300 (60%) loss=6846.7154 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 127/130] batch 210/300 (70%) loss=6730.7435 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 127/130] batch 240/300 (80%) loss=6766.5197 elapsed=89s eta=22s
+  [hf1_hard_finetune] [epoch 127/130] batch 270/300 (90%) loss=6812.6886 elapsed=100s eta=11s
+  [hf1_hard_finetune] [epoch 127/130] batch 300/300 (100%) loss=6762.3430 elapsed=111s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 127/130] remain=3 epochs ep_eta=5.7min (avg 115s/ep)
+[hf1_hard_finetune] [epoch 127/130] lr=0.000011  dt=116.5s
+  train loss=6762.3430  ce=0.0818 dice=0.1724  tversky=0.2795 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5326
+  IoU   bg=0.9780  crack=0.5852  spalling=0.8336  | mIoU_fg=0.7094  pix_acc=0.9784
+  Dice  bg=0.9889  crack=0.7383  spalling=0.9092
+  BF1   crack=0.7637  spalling=0.6696  | BF1_fg_mean=0.7167
+[hf1_hard_finetune] [HTFT] epoch 128: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 128/130] batch 30/300 (10%) loss=7114.1829 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 128/130] batch 60/300 (20%) loss=6777.6665 elapsed=23s eta=90s
+  [hf1_hard_finetune] [epoch 128/130] batch 90/300 (30%) loss=6691.1250 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 128/130] batch 120/300 (40%) loss=6720.3420 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 128/130] batch 150/300 (50%) loss=6704.9169 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 128/130] batch 180/300 (60%) loss=6736.6763 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 128/130] batch 210/300 (70%) loss=6763.9302 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 128/130] batch 240/300 (80%) loss=6722.3149 elapsed=89s eta=22s
+  [hf1_hard_finetune] [epoch 128/130] batch 270/300 (90%) loss=6751.6306 elapsed=100s eta=11s
+  [hf1_hard_finetune] [epoch 128/130] batch 300/300 (100%) loss=6755.3023 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 128/130] remain=2 epochs ep_eta=3.8min (avg 115s/ep)
+[hf1_hard_finetune] [epoch 128/130] lr=0.000012  dt=116.5s
+  train loss=6755.3023  ce=0.0825 dice=0.1766  tversky=0.2800 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5327
+  IoU   bg=0.9778  crack=0.5827  spalling=0.8360  | mIoU_fg=0.7093  pix_acc=0.9782
+  Dice  bg=0.9888  crack=0.7363  spalling=0.9106
+  BF1   crack=0.7614  spalling=0.6691  | BF1_fg_mean=0.7152
+[hf1_hard_finetune] [HTFT] epoch 129: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 129/130] batch 30/300 (10%) loss=6765.1971 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 129/130] batch 60/300 (20%) loss=6737.2985 elapsed=22s eta=90s
+  [hf1_hard_finetune] [epoch 129/130] batch 90/300 (30%) loss=6943.1130 elapsed=34s eta=79s
+  [hf1_hard_finetune] [epoch 129/130] batch 120/300 (40%) loss=6785.1962 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 129/130] batch 150/300 (50%) loss=6740.8427 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 129/130] batch 180/300 (60%) loss=6709.6231 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 129/130] batch 210/300 (70%) loss=6668.8929 elapsed=78s eta=34s
+  [hf1_hard_finetune] [epoch 129/130] batch 240/300 (80%) loss=6748.5527 elapsed=89s eta=22s
+  [hf1_hard_finetune] [epoch 129/130] batch 270/300 (90%) loss=6777.4270 elapsed=101s eta=11s
+  [hf1_hard_finetune] [epoch 129/130] batch 300/300 (100%) loss=6774.6983 elapsed=112s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 129/130] remain=1 epochs ep_eta=1.9min (avg 115s/ep)
+[hf1_hard_finetune] [epoch 129/130] lr=0.000013  dt=116.6s
+  train loss=6774.6983  ce=0.0825 dice=0.1769  tversky=0.2804 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5306
+  IoU   bg=0.9781  crack=0.5865  spalling=0.8314  | mIoU_fg=0.7089  pix_acc=0.9785
+  Dice  bg=0.9889  crack=0.7393  spalling=0.9079
+  BF1   crack=0.7659  spalling=0.6885  | BF1_fg_mean=0.7272
+[hf1_hard_finetune] [HTFT] epoch 130: tier_weights={0:0.10, 1:0.20, 2:0.70}
+  [hf1_hard_finetune] [epoch 130/130] batch 30/300 (10%) loss=7298.7588 elapsed=11s eta=103s
+  [hf1_hard_finetune] [epoch 130/130] batch 60/300 (20%) loss=6678.8553 elapsed=22s eta=90s
+  [hf1_hard_finetune] [epoch 130/130] batch 90/300 (30%) loss=6649.8397 elapsed=33s eta=78s
+  [hf1_hard_finetune] [epoch 130/130] batch 120/300 (40%) loss=6662.1931 elapsed=45s eta=67s
+  [hf1_hard_finetune] [epoch 130/130] batch 150/300 (50%) loss=6695.2755 elapsed=56s eta=56s
+  [hf1_hard_finetune] [epoch 130/130] batch 180/300 (60%) loss=6751.4724 elapsed=67s eta=45s
+  [hf1_hard_finetune] [epoch 130/130] batch 210/300 (70%) loss=6777.5145 elapsed=78s eta=33s
+  [hf1_hard_finetune] [epoch 130/130] batch 240/300 (80%) loss=6797.5840 elapsed=89s eta=22s
+  [hf1_hard_finetune] [epoch 130/130] batch 270/300 (90%) loss=6774.4795 elapsed=100s eta=11s
+  [hf1_hard_finetune] [epoch 130/130] batch 300/300 (100%) loss=6785.8714 elapsed=111s eta=0s
+[hf1_hard_finetune] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[hf1_hard_finetune] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[hf1_hard_finetune] [epoch 130/130] remain=0 epochs ep_eta=0.0min (avg 115s/ep)
+[hf1_hard_finetune] [epoch 130/130] lr=0.000014  dt=116.2s
+  train loss=6785.8714  ce=0.0822 dice=0.1755  tversky=0.2799 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.5362
+  IoU   bg=0.9777  crack=0.5828  spalling=0.8338  | mIoU_fg=0.7083  pix_acc=0.9781
+  Dice  bg=0.9887  crack=0.7364  spalling=0.9094
+  BF1   crack=0.7623  spalling=0.6744  | BF1_fg_mean=0.7183
+
+[train] final test eval using best checkpoint
+IoU   bg=0.9767  crack=0.5814  spalling=0.8451  | mIoU_fg=0.7133  pix_acc=0.9774
+Dice  bg=0.9882  crack=0.7353  spalling=0.9161
+BF1   crack=0.7551  spalling=0.6704  | BF1_fg_mean=0.7128
+clDice crack=0.8381
+[train] wrote /workspace/dam-segmentation-baselines/full_method/runs/hf1_hard_finetune/test_report.txt
+[train] wrote /workspace/dam-segmentation-baselines/full_method/runs/hf1_hard_finetune/curves.png
