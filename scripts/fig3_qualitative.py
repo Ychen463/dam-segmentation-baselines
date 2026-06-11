@@ -199,9 +199,11 @@ def main():
 
         # Col 0: Image with row label
         axes[i, 0].imshow(img_raw)
-        axes[i, 0].set_title(
-            f"**{col_headers[0]}**\n{row_label}" if i == 0 else row_label,
-            fontsize=9, pad=6)
+        if i == 0:
+            axes[i, 0].set_title(f"{col_headers[0]}\n{row_label}",
+                                  fontsize=11, fontweight="bold", pad=6)
+        else:
+            axes[i, 0].set_title(row_label, fontsize=9, pad=6)
         axes[i, 0].axis("off")
 
         # Col 1: GT overlay
