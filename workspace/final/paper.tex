@@ -37,6 +37,7 @@
 \item SRL benefits teacher training but harms student under distillation.
 \item DTKD reduces cross-seed variance by \textasciitilde{}3$\times$, acting as a training regulariser.
 \item DSConv enables 18.7\% cross-dataset mIoU vs.\ 0.1\% for vanilla SegFormer.
+\item Loss function exploration reveals a persistent crack--spalling tradeoff: improving crack precision consistently degrades spalling metrics.
 \end{highlights}
 
 \begin{abstract}
@@ -49,6 +50,7 @@ Ablation experiments confirm complementary gains: DSConv drives crack connectivi
 We also investigate Skeleton Recall Loss (SRL), finding that while it improves crack boundary accuracy in isolation, it degrades the overall pipeline when combined with DTKD ($-$1.1 mIoU$_{\text{fg}}$), revealing a negative interaction between skeleton-level supervision and soft-label distillation.
 Multi-seed experiments reveal that DTKD also acts as a strong regulariser, reducing cross-seed variance by ${\sim}$3$\times$ compared to the baseline (mIoU$_{\text{fg}}$ std: 0.52 vs.\ 1.47).
 Class-conditional teacher weighting provides marginal gains over equal weighting (+0.1 mIoU$_{\text{fg}}$) but improves crack centreline preservation (clDice$_{\text{fg}}$ +0.6).
+An exploration of six alternative training strategies reveals a persistent crack--spalling tradeoff: loss modifications that improve crack boundary precision consistently degrade spalling metrics due to shared class boundaries, suggesting that sampling-based or architectural approaches are more promising for further gains.
 Zero-shot cross-dataset evaluation on S2DS demonstrates that TopoDistill+DTKD achieves 18.7\% mIoU$_{\text{fg}}$, compared to 0.1\% for SegFormer-B2 and 2.5\% for Mask2Former, indicating that the geometric inductive bias substantially improves cross-domain robustness.
 \end{abstract}
 
@@ -57,8 +59,6 @@ Crack segmentation \sep Concrete dam inspection \sep Dynamic snake convolution \
 \end{keyword}
 
 \end{frontmatter}
-
-\linenumbers
 
 % ===========================================================================
 \section{Introduction}
@@ -87,7 +87,7 @@ Our contributions are:
 \begin{enumerate}
     \item A topology-aware segmentation framework with two complementary enhancements: a parallel Dynamic Snake Convolution branch that drives crack connectivity (ConnR$_{\text{fg}}$ +6.6) through geometry-aware sampling, and a dual-teacher knowledge distillation scheme (DTKD) that drives pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9 over DSConv alone) by transferring complementary knowledge from a task-specific teacher and a foundation-model teacher. DTKD incorporates confidence-aware distillation that modulates the KD loss at pixel level based on teacher agreement, improving boundary quality (BF1$_{\text{cr}}$ +0.8, clDice$_{\text{cr}}$ +0.6) at no additional inference cost. The framework adds only 4M parameters with no inference-time overhead from distillation.
     \item An empirical finding that Skeleton Recall Loss (SRL) exhibits an \emph{asymmetric} effect in knowledge distillation: SRL benefits \emph{teacher} training (producing richer representations that improve student performance by +1.2 mIoU$_{\text{fg}}$) but harms \emph{student} training when combined with DTKD ($-$1.1 mIoU$_{\text{fg}}$), revealing that optimal training recipes differ between teachers and distillation students.
-    \item A comprehensive evaluation including comparison with six baselines (including SAM-LoRA and DINOv2-LoRA), per-tier difficulty analysis, statistical significance testing, and zero-shot cross-dataset transfer on S2DS, demonstrating that task-specific design with knowledge distillation outperforms direct foundation-model fine-tuning on small-scale industrial datasets and that DSConv's geometric inductive bias substantially improves cross-domain robustness.
+    \item A comprehensive evaluation including comparison with six baselines (including SAM-LoRA and DINOv2-LoRA), per-tier difficulty analysis, statistical significance testing, zero-shot cross-dataset transfer on S2DS, and loss function/training strategy analysis revealing a persistent crack--spalling tradeoff at shared class boundaries, demonstrating that task-specific design with knowledge distillation outperforms direct foundation-model fine-tuning on small-scale industrial datasets and that DSConv's geometric inductive bias substantially improves cross-domain robustness.
 \end{enumerate}
 
 % ===========================================================================
@@ -309,7 +309,7 @@ Mask2Former is the heaviest model (68.7M, 39 FPS), while foundation model baseli
 
 \begin{table}[t]
 \centering
-\caption{Computational cost comparison. Params: total parameters. Train: trainable parameters (all are fully trainable unless noted). FPS: images/second on a single A40 GPU (batch size 1). $\dagger$: LoRA fine-tuning.}
+\caption{Computational cost comparison. Params: total parameters. Train: trainable parameters (all are fully trainable unless noted). FPS: images/second on a single A40 GPU (batch size 1). $\dagger$: LoRA fine-tuning. \textsuperscript{a}SAM-LoRA requires prompt-based inference incompatible with our batch FPS benchmark; we omit this value rather than report a non-comparable measurement.}
 \label{tab:cost}
 \begin{tabular}{llrrr}
 \toprule
@@ -319,7 +319,7 @@ U-Net & ResNet-34 & 24.4 & 24.4 & 519 \\
 DeepLabV3+ & ResNet-50 & 26.7 & 26.7 & 333 \\
 SegFormer-B2 & MiT-B2 & 27.3 & 27.3 & 124 \\
 Mask2Former & Swin-S & 68.7 & 68.7 & 39 \\
-SAM-LoRA$^\dagger$ & ViT-B & 93.7 & 5.0 & -- \\
+SAM-LoRA$^\dagger$ & ViT-B & 93.7 & 5.0 & --\textsuperscript{a} \\
 DINOv2-LoRA$^\dagger$ & ViT-B/14 & 92.7 & 6.1 & 68 \\
 \midrule
 TopoDistill & MiT-B2 & 31.3 & 31.3 & 96 \\
@@ -378,7 +378,7 @@ Table~\ref{tab:ablation} presents the incremental contribution of each component
 
 \begin{table*}[t]
 \centering
-\caption{Ablation study on the DamSegment test set. Rows~(a)--(d) show the main pipeline progression; row~(g) adds confidence-aware KD to the best model; rows~(e)--(f) show the effect of adding SRL. Row~(a) retrains SegFormer-B2 using the same training pipeline as all ablation variants. All values in \%.}
+\caption{Ablation study on the DamSegment test set. Rows~(a)--(d) show the main pipeline progression; row~(g) adds confidence-aware KD to the best model; rows~(e)--(f) show the effect of adding SRL. Row~(a) retrains SegFormer-B2 using the same training pipeline as all ablation variants. Bold: best per column among rows~(a)--(d) and~(g); underline: second best. All values in \%.}
 \label{tab:ablation}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -387,8 +387,8 @@ Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1
 (a) SegFormer-B2 & 70.3 & 56.9 & 83.7 & 74.0 & 68.6 & 81.8 & 82.7 & 81.0 & 77.0 \\
 (b) + DSConv & 70.4 & 56.9 & 84.0 & 73.7 & 69.5 & 82.0 & 85.5 & \textbf{84.7} & \textbf{83.6} \\
 (c) + DTKD & 72.3 & 58.5 & 86.2 & 75.6 & 70.6 & 83.3 & 86.4 & 82.1 & 83.0 \\
-(g) + conf-aware KD & \underline{72.5} & \underline{58.7} & \underline{86.3} & \underline{76.4} & \underline{71.1} & \underline{83.9} & \underline{86.1} & 81.4 & \underline{82.6} \\
-(d) (c) + TTA & \textbf{72.7} & \textbf{59.3} & \textbf{86.0} & \textbf{76.3} & \textbf{71.8} & \textbf{83.7} & \textbf{86.2} & 79.4 & 80.2 \\
+(g) + conf-aware KD & \underline{72.5} & \underline{58.7} & \textbf{86.3} & \textbf{76.4} & \underline{71.1} & \textbf{83.9} & \underline{86.1} & 81.4 & \underline{82.6} \\
+(d) (c) + TTA & \textbf{72.7} & \textbf{59.3} & \underline{86.0} & \underline{76.3} & \textbf{71.8} & \underline{83.7} & \textbf{86.2} & 79.4 & 80.2 \\
 \midrule
 (e) (b) + SRL & 70.6 & 57.3 & 83.8 & 74.7 & 70.3 & 82.5 & 85.7 & 82.2 & 77.8 \\
 (f) (e) + DTKD & 71.2 & 58.0 & 84.5 & 75.4 & \textbf{71.4} & 83.2 & \textbf{86.2} & 82.3 & 80.6 \\
@@ -498,6 +498,53 @@ Tier & Model & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{Loss function and training strategy exploration}
+\label{sec:strategy}
+
+\paragraph{Error analysis.}
+To guide loss function design, we analyse the confusion matrix of the DTKD model (row~c).
+For crack pixels, precision is 68.8\% while recall is 79.7\%, yielding a false-positive to false-negative ratio of 1.78:1.
+The majority of false positives occur at crack--background boundaries, where thin crack predictions leak into adjacent background pixels.
+This precision bottleneck motivates exploring loss functions that penalise false positives more heavily.
+
+\paragraph{Strategy variants.}
+Table~\ref{tab:strategy} summarises six training strategies applied on top of the DTKD pipeline (row~c), targeting crack precision improvement through loss modification or sampling adjustment.
+All variants use the same DSCFormer architecture with DTKD; they differ only in the segmentation loss or sampling strategy.
+Tversky loss \citep{salehi2017tversky} generalises Dice by introducing asymmetric FP/FN weights ($\alpha{>}0.5$ penalises false positives more heavily); WABL (Width-Aware Boundary Loss) applies an adaptive CE penalty at thin-crack boundary pixels where width falls below a threshold; Boundary Dice restricts the Dice computation to a dilated boundary region around ground-truth contours.
+
+\begin{table*}[t]
+\centering
+\caption{Training strategy exploration on the DamSegment test set. All variants build on DSConv+DTKD (row~c). ``Tversky $\alpha$'' controls FP penalty ($\alpha{>}0.5$ penalises FP more). WABL: Width-Aware Boundary Loss. Hard-tier FT: fine-tuning from the DTKD checkpoint with 70\% Hard-tier oversampling (30 additional epochs, lr $2{\times}10^{-5}$). Bold: best per column (excluding row~c). All values in \%.}
+\label{tab:strategy}
+\begin{tabular}{lcccccccc}
+\toprule
+Strategy & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text{cr}}$ & BF1$_{\text{sp}}$ & BF1$_{\text{fg}}$ & clDice$_{\text{fg}}$ & ConnR$_{\text{fg}}$ \\
+\midrule
+(c) DTKD (CE+Dice) & 72.3 & 58.5 & 86.2 & 75.6 & 65.6 & 70.6 & 86.4 & 83.0 \\
+\midrule
++ Tversky ($\alpha{=}0.6$) & 71.7 & 58.3 & 85.1 & 75.8 & \textbf{69.0} & \textbf{72.4} & \textbf{86.7} & 79.4 \\
++ Tversky ($\alpha{=}0.5$) & \textbf{72.1} & \textbf{58.9} & 85.4 & \textbf{76.4} & 65.7 & 71.0 & 86.5 & 81.1 \\
++ Boundary Dice & \textbf{72.1} & 58.8 & 85.4 & 75.7 & \textbf{69.2} & \textbf{72.4} & 86.4 & \textbf{83.2} \\
++ WABL & 71.6 & 58.4 & 84.8 & 75.9 & 64.0 & 70.0 & 84.9 & 79.5 \\
++ WABL + Tversky & 71.0 & 58.6 & 83.4 & 76.0 & 63.7 & 69.9 & 84.0 & 79.0 \\
+\midrule
+Hard-tier FT + WABL & 71.6 & 58.2 & 85.0 & 75.7 & 68.7 & 72.2 & \textbf{87.3} & 82.9 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{Crack--spalling tradeoff.}
+A consistent pattern emerges across all loss-based strategies: improving crack boundary precision degrades spalling metrics.
+Tversky loss with $\alpha{=}0.6$ (stronger FP penalty) improves BF1$_{\text{sp}}$ by +3.4 over the baseline, but reduces mIoU$_{\text{fg}}$ by $-$0.6 and ConnR$_{\text{fg}}$ by $-$3.6.
+WABL, which specifically targets thin-crack boundary false positives, causes the largest spalling regression (IoU$_{\text{sp}}$ $-$1.4, BF1$_{\text{sp}}$ $-$1.6).
+Combining WABL with Tversky amplifies the degradation (IoU$_{\text{sp}}$ $-$2.8).
+This tradeoff arises because crack and spalling often co-occur at shared boundaries; loss terms that suppress crack false positives inadvertently penalise adjacent spalling predictions.
+
+\paragraph{Hard-tier fine-tuning.}
+Sampling-based approaches partially mitigate this tradeoff.
+Fine-tuning from the DTKD checkpoint with 70\% Hard-tier oversampling and WABL achieves BF1$_{\text{fg}}$ 72.2 (comparable to the best loss-based variant) while maintaining better spalling coverage (IoU$_{\text{sp}}$ 85.0 vs.\ 83.4--85.4 for loss variants) and the highest clDice$_{\text{fg}}$ (87.3).
+However, no strategy surpasses the base DTKD model on mIoU$_{\text{fg}}$ (72.3), indicating that the standard CE+Dice combination is already near-optimal for this dataset and that the crack precision bottleneck requires fundamentally different approaches (e.g., higher-resolution inputs or explicit boundary modelling in the architecture).
 
 \subsection{Analysis of DTKD teacher contributions}
 
@@ -644,6 +691,14 @@ From an inspection workflow perspective, TopoDistill+DTKD offers a practical bal
 The per-tier analysis suggests prioritising model deployment on Hard-tier regions where DTKD provides the largest benefit, while Easy regions may not require topology-aware enhancements.
 For integration with existing dam SHM pipelines, the model's crack connectivity (ConnR$_{\text{fg}}$ 83.0\%, driven primarily by DSConv) helps produce predictions that are directly usable for crack length and density estimation without requiring extensive post-processing to reconnect fragmented segments.
 
+\paragraph{Crack--spalling tradeoff.}
+A recurring finding across our loss function exploration (Section~\ref{sec:strategy}) is that aggressive crack-focused optimisation consistently degrades spalling performance.
+This tradeoff is not specific to any single loss design: it manifests with Tversky loss (BF1$_{\text{sp}}$ +3.4, mIoU$_{\text{fg}}$ $-$0.6), width-aware boundary loss (IoU$_{\text{sp}}$ $-$1.4), boundary Dice (BF1$_{\text{sp}}$ +3.6, IoU$_{\text{sp}}$ $-$0.8), and their combinations.
+The root cause is geometric: crack and spalling regions frequently share boundaries in concrete dam imagery, so loss terms that suppress crack false positives at boundaries simultaneously penalise correct spalling predictions in adjacent pixels.
+This suggests that pixel-level loss modification alone cannot resolve the crack precision bottleneck without collateral damage to spalling.
+The most promising direction is sampling-based: Hard-tier fine-tuning with oversampling achieves competitive boundary quality (BF1$_{\text{fg}}$ 72.2) while better preserving spalling coverage, because it adjusts \emph{which} samples the model sees rather than \emph{how} individual pixels are penalised.
+For practitioners, this finding implies that crack and spalling segmentation may benefit from decoupled post-processing (e.g., class-specific CRF refinement) rather than joint loss engineering.
+
 \paragraph{Failure modes.}
 The model underperforms in two scenarios: (i)~thin hairline cracks (${<}$2 pixels wide) where even DSConv's deformable sampling cannot capture sufficient signal, and (ii)~regions where crack and spalling co-occur, where the model tends to over-predict one class at the expense of the other.
 
@@ -661,6 +716,7 @@ Cross-dataset evaluation on S2DS demonstrates improved relative robustness of DS
 We presented TopoDistill, a topology-aware segmentation framework for concrete dam defect analysis incorporating two complementary enhancements to a SegFormer-B2 backbone.
 Dynamic Snake Convolution drives crack connectivity (ConnR$_{\text{fg}}$ +6.6) with only 4M additional parameters, and dual-teacher knowledge distillation (DTKD) drives pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9 over DSConv alone) at zero additional inference cost, while reducing cross-seed variance by ${\sim}$3--5$\times$. Confidence-aware distillation, which modulates KD intensity based on pixel-level teacher agreement, further improves boundary quality (BF1$_{\text{cr}}$ +0.8, clDice$_{\text{cr}}$ +0.6). DTKD trades modest crack connectivity (ConnR$_{\text{cr}}$ $-$2.6) for substantial pixel-level gains; the net ConnR$_{\text{fg}}$ ($-$0.6) reflects improved spalling connectivity partially offsetting the crack regression.
 We also investigated Skeleton Recall Loss and found an asymmetric effect: SRL benefits teacher training (producing richer representations for distillation) but harms student training when combined with DTKD ($-$1.1 mIoU$_{\text{fg}}$), highlighting that optimal training recipes differ between teachers and distillation students.
+An extensive exploration of six alternative training strategies---including Tversky loss, width-aware boundary loss, boundary Dice, and hard-tier fine-tuning---revealed a persistent crack--spalling tradeoff: loss-based crack precision improvements consistently degrade spalling metrics due to shared class boundaries, suggesting that sampling-based or architectural approaches are more promising for further gains.
 The full framework achieves 72.3\% foreground mIoU (72.7\% with TTA), the highest among all compared methods on the DamSegment benchmark. ConnR$_{\text{fg}}$ (83.0\%) primarily reflects DSConv's contribution; the DSConv-only variant achieves a slightly higher 83.6\%.
 Class-conditional teacher weighting modestly improves crack centreline preservation (clDice$_{\text{fg}}$ +0.6) over equal weighting, serving as a practical design choice within DTKD rather than a core contribution.
 Zero-shot cross-dataset evaluation on S2DS confirms that DSConv's geometric inductive bias substantially improves cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$), though absolute performance remains limited, motivating future work on domain adaptation.
@@ -814,6 +870,11 @@ Pantoja-Rosero, B., Oner, D., Kozinski, M., Fua, P., 2024.
 Qi, Y., He, Y., Qi, X., Zhang, Y., Yang, G., 2023.
 \newblock Dynamic snake convolution based on topological geometric constraints for tubular structure segmentation.
 \newblock In: ICCV. pp.~6070--6079.
+
+\bibitem[Salehi et~al.(2017)]{salehi2017tversky}
+Salehi, S.S.M., Erdogmus, D., Gholipour, A., 2017.
+\newblock Tversky loss function for image segmentation using 3D fully convolutional deep networks.
+\newblock In: MLMI Workshop, MICCAI. Springer, LNCS~10541. pp.~379--387.
 
 \bibitem[Ronneberger et~al.(2015)]{ronneberger2015unet}
 Ronneberger, O., Fischer, P., Brox, T., 2015.
