@@ -104,7 +104,7 @@ Transformer-based architectures have demonstrated improved global context modell
 CrackFormer \citep{liu2021crackformer} embeds self-attention to capture long-range crack continuity, and SegFormer \citep{xie2021segformer} provides a lightweight hierarchical encoder with an all-MLP decoder.
 Universal architectures such as Mask2Former \citep{cheng2022mask2former} further push segmentation accuracy on general benchmarks but have seen limited adoption for infrastructure defects due to annotation scarcity.
 
-Applied to dam inspection specifically, \citet{arafin2024concrete} performed multi-class concrete defect segmentation using DeepLabV3+, while \citet{fang2024dam} proposed a lightweight architecture for microscopic dam crack quantification.
+Applied to dam inspection specifically, \citet{arafin2024concrete} performed multi-class concrete defect segmentation using DeepLabV3+, while \citet{fang2024dam} proposed a lightweight CNN-Transformer hybrid for dam crack patrol inspection.
 \citet{chen2024damsurvey} surveyed visual perception methods for intelligent dam inspection, identifying limited dataset scale and poor topology preservation as key open challenges.
 More recently, CCT~Net \citep{gao2026cctnet} combined CNN and Transformer branches for dam surface crack segmentation, achieving 88.7\% mIoU on a custom single-class dataset, though it does not address multi-class segmentation or topology preservation.
 
@@ -780,13 +780,13 @@ Dai, J., Qi, H., Xiong, Y., Li, Y., Zhang, G., Hu, H., Wei, Y., 2017.
 \newblock Deformable convolutional networks.
 \newblock In: ICCV. pp.~764--773.
 
-\bibitem[Fang and Liu(2024)]{fang2024dam}
-Fang, L., Liu, H., 2024.
-\newblock Lightweight crack quantification for microscopic dam surface inspection.
-\newblock Automation in Construction 158, 105222.
+\bibitem[Li et~al.(2024b)]{fang2024dam}
+Li, M., Yuan, J., Ren, Q., Luo, Q., Fu, J., Li, Z., 2024.
+\newblock CNN-Transformer hybrid network for concrete dam crack patrol inspection.
+\newblock Automation in Construction 163, 105440.
 
-\bibitem[Guo et~al.(2022)]{guo2022camkd}
-Guo, L., Wang, L., Dang, J., Zhang, L., Guan, H., Li, H., 2022.
+\bibitem[Zhang et~al.(2022)]{guo2022camkd}
+Zhang, H., Chen, D., Wang, C., 2022.
 \newblock Confidence-aware multi-teacher knowledge distillation.
 \newblock In: ICASSP. pp.~4498--4502.
 
@@ -795,8 +795,8 @@ Furlanello, T., Lipton, Z.C., Tschannen, M., Itti, L., Anandkumar, A., 2018.
 \newblock Born again neural networks.
 \newblock In: ICML. pp.~1607--1616.
 
-\bibitem[Gao et~al.(2026)]{gao2026cctnet}
-Gao, X., Li, Y., Wang, Z., 2026.
+\bibitem[Gao et~al.(2025)]{gao2026cctnet}
+Gao, X., Li, Y., Wang, Z., 2025.
 \newblock CCT Net: A dam surface crack segmentation model based on CNN and Transformer.
 \newblock Infrastructures 10~(9), 240.
 
@@ -821,8 +821,8 @@ Hu, E.J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., Wang, L., Chen,
 \newblock LoRA: Low-rank adaptation of large language models.
 \newblock In: ICLR.
 
-\bibitem[Kirchhoff et~al.(2025)]{kirchhoff2025srlcritique}
-Kirchhoff, S., Shit, S., Menze, B., 2025.
+\bibitem[Arora et~al.(2025)]{kirchhoff2025srlcritique}
+Arora, D., Kumar, N., Gupta, S., 2025.
 \newblock Does the skeleton-recall loss really work?
 \newblock arXiv preprint arXiv:2508.11374.
 
@@ -842,17 +842,17 @@ Liu, Y., Chen, K., Liu, C., Qin, Z., Luo, Z., Wang, J., 2019.
 \newblock In: CVPR. pp.~2604--2613.
 
 \bibitem[Liu et~al.(2021)]{liu2021crackformer}
-Liu, H., Miao, X., Merber, C., Jia, J., Wang, Q., 2021.
+Liu, H., Miao, X., Mertz, C., Xu, C., Kong, H., 2021.
 \newblock CrackFormer: Transformer network for fine-grained crack detection.
 \newblock In: ICCV. pp.~3783--3792.
 
 \bibitem[Pan et~al.(2025)]{pan2025tunneldsconv}
-Pan, Y., Yang, X., Zhang, L., 2025.
+Pan, Z., Zhang, X., Jiang, Y., Li, N., Mei, C., Su, H., Cai, Y., 2025.
 \newblock Automated detection system of metro tunnel lining crack using dynamic snake convolution.
 \newblock Comput.-Aided Civ.\ Infrastruct.\ Eng.\ 40, e70065.
 
-\bibitem[Pantoja-Rosero et~al.(2026)]{pantoja2026cts}
-Pantoja-Rosero, B., Oner, D., Fua, P., 2026.
+\bibitem[Joo and Kim(2026)]{pantoja2026cts}
+Joo, S., Kim, H., 2026.
 \newblock An implementation of the crack topology score with extensions.
 \newblock arXiv preprint arXiv:2601.10762.
 
@@ -861,10 +861,10 @@ Oquab, M., Darcet, T., Moutakanni, T., Vo, H., Szafraniec, M., Khalidov, V., Fer
 \newblock DINOv2: Learning robust visual features without supervision.
 \newblock Trans.\ Mach.\ Learn.\ Res.\ (TMLR).
 
-\bibitem[Pantoja-Rosero et~al.(2024)]{pantoja2024cracktopology}
-Pantoja-Rosero, B., Oner, D., Kozinski, M., Fua, P., 2024.
-\newblock Generating pragmatic crack topology metrics from images of concrete structures.
-\newblock Comput.-Aided Civ.\ Infrastruct.\ Eng.\ 39~(2), 200--220.
+\bibitem[Pantoja-Rosero et~al.(2022)]{pantoja2024cracktopology}
+Pantoja-Rosero, B.G., Oner, D., Kozi\'{n}ski, M., Achanta, R., Fua, P., P\'{e}rez-Cruz, F., Beyer, K., 2022.
+\newblock TOPO-Loss for continuity-preserving crack detection using deep learning.
+\newblock Construction and Building Materials 344, 128264.
 
 \bibitem[Qi et~al.(2023)]{qi2023dynamic}
 Qi, Y., He, Y., Qi, X., Zhang, Y., Yang, G., 2023.
@@ -891,8 +891,8 @@ Shit, S., Koner, R., Paetzold, J.C., Ezhov, I., Menze, B.H., 2024.
 \newblock Skeleton recall loss for connectivity conserving and resource efficient segmentation of thin tubular structures.
 \newblock In: ECCV, LNCS~15118. pp.~363--380.
 
-\bibitem[Wang et~al.(2025)]{wang2025taskspecifickd}
-Wang, Z., Li, H., Chen, J., 2025.
+\bibitem[Liang et~al.(2025)]{wang2025taskspecifickd}
+Liang, P., Huang, H., Pu, B., Chen, J., Hua, X., Zhang, J., Ma, W., Chen, Z., Li, Y., Chang, Q., 2025.
 \newblock Task-specific knowledge distillation from the vision foundation model for enhanced medical image segmentation.
 \newblock arXiv preprint arXiv:2503.06976.
 
@@ -907,7 +907,7 @@ Xie, E., Wang, W., Yu, Z., Anandkumar, A., Alvarez, J.M., Luo, P., 2021.
 \newblock In: NeurIPS. pp.~12077--12090.
 
 \bibitem[Yu et~al.(2024)]{yu2024dscformer}
-Yu, X., Wang, M., Li, J., Zhang, Y., 2024.
+Yu, K., Chen, I.-M., Wu, J., 2024.
 \newblock DSCformer: A dual-branch network integrating enhanced dynamic snake convolution and SegFormer for crack segmentation.
 \newblock arXiv preprint arXiv:2411.09371.
 
@@ -922,8 +922,8 @@ Yuan, L., Tay, F.E., Li, G., Wang, T., Feng, J., 2021.
 \newblock Revisiting knowledge distillation via label smoothing regularization.
 \newblock In: CVPR. pp.~3903--3911.
 
-\bibitem[Zhang et~al.(2024)]{zhang2024samdefect}
-Zhang, W., Dong, Y., Cai, Z., 2024.
+\bibitem[Ye et~al.(2024)]{zhang2024samdefect}
+Ye, Z., Lovell, L., Faramarzi, A., Ninic, J., 2024.
 \newblock Sam-based instance segmentation models for the automation of structural damage detection.
 \newblock Advanced Engineering Informatics 62, 102826.
 
