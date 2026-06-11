@@ -200,12 +200,15 @@ def main():
         t2_pred = t2_logits.argmax(1).squeeze(0).cpu().numpy()
         s_pred = s_logits.argmax(1).squeeze(0).cpu().numpy()
 
-        # Col 0: Input
+        row_label = Path(rel).stem
+
+        # Col 0: Input with row label
         axes[i, 0].imshow(img_raw)
-        # Row label on the left side
-        row_label = f"{rel.split('/')[0]}: {Path(rel).stem}"
-        axes[i, 0].set_ylabel(row_label, fontsize=9,
-                               rotation=0, labelpad=70, va="center")
+        if i == 0:
+            axes[i, 0].set_title(f"{col_titles[0]}\n{row_label}",
+                                  fontsize=10, fontweight="bold", pad=6)
+        else:
+            axes[i, 0].set_title(row_label, fontsize=9, pad=6)
 
         # Col 1: GT
         axes[i, 1].imshow(overlay(img_raw, gt))
@@ -217,7 +220,6 @@ def main():
         axes[i, 3].imshow(overlay(img_raw, t2_pred))
 
         # Col 4: Disagreement heatmap
-        # Normalize for visualization
         vmax = max(kl_map.max(), 0.01)
         axes[i, 4].imshow(img_raw, alpha=0.3)
         im = axes[i, 4].imshow(kl_map, cmap="hot", alpha=0.7,
@@ -230,9 +232,9 @@ def main():
         for j in range(n_cols):
             axes[i, j].axis("off")
 
-    # Column titles
-    for j, title in enumerate(col_titles):
-        axes[0, j].set_title(title, fontsize=10, fontweight="bold")
+    # Column titles (skip col 0 which already has title+row label)
+    for j in range(1, len(col_titles)):
+        axes[0, j].set_title(col_titles[j], fontsize=10, fontweight="bold")
 
     # Legend
     legend_patches = [

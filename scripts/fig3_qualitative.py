@@ -194,15 +194,21 @@ def main():
         mask_rgb = read_rgb(mask_path(DATA_ROOT, rel))
         gt = decode_mask(mask_rgb)
 
-        # Col 0: Image
-        axes[i, 0].imshow(img_raw)
         tier = rel.split("/")[0]
-        axes[i, 0].set_ylabel(f"{tier}: {Path(rel).stem}", fontsize=10,
-                               rotation=0, labelpad=80, va="center")
+        row_label = f"{tier}: {Path(rel).stem}"
+
+        # Col 0: Image with row label
+        axes[i, 0].imshow(img_raw)
+        axes[i, 0].set_title(
+            f"**{col_headers[0]}**\n{row_label}" if i == 0 else row_label,
+            fontsize=9, pad=6)
         axes[i, 0].axis("off")
 
         # Col 1: GT overlay
         axes[i, 1].imshow(overlay(img_raw, gt))
+        if i == 0:
+            axes[i, 1].set_title(col_headers[1], fontsize=11,
+                                  fontweight="bold", pad=10)
         axes[i, 1].axis("off")
 
         # Cols 2+: Model predictions
@@ -228,14 +234,13 @@ def main():
             ax.imshow(overlay(img_raw, pred))
             iou_str = f"Cr:{iou_cr:.2f} Sp:{iou_sp:.2f}" if not (
                 np.isnan(iou_cr) and np.isnan(iou_sp)) else ""
-            # IoU scores below each prediction
-            if iou_str:
-                ax.set_xlabel(iou_str, fontsize=9)
+            # Column header on first row, IoU scores on all rows
+            if i == 0:
+                ax.set_title(f"{col_headers[2 + j]}\n{iou_str}",
+                             fontsize=11, fontweight="bold", pad=6)
+            else:
+                ax.set_title(iou_str, fontsize=9, pad=6)
             ax.axis("off")
-
-    # Column titles on top row only
-    for j, header in enumerate(col_headers):
-        axes[0, j].set_title(header, fontsize=11, fontweight="bold", pad=10)
 
     # Legend
     legend_patches = [
