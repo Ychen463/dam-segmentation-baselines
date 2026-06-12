@@ -1,0 +1,40 @@
+\documentclass[11pt]{letter}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+
+\signature{[Corresponding Author Name]}
+\address{[Department] \\ [University] \\ [City, Country] \\ [Email]}
+
+\begin{document}
+
+\begin{letter}{Editor-in-Chief \\ Automation in Construction}
+
+\opening{Dear Editor,}
+
+We are pleased to submit our manuscript entitled \textbf{``TopoDistill: Topology-Aware Crack and Spalling Segmentation in Concrete Dams via Dynamic Snake Convolution and Dual-Teacher Distillation''} for consideration for publication in \textit{Automation in Construction}.
+
+\medskip
+\textbf{Motivation and scope.}
+Automated segmentation of cracks and spalling on concrete dam surfaces is critical for structural health monitoring, yet existing deep-learning methods optimise pixel-level metrics without preserving the structural continuity of detected defects. A fragmented crack prediction may achieve adequate IoU while misrepresenting the true crack path, leading engineers to underestimate damage severity. This paper directly addresses this gap, which we believe aligns well with the scope of \textit{Automation in Construction} in advancing intelligent inspection and monitoring of civil infrastructure.
+
+\medskip
+\textbf{Summary of contributions.}
+We propose TopoDistill, a topology-aware segmentation framework that augments SegFormer-B2 with two complementary enhancements:
+\begin{enumerate}
+    \item A \textbf{Dynamic Snake Convolution (DSConv)} branch that captures elongated crack geometry through deformable sampling, improving crack connectivity (ConnR$_{\text{fg}}$ +3.4) with only 4M additional parameters.
+    \item \textbf{Class-Conditional Dual-Teacher Knowledge Distillation (DTKD)} that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher (SAM-LoRA) with per-class weighting and pixel-level confidence modulation, improving pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9) and connectivity (ConnR$_{\text{fg}}$ +2.6) at zero additional inference cost.
+\end{enumerate}
+We additionally report three empirical findings of broader interest: (i) Skeleton Recall Loss exhibits an asymmetric effect in distillation---benefiting teachers but harming students; (ii) a persistent crack--spalling tradeoff at shared class boundaries limits loss-based optimisation; and (iii) indirectly leveraging foundation models through knowledge distillation outperforms direct fine-tuning on small-scale industrial datasets. Zero-shot cross-dataset evaluation on S2DS confirms that DSConv's geometric inductive bias substantially improves cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$).
+
+\medskip
+\textbf{Significance.}
+To our knowledge, this is the first work to combine topology-aware convolutions with class-conditional multi-teacher distillation for infrastructure defect segmentation. The framework achieves state-of-the-art performance on the DamSegment benchmark (72.3\% foreground mIoU, 83.0\% ConnR$_{\text{fg}}$) while providing practical deployment advantages: no inference-time overhead from distillation, reduced training variance (${\sim}$3$\times$), and improved cross-domain robustness. These results offer practical guidance for deploying deep learning in data-scarce dam inspection scenarios.
+
+\medskip
+\textbf{Declarations.}
+This manuscript has not been published previously and is not under consideration elsewhere. All authors have approved the manuscript and agree with its submission to \textit{Automation in Construction}. We declare no competing interests. The DamSegment dataset and the S2DS dataset used for cross-dataset evaluation are both publicly available.
+
+\closing{Sincerely,}
+
+\end{letter}
+\end{document}
