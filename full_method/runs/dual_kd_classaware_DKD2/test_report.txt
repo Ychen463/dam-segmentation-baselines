@@ -7,28 +7,28 @@ new switches: soft_curriculum=False softmax_sampling=False dynamic_loss_reweight
 cldice: use=False weight=0.05 start_epoch=60 iters=7
 srl: use=True
 loss: ce_w=0.5 dice_w=0.5 tversky_alpha=0.3 tversky_beta=0.7
-best epoch: 65
-best val mIoU_fg: 0.7078498600345698
+best epoch: 75
+best val mIoU_fg: 0.7066404747374077
 test set metrics:
-  IoU_background: 0.9769301766519376
-  IoU_crack: 0.5798051302362474
-  IoU_spalling: 0.8449316902878896
-  Dice_background: 0.9883304814603353
-  Dice_crack: 0.7340210753076135
-  Dice_spalling: 0.9159490237343623
-  mIoU_fg: 0.7123684102620684
-  mIoU_all: 0.8005556657253582
-  pixel_acc: 0.9775953165690104
-  BF1_crack: 0.7541436792339624
-  BF1_spalling: 0.6747893739130526
-  BF1_fg_mean: 0.7144665265735075
-  clDice_crack: 0.832381741367572
-  clDice_spalling: 0.8913774358904178
-  clDice_fg_mean: 0.8618795886289949
-  ConnR_crack: 0.8231497639066633
-  ConnR_spalling: 0.7882882882882883
-  ConnR_fg_mean: 0.8057190260974758
+  IoU_background: 0.9764825031587329
+  IoU_crack: 0.5781478689989042
+  IoU_spalling: 0.850778761454507
+  Dice_background: 0.9881013382088217
+  Dice_crack: 0.7326916322051006
+  Dice_spalling: 0.9193738108231685
+  mIoU_fg: 0.7144633152267057
+  mIoU_all: 0.8018030445373814
+  pixel_acc: 0.97720458984375
+  BF1_crack: 0.7466808130902001
+  BF1_spalling: 0.6459729764135889
+  BF1_fg_mean: 0.6963268947518945
+  clDice_crack: 0.8261105821614116
+  clDice_spalling: 0.8696611388558153
+  clDice_fg_mean: 0.8478858605086135
+  ConnR_crack: 0.8187524192603427
+  ConnR_spalling: 0.8288288288288289
+  ConnR_fg_mean: 0.8237906240445858
 confusion matrix (rows=gt, cols=pred):
-[[36844270   505845    30353]
- [  285282  1106710     1418]
- [   48583     9507   489632]]
+[[36804354   539699    36415]
+ [  269191  1122233     1986]
+ [   41087     7974   498661]]
