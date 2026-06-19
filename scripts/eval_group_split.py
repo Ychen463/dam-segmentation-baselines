@@ -33,6 +33,7 @@ from typing import Dict, List, Tuple
 import cv2
 import numpy as np
 import torch
+torch.backends.cudnn.enabled = False
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 
