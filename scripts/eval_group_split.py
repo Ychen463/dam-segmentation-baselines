@@ -34,6 +34,7 @@ import cv2
 import numpy as np
 import torch
 torch.backends.cudnn.enabled = False
+import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, Dataset
 
@@ -63,6 +64,18 @@ DEFAULT_MODELS = [
     "dscformer_srl_G1",
     "dual_kd_classaware_DKD2",
 ]
+
+# Mapping: model registry name -> gsplit run directory name
+GSPLIT_RUN_DIRS = {
+    "unet_r34_320": ("baseline_unet", "unet_r34_ce_dice_gsplit"),
+    "deeplabv3p_r50_512": ("baseline_deeplab", "deeplabv3p_r50_512_gsplit"),
+    "segformer_b2_plain_512": ("baseline_segformer", "segformer_b2_plain_512_gsplit"),
+    "mask2former_swin_small_512": ("baseline_mask2former", "mask2former_plain_M0_gsplit"),
+    "dscformer_srl_G1": ("full_method", "dscformer_srl_G1_gsplit"),
+    "dual_kd_classaware_DKD2": ("full_method", "dual_kd_classaware_DKD2_gsplit"),
+}
+
+DEFAULT_RETRAINED_MODELS = list(GSPLIT_RUN_DIRS.keys())
 
 
 # ---------------------------------------------------------------------------
@@ -268,13 +281,63 @@ def _pick_device() -> str:
     return "cpu"
 
 
+def _find_gsplit_checkpoint(model_name: str) -> Path:
+    """Find the group-split retrained checkpoint for a model."""
+    if model_name not in GSPLIT_RUN_DIRS:
+        raise KeyError(f"No gsplit mapping for '{model_name}'")
+    pkg, run_name = GSPLIT_RUN_DIRS[model_name]
+    return CODES_DIR / pkg / "runs" / run_name / "best.pt"
+
+
+def _load_model_from_checkpoint(model_name: str, ckpt_path: Path,
+                                device: str) -> nn.Module:
+    """Load a model using registry build_fn but with a custom checkpoint."""
+    from shared_eval.model_registry import (
+        get as get_entry,
+        SegformerLogitsWrapper,
+        FullMethodLogitsWrapper,
+        Mask2FormerLogitsWrapper,
+        _build_mask2former,
+    )
+    entry = get_entry(model_name)
+
+    if "mask2former" in model_name:
+        model, processor = _build_mask2former()
+        if ckpt_path.exists():
+            state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+            model.load_state_dict(state["model"])
+        wrapper = Mask2FormerLogitsWrapper(
+            model, processor, C.NUM_CLASSES, entry.img_size)
+        wrapper.to(device).eval()
+        return wrapper
+
+    model = entry.build_fn()
+    if ckpt_path.exists():
+        state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+        if "ema_model" in state:
+            model.load_state_dict(state["ema_model"])
+        else:
+            model.load_state_dict(state["model"])
+
+    if entry.inference_wrapper is not None:
+        model = entry.inference_wrapper(model, entry.img_size)
+
+    model.to(device).eval()
+    return model
+
+
 @torch.no_grad()
 def evaluate_model(model_name: str, test_rels: List[str],
-                   data_root: Path, device: str) -> Dict[str, float]:
+                   data_root: Path, device: str,
+                   checkpoint_override: Path = None) -> Dict[str, float]:
     """Evaluate a single model on the group-split test set."""
     from shared_eval.model_registry import get as get_entry
     entry = get_entry(model_name)
-    model = load_model(model_name, device=device)
+
+    if checkpoint_override is not None:
+        model = _load_model_from_checkpoint(model_name, checkpoint_override, device)
+    else:
+        model = load_model(model_name, device=device)
 
     dataset = DamSegDataset(data_root, test_rels, img_size=entry.img_size)
     loader = DataLoader(dataset, batch_size=4, shuffle=False,
@@ -356,6 +419,8 @@ def main() -> None:
                         help="Models to evaluate (default: key models)")
     parser.add_argument("--compare", action="store_true",
                         help="Also evaluate on original split for side-by-side comparison")
+    parser.add_argument("--retrained", action="store_true",
+                        help="Evaluate models retrained on group-split train set")
     parser.add_argument("--batch-size", type=int, default=16,
                         help="Batch size for feature extraction")
     args = parser.parse_args()
@@ -390,18 +455,38 @@ def main() -> None:
         print(f"\n[group-split] Evaluating on {len(test_rels)} group-split test images")
 
         device = _pick_device()
-        model_names = args.models or DEFAULT_MODELS
 
-        # Filter to models with existing checkpoints
-        available = list_models()
-        model_names = [m for m in model_names if m in available]
+        if args.retrained:
+            model_names = args.models or DEFAULT_RETRAINED_MODELS
+            # Filter to models with gsplit checkpoints
+            model_names = [m for m in model_names
+                           if m in GSPLIT_RUN_DIRS
+                           and _find_gsplit_checkpoint(m).exists()]
+            if not model_names:
+                print("[ERROR] No gsplit checkpoints found. "
+                      "Run scripts/run_gsplit_retrain.sh first.")
+                sys.exit(1)
+        else:
+            model_names = args.models or DEFAULT_MODELS
+            available = list_models()
+            model_names = [m for m in model_names if m in available]
 
         all_results = {}
         csv_rows = []
 
         for model_name in model_names:
-            print(f"\n--- Evaluating: {model_name} ---")
-            group_results = evaluate_model(model_name, test_rels, data_root, device)
+            if args.retrained:
+                gsplit_ckpt = _find_gsplit_checkpoint(model_name)
+                print(f"\n--- Evaluating (retrained): {model_name} "
+                      f"[{gsplit_ckpt.parent.name}] ---")
+                group_results = evaluate_model(
+                    model_name, test_rels, data_root, device,
+                    checkpoint_override=gsplit_ckpt)
+            else:
+                print(f"\n--- Evaluating: {model_name} ---")
+                group_results = evaluate_model(
+                    model_name, test_rels, data_root, device)
+
             all_results[model_name] = group_results
             print(format_results(model_name, group_results))
 
@@ -418,7 +503,8 @@ def main() -> None:
             csv_rows.append(row)
 
         # Save CSV
-        out_csv = GROUP_SPLIT_DIR / "group_split_results.csv"
+        csv_suffix = "_retrained" if args.retrained else ""
+        out_csv = GROUP_SPLIT_DIR / f"group_split_results{csv_suffix}.csv"
         if csv_rows:
             keys = list(csv_rows[0].keys())
             with open(out_csv, "w", newline="") as f:

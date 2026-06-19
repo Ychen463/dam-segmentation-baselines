@@ -615,6 +615,14 @@ def main() -> None:
     parser.add_argument("--loss-reweight-lambda", type=float, default=None)
     parser.add_argument("--seed", type=int, default=None,
                         help="Override random seed (default: config SEED=42)")
+    parser.add_argument("--train-split", type=str, default=None,
+                        help="custom train split file")
+    parser.add_argument("--val-split", type=str, default=None,
+                        help="custom val split file")
+    parser.add_argument("--kd-teacher-checkpoint", type=str, default=None,
+                        help="override teacher 1 checkpoint path")
+    parser.add_argument("--kd-teacher2-checkpoint", type=str, default=None,
+                        help="override teacher 2 checkpoint path")
     args = parser.parse_args()
 
     # Config resolution: defaults -> preset -> CLI flags -> CLI name
@@ -649,6 +657,10 @@ def main() -> None:
         cfg.loss_reweight_lambda = args.loss_reweight_lambda
     if args.name is not None:
         cfg.name = args.name
+    if args.kd_teacher_checkpoint is not None:
+        cfg.kd_teacher_checkpoint = args.kd_teacher_checkpoint
+    if args.kd_teacher2_checkpoint is not None:
+        cfg.kd_teacher2_checkpoint = args.kd_teacher2_checkpoint
     if args.grad_accum is not None:
         cfg.grad_accum = args.grad_accum
     total_epochs = args.epochs if args.epochs is not None else cfg.epochs
@@ -725,8 +737,10 @@ def main() -> None:
     samples_dir = rdir / "samples"
 
     # ----- read split files -----
-    all_train_files = read_split_file(C.SPLIT_FILES["train"])
-    val_files = read_split_file(C.SPLIT_FILES["val"])
+    all_train_files = (read_split_file(Path(args.train_split))
+                       if args.train_split else read_split_file(C.SPLIT_FILES["train"]))
+    val_files = (read_split_file(Path(args.val_split))
+                 if args.val_split else read_split_file(C.SPLIT_FILES["val"]))
     test_files = read_split_file(C.SPLIT_FILES["test"])
     print(f"[train] sizes: train={len(all_train_files)} val={len(val_files)} test={len(test_files)}")
 

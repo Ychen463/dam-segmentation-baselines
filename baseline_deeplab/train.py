@@ -78,10 +78,12 @@ def build_model(cfg: C.RunCfg) -> nn.Module:
     )
 
 
-def build_loaders(cfg: C.RunCfg, device: str, train_split_path: str = None):
+def build_loaders(cfg: C.RunCfg, device: str, train_split_path: str = None,
+                  val_split_path: str = None):
     train_files = (read_split_file(Path(train_split_path))
                    if train_split_path else read_split_file(C.SPLIT_FILES["train"]))
-    val_files = read_split_file(C.SPLIT_FILES["val"])
+    val_files = (read_split_file(Path(val_split_path))
+                 if val_split_path else read_split_file(C.SPLIT_FILES["val"]))
     test_files = read_split_file(C.SPLIT_FILES["test"])
 
     train_ds = DamSegmentDataset(C.DATA_ROOT, train_files,
@@ -286,9 +288,15 @@ def main() -> None:
                         help="checkpoint path to resume from (uses saved epoch + optimizer)")
     parser.add_argument("--train-split", type=str, default=None,
                         help="custom train split file (e.g. splits/train_20.txt)")
+    parser.add_argument("--val-split", type=str, default=None,
+                        help="custom val split file")
+    parser.add_argument("--name", type=str, default=None,
+                        help="override run directory name")
     args = parser.parse_args()
 
     cfg = C.PRESETS[args.preset]
+    if args.name is not None:
+        cfg.name = args.name
     if args.grad_accum is not None:
         cfg.grad_accum = args.grad_accum
     total_epochs = args.epochs if args.epochs is not None else cfg.epochs
@@ -310,7 +318,8 @@ def main() -> None:
     samples_dir = rdir / "samples"
 
     train_files, val_files, test_files, train_loader, val_loader, test_loader = \
-        build_loaders(cfg, device, train_split_path=args.train_split)
+        build_loaders(cfg, device, train_split_path=args.train_split,
+                      val_split_path=args.val_split)
     print(f"[train] sizes: train={len(train_files)} val={len(val_files)} test={len(test_files)}")
 
     # class weights from TRAIN files (same policy as Step 0)

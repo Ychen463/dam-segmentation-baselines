@@ -596,6 +596,8 @@ def main() -> None:
                         help="checkpoint path to resume from")
     parser.add_argument("--train-split", type=str, default=None,
                         help="custom train split file (e.g. splits/train_20.txt)")
+    parser.add_argument("--val-split", type=str, default=None,
+                        help="custom val split file")
     parser.add_argument("--ablation", type=str, default=None,
                         choices=list(C.ABLATION_PRESETS.keys()),
                         help="ablation preset: M0-M5")
@@ -648,7 +650,8 @@ def main() -> None:
     # ----- read split files -----
     train_files = (read_split_file(Path(args.train_split))
                     if args.train_split else read_split_file(C.SPLIT_FILES["train"]))
-    val_files = read_split_file(C.SPLIT_FILES["val"])
+    val_files = (read_split_file(Path(args.val_split))
+                 if args.val_split else read_split_file(C.SPLIT_FILES["val"]))
     test_files = read_split_file(C.SPLIT_FILES["test"])
     print(f"[train] sizes: train={len(train_files)} val={len(val_files)} test={len(test_files)}")
 

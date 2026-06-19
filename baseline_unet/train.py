@@ -156,6 +156,10 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=C.EPOCHS)
     parser.add_argument("--train-split", type=str, default=None,
                         help="custom train split file (e.g. splits/train_20.txt)")
+    parser.add_argument("--val-split", type=str, default=None,
+                        help="custom val split file")
+    parser.add_argument("--name", type=str, default=None,
+                        help="override run directory name")
     parser.add_argument("--resume", type=str, default=None,
                         help="checkpoint path to resume from")
     args = parser.parse_args()
@@ -164,10 +168,18 @@ def main() -> None:
     device = pick_device(C.DEVICE)
     print(f"[train] device = {device}")
 
+    # ----- run directory -----
+    run_name = args.name if args.name else C.RUN_NAME
+    run_dir = C.RUNS_DIR / run_name
+    run_dir.mkdir(parents=True, exist_ok=True)
+    samples_dir = run_dir / "samples"
+    samples_dir.mkdir(parents=True, exist_ok=True)
+
     splits = ensure_splits()
     train_files = (read_split_file(Path(args.train_split))
                    if args.train_split else splits["train"])
-    val_files = splits["val"]
+    val_files = (read_split_file(Path(args.val_split))
+                 if args.val_split else splits["val"])
     test_files = splits["test"]
     print(f"[train] sizes: train={len(train_files)} val={len(val_files)} test={len(test_files)}")
 
@@ -227,14 +239,14 @@ def main() -> None:
     for r in viz_files:
         print(f"    {r}")
     save_preview(model, viz_files, C.DATA_ROOT,
-                 C.SAMPLES_DIR / "epoch_000_init.png", device, C.IMG_SIZE)
+                 samples_dir / "epoch_000_init.png", device, C.IMG_SIZE)
 
     # ----- resume -----
-    csv_path = C.RUN_DIR / "metrics.csv"
+    csv_path = run_dir / "metrics.csv"
     best_miou = -1.0
     start_epoch = 1
-    last_pt = C.RUN_DIR / "last.pt"
-    best_pt = C.RUN_DIR / "best.pt"
+    last_pt = run_dir / "last.pt"
+    best_pt = run_dir / "best.pt"
 
     if args.resume is not None:
         resume_path = Path(args.resume)
@@ -300,7 +312,7 @@ def main() -> None:
 
         if epoch % 5 == 0 or epoch == 1 or epoch == args.epochs:
             save_preview(model, viz_files, C.DATA_ROOT,
-                         C.SAMPLES_DIR / f"epoch_{epoch:03d}.png", device, C.IMG_SIZE)
+                         samples_dir / f"epoch_{epoch:03d}.png", device, C.IMG_SIZE)
 
     # ----- final test eval (loads best) -----
     print("\n[train] final test eval using best checkpoint")
@@ -308,7 +320,7 @@ def main() -> None:
     model.load_state_dict(state["model"])
     test_m = evaluate(model, test_loader, criterion, device, metrics)
     print(format_metrics(test_m))
-    report = C.RUN_DIR / "test_report.txt"
+    report = run_dir / "test_report.txt"
     with open(report, "w") as f:
         f.write(f"best epoch: {state.get('epoch')}\n")
         f.write(f"best val mIoU_fg: {state.get('mIoU_fg')}\n")
