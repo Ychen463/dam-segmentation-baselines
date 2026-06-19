@@ -143,7 +143,12 @@ def build_group_split(
     val_ratio: float = 0.10,
     test_ratio: float = 0.10,
 ) -> Dict[str, List[str]]:
-    """Split by cluster: entire clusters go to the same fold."""
+    """Split by cluster with tier-stratified allocation.
+
+    For each tier (Easy/Medium/Hard) independently, assign clusters to
+    test/val/train so that each tier's split ratio ≈ 80/10/10.  This
+    prevents large clusters from skewing the overall tier balance.
+    """
     rng = random.Random(SEED)
 
     # Group rels by cluster
@@ -151,28 +156,41 @@ def build_group_split(
     for rel, cid in zip(all_rels, cluster_labels):
         clusters.setdefault(int(cid), []).append(rel)
 
-    # Sort clusters for determinism, then shuffle
-    cluster_ids = sorted(clusters.keys())
-    rng.shuffle(cluster_ids)
+    # For each cluster, find its dominant tier (plurality vote)
+    cluster_tier: Dict[int, str] = {}
+    for cid, members in clusters.items():
+        tiers = [r.split("/")[0] for r in members]
+        tier_counts = {t: tiers.count(t) for t in ("Easy", "Medium", "Hard")}
+        cluster_tier[cid] = max(tier_counts, key=tier_counts.get)
 
-    # Assign clusters to splits, tracking cumulative sample count
-    total = len(all_rels)
-    n_test_target = int(total * test_ratio)
-    n_val_target = int(total * val_ratio)
+    # Group cluster IDs by their dominant tier
+    tier_clusters: Dict[str, List[int]] = {"Easy": [], "Medium": [], "Hard": []}
+    for cid, tier in cluster_tier.items():
+        tier_clusters[tier].append(cid)
 
-    test_rels, val_rels, train_rels = [], [], []
-    test_count, val_count = 0, 0
+    # For each tier, assign clusters to splits independently
+    train_rels, val_rels, test_rels = [], [], []
 
-    for cid in cluster_ids:
-        members = clusters[cid]
-        if test_count < n_test_target:
-            test_rels.extend(members)
-            test_count += len(members)
-        elif val_count < n_val_target:
-            val_rels.extend(members)
-            val_count += len(members)
-        else:
-            train_rels.extend(members)
+    for tier in ("Easy", "Medium", "Hard"):
+        cids = sorted(tier_clusters[tier])
+        rng.shuffle(cids)
+
+        # Count total samples in this tier's clusters
+        tier_total = sum(len(clusters[cid]) for cid in cids)
+        n_test_target = int(tier_total * test_ratio)
+        n_val_target = int(tier_total * val_ratio)
+
+        test_count, val_count = 0, 0
+        for cid in cids:
+            members = clusters[cid]
+            if test_count < n_test_target:
+                test_rels.extend(members)
+                test_count += len(members)
+            elif val_count < n_val_target:
+                val_rels.extend(members)
+                val_count += len(members)
+            else:
+                train_rels.extend(members)
 
     rng.shuffle(train_rels)
     rng.shuffle(val_rels)
@@ -182,11 +200,11 @@ def build_group_split(
     for name, rels in [("train", train_rels), ("val", val_rels), ("test", test_rels)]:
         tiers = [r.split("/")[0] for r in rels]
         tier_counts = {t: tiers.count(t) for t in ("Easy", "Medium", "Hard")}
-        # Check spalling distribution
         n_sp = sum(1 for r in rels
                    if has_spalling_from_mask(read_mask_rgb(mask_path(data_root, r))))
+        pcts = {t: f"{tier_counts[t]*100/len(rels):.1f}%" for t in tier_counts}
         print(f"[group-split] {name}: n={len(rels)}, tiers={tier_counts}, "
-              f"has_spalling={n_sp}")
+              f"pcts={pcts}, has_spalling={n_sp}")
 
     return {"train": train_rels, "val": val_rels, "test": test_rels}
 
