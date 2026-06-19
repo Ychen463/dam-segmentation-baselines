@@ -2,28 +2,28 @@ run: mask2former_plain_M0
 pretrained: facebook/mask2former-swin-small-ade-semantic  img_size: 512  batch: 4  grad_accum: 1  epochs: 100  lr: 0.0001  warmup: 5
 curriculum: no_curriculum=True use_soft_curriculum=False
 contributions: difficulty_weighting=False cldice_loss=False
-best epoch: 55
-best val mIoU_fg: 0.6939764067815661
+best epoch: 80
+best val mIoU_fg: 0.7032857609498064
 test set metrics:
-  IoU_background: 0.9773578342438916
-  IoU_crack: 0.5709168215933347
-  IoU_spalling: 0.7861043709489779
-  Dice_background: 0.9885492826012615
-  Dice_crack: 0.7268581171780573
-  Dice_spalling: 0.8802446080251307
-  mIoU_fg: 0.6785105962711563
-  mIoU_all: 0.778126342262068
-  pixel_acc: 0.977959238688151
-  BF1_crack: 0.7599672026881429
-  BF1_spalling: 0.6901574067125194
-  BF1_fg_mean: 0.7250623047003311
-  clDice_crack: 0.8216250849019598
-  clDice_spalling: 0.9113148005625553
-  clDice_fg_mean: 0.8664699427322575
-  ConnR_crack: 0.7711081530773737
-  ConnR_spalling: 0.6801801801801802
-  ConnR_fg_mean: 0.725644166628777
+  IoU_background: 0.9781451976520157
+  IoU_crack: 0.5645567789017678
+  IoU_spalling: 0.8388930282064928
+  Dice_background: 0.9889518714935965
+  Dice_crack: 0.7216826982758087
+  Dice_spalling: 0.9123891551480633
+  mIoU_fg: 0.7017249035541303
+  mIoU_all: 0.7938650015867589
+  pixel_acc: 0.9786071268717448
+  BF1_crack: 0.7584374631074842
+  BF1_spalling: 0.6795320082101265
+  BF1_fg_mean: 0.7189847356588053
+  clDice_crack: 0.8155294408483248
+  clDice_spalling: 0.8904975627657821
+  clDice_fg_mean: 0.8530135018070535
+  ConnR_crack: 0.7755236892964388
+  ConnR_spalling: 0.7207207207207208
+  ConnR_fg_mean: 0.7481222050085798
 confusion matrix (rows=gt, cols=pred):
-[[36986952   344198    49318]
- [  393779   994971     4660]
- [   69571     5152   472999]]
+[[37016294   349799    14375]
+ [  400587   991220     1603]
+ [   62298    12540   472884]]

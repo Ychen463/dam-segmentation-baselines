@@ -1,16 +1,16 @@
-best epoch: 29
-best val mIoU_fg: 0.635039137244291
+best epoch: 28
+best val mIoU_fg: 0.636033425805828
 test set metrics:
-  IoU_background: 0.9680214453541202
-  IoU_crack: 0.513220055000091
-  IoU_spalling: 0.6787832169422036
-  Dice_background: 0.9837509114947038
-  Dice_crack: 0.6783151641484955
-  Dice_spalling: 0.8086609516844752
-  mIoU_fg: 0.5960016359711473
-  mIoU_all: 0.7200082390988048
-  pixel_acc: 0.9688339192708333
+  IoU_background: 0.9693344522731062
+  IoU_crack: 0.5169135388204464
+  IoU_spalling: 0.7154310596900512
+  Dice_background: 0.984428471409974
+  Dice_crack: 0.6815332919006036
+  Dice_spalling: 0.8341122840801509
+  mIoU_fg: 0.6161722992552487
+  mIoU_all: 0.733893016927868
+  pixel_acc: 0.9701358723958333
 confusion matrix (rows=gt, cols=pred):
-[[14279446   274828    47479]
- [  119111   422706     2586]
- [   30303     4404   179137]]
+[[14299680   265762    36311]
+ [  120934   420550     2919]
+ [   29373     3414   181057]]

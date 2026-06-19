@@ -1,0 +1,28 @@
+run: segformer_b2_staticcurr_512
+preset: B
+pretrained: nvidia/segformer-b2-finetuned-ade-512-512  img_size: 512  batch: 4  grad_accum: 1  epochs: 100  lr: 6e-05  warmup: 5  curriculum: static
+best epoch: 80
+best val mIoU_fg: 0.6799622155881972
+test set metrics:
+  IoU_background: 0.9736272029047586
+  IoU_crack: 0.5620331113971577
+  IoU_spalling: 0.7826363529273177
+  Dice_background: 0.9866373968414976
+  Dice_crack: 0.7196174105354889
+  Dice_spalling: 0.8780661873546204
+  mIoU_fg: 0.6723347321622377
+  mIoU_all: 0.7727655557430779
+  pixel_acc: 0.9744650014241536
+  BF1_crack: 0.7329345507631732
+  BF1_spalling: 0.6444104830204264
+  BF1_fg_mean: 0.6886725168917998
+  clDice_crack: None
+  clDice_spalling: None
+  clDice_fg_mean: None
+  ConnR_crack: None
+  ConnR_spalling: None
+  ConnR_fg_mean: None
+confusion matrix (rows=gt, cols=pred):
+[[36695355   600425    84688]
+ [  265262  1123883     4265]
+ [   43598     5839   498285]]
