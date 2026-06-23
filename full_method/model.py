@@ -150,6 +150,49 @@ class DSConv(nn.Module):
         return self.act(self.norm(self.conv(self.dsc(x))))
 
 
+class StandardConvBranch(nn.Module):
+    """Parameter-matched standard Conv control for CrackSnakeBranch.
+
+    Same projections + head structure, but replaces DSConv with standard
+    directional convolutions (1xK and Kx1). Parameter count closely matches
+    CrackSnakeBranch (~1.32M for K=9, hidden=64) to isolate the contribution
+    of DSConv's adaptive deformable sampling from extra capacity.
+    """
+
+    def __init__(self, s1_ch: int = 128, s2_ch: int = 320,
+                 hidden: int = 64, kernel_size: int = 9):
+        super().__init__()
+        self.proj_s1 = nn.Conv2d(s1_ch, hidden, 1)
+        self.proj_s2 = nn.Conv2d(s2_ch, hidden, 1)
+        expanded = hidden * (2 * kernel_size - 1)  # match DSConv channel expansion
+        self.expand = nn.Conv2d(hidden, expanded, 3, padding=1)
+        self.conv_x = nn.Sequential(
+            nn.Conv2d(expanded, hidden, (1, kernel_size), padding=(0, kernel_size // 2)),
+            nn.GroupNorm(min(8, hidden), hidden),
+            nn.ReLU(inplace=True),
+        )
+        self.conv_y = nn.Sequential(
+            nn.Conv2d(expanded, hidden, (kernel_size, 1), padding=(kernel_size // 2, 0)),
+            nn.GroupNorm(min(8, hidden), hidden),
+            nn.ReLU(inplace=True),
+        )
+        self.head = nn.Sequential(
+            nn.Conv2d(hidden, hidden // 2, 3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden // 2, 1, 1),
+        )
+        nn.init.zeros_(self.head[-1].weight)
+        nn.init.zeros_(self.head[-1].bias)
+
+    def forward(self, s1: torch.Tensor, s2: torch.Tensor) -> torch.Tensor:
+        f1 = self.proj_s1(s1)
+        f2 = F.interpolate(self.proj_s2(s2), size=s1.shape[-2:],
+                           mode="bilinear", align_corners=False)
+        fused = F.relu(self.expand(f1 + f2))
+        out = self.conv_x(fused) + self.conv_y(fused)
+        return self.head(out)
+
+
 class CrackSnakeBranch(nn.Module):
     """Lightweight dual-DSConv branch for crack-specific geometric features.
 
@@ -361,7 +404,13 @@ class DSCformerDam(nn.Module):
 
         # Multi-scale DSConv branch (E1 preset) or single-scale (default)
         self.use_multiscale_snake = cfg is not None and getattr(cfg, 'use_multiscale_snake', False)
-        if self.use_multiscale_snake:
+        self.use_standard_conv_branch = cfg is not None and getattr(cfg, 'use_standard_conv_branch', False)
+        if self.use_standard_conv_branch:
+            self.snake_branch = StandardConvBranch(
+                s1_ch=encoder_dims[1], s2_ch=encoder_dims[2],
+                hidden=hidden, kernel_size=ks,
+            )
+        elif self.use_multiscale_snake:
             snake_kernel_sizes = getattr(cfg, 'snake_kernel_sizes', (5, 9, 15))
             self.snake_branch = MultiScaleCrackSnakeBranch(
                 s1_ch=encoder_dims[1], s2_ch=encoder_dims[2],

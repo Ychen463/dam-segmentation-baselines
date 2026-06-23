@@ -104,6 +104,7 @@ class RunCfg:
     snake_kernel_size: int = 9               # DSConv kernel size (single-scale)
     use_multiscale_snake: bool = False       # Multi-Scale DSConv (E1 preset)
     snake_kernel_sizes: tuple = (5, 9, 15)   # kernel sizes for multi-scale branch
+    use_standard_conv_branch: bool = False   # Parameter-matched standard Conv control (Issue 6)
 
     # SAM LoRA settings (model_type="sam_lora")
     sam_checkpoint: str = "sam_vit_b_01ec64.pth"   # path to SAM ViT-B weights
@@ -523,6 +524,17 @@ ABLATION_PRESETS = {
            "use_boundary_loss": False, "use_tversky_loss": False,
            "use_cldice_loss": False, "use_srl_loss": False,
            "use_soft_boundary_schedule": False},
+    # CONV_CTRL: Parameter-matched standard Conv branch (control for DSConv geometric bias)
+    "CONV_CTRL": {"name": "segformer_stdconv_CONV_CTRL",
+                  "model_type": "dscformer",
+                  "use_standard_conv_branch": True,
+                  "no_curriculum": True,
+                  "use_soft_curriculum": False, "use_softmax_sampling": False,
+                  "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                  "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                  "use_boundary_loss": False, "use_tversky_loss": False,
+                  "use_cldice_loss": False, "use_srl_loss": False,
+                  "use_soft_boundary_schedule": False},
     "G1": {"name": "dscformer_srl_G1",
            "model_type": "dscformer",
            "no_curriculum": True,
@@ -1217,6 +1229,46 @@ ABLATION_PRESETS = {
             "use_srl_loss": True, "cldice_weight": 0.05,
             "cldice_start_epoch": 60, "cldice_iters": 7,
             "use_soft_boundary_schedule": False},
+
+    # Single-teacher ablation: isolate each teacher's contribution
+    # KD_T1: only Teacher 1 (G1) via dual-KD with t2_weight=0
+    "KD_T1": {"name": "kd_t1only_KD_T1",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 1.0, "kd_t2_weight": 0.0,
+              "kd_class_weights": False,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False,
+              "use_srl_loss": True, "cldice_weight": 0.05,
+              "cldice_start_epoch": 60, "cldice_iters": 7,
+              "use_soft_boundary_schedule": False},
+    # KD_T2: only Teacher 2 (SAM2) via dual-KD with t1_weight=0
+    "KD_T2": {"name": "kd_t2only_KD_T2",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.0, "kd_t2_weight": 1.0,
+              "kd_class_weights": False,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False,
+              "use_srl_loss": True, "cldice_weight": 0.05,
+              "cldice_start_epoch": 60, "cldice_iters": 7,
+              "use_soft_boundary_schedule": False},
 
     # Set DKD: Dual-Teacher Knowledge Distillation
     # Teacher 1: G1 (task-specific, high IoU)
