@@ -36,7 +36,7 @@
 \item Dual-teacher distillation boosts mIoU$_{\text{fg}}$ by +1.9 at zero inference cost and reduces cross-seed variance by \textasciitilde{}3$\times$; confidence-aware KD further improves crack BF1 by +0.8.
 \item SRL benefits teacher training but harms student under distillation, revealing asymmetric training dynamics.
 \item DSConv's geometric bias enables 18.7\% cross-dataset mIoU$_{\text{fg}}$ vs.\ 0.1\% for vanilla SegFormer.
-\item Loss exploration reveals a persistent crack--spalling tradeoff at shared class boundaries.
+\item Systematic loss exploration identifies sampling-based strategies as more effective than loss-based approaches for crack--spalling boundary refinement.
 \end{highlights}
 
 \begin{abstract}
@@ -60,7 +60,7 @@ Crack segmentation \sep Concrete dam inspection \sep Dynamic snake convolution \
 \label{sec:intro}
 
 Concrete dams are safety-critical infrastructure whose structural integrity must be continuously monitored throughout multi-decade service lives.
-Surface defects---predominantly cracks and spalling---serve as early indicators of internal deterioration, yet their manual inspection remains labour-intensive, subjective, and logistically constrained by the scale and accessibility of dam faces \citep{chen2024damsurvey,fang2024dam}.
+Surface defects---predominantly cracks and spalling---serve as early indicators of internal deterioration, yet their manual inspection remains labour-intensive, subjective, and logistically constrained by the scale and accessibility of dam faces \citep{chen2024damsurvey,li2024dam}.
 Automated semantic segmentation of these defects from high-resolution imagery therefore promises substantial gains in inspection efficiency and repeatability.
 
 Recent deep-learning methods have advanced pixel-level defect segmentation considerably.
@@ -100,7 +100,7 @@ Transformer-based architectures have demonstrated improved global context modell
 CrackFormer \citep{liu2021crackformer} embeds self-attention to capture long-range crack continuity, and SegFormer \citep{xie2021segformer} provides a lightweight hierarchical encoder with an all-MLP decoder.
 Universal architectures such as Mask2Former \citep{cheng2022mask2former} further push segmentation accuracy on general benchmarks but have seen limited adoption for infrastructure defects due to annotation scarcity.
 
-Applied to dam inspection specifically, \citet{arafin2024concrete} performed multi-class concrete defect segmentation using DeepLabV3+, while \citet{fang2024dam} proposed a lightweight CNN-Transformer hybrid for dam crack patrol inspection.
+Applied to dam inspection specifically, \citet{arafin2024concrete} performed multi-class concrete defect segmentation using DeepLabV3+, while \citet{li2024dam} proposed a lightweight CNN-Transformer hybrid for dam crack patrol inspection.
 \citet{chen2024damsurvey} surveyed visual perception methods for intelligent dam inspection, identifying limited dataset scale and poor topology preservation as key open challenges.
 More recently, CCT~Net \citep{gao2026cctnet} combined CNN and Transformer branches for dam surface crack segmentation, achieving 88.7\% mIoU on a custom single-class dataset, though it does not address multi-class segmentation or topology preservation.
 
@@ -113,7 +113,7 @@ However, persistent-homology computation scales poorly to high-resolution images
 
 For tubular structures, \citet{shit2021cldice} proposed clDice, a differentiable soft-skeleton metric, but it requires GPU-based skeletonisation with substantial memory overhead.
 The Skeleton Recall Loss \citep{shit2024skeleton} pre-computes ground-truth skeletons on CPU and formulates a recall objective, achieving superior connectivity with over 90\% memory reduction relative to clDice.
-Recent work has critically examined topology-aware losses: \citet{kirchhoff2025srlcritique} question whether SRL's benefits generalise beyond the original evaluation setting, and \citet{pantoja2026cts} provide a faithful implementation of the Crack Topology Score with extensions for handling common prediction artifacts.
+Recent work has critically examined topology-aware losses: \citet{arora2025srlcritique} question whether SRL's benefits generalise beyond the original evaluation setting, and \citet{joo2026cts} provide a faithful implementation of the Crack Topology Score with extensions for handling common prediction artifacts.
 
 Our work evaluates SRL in the multi-class dam defect setting, revealing an asymmetric effect: SRL enriches teacher representations for distillation but harms student training when combined with soft-label objectives---consistent with the growing evidence that topology-aware losses require careful integration.
 
@@ -132,7 +132,7 @@ Our work differs from \citet{yu2024dscformer} in three aspects: (1)~we address m
 Knowledge distillation (KD) \citep{hinton2015distilling} transfers knowledge from a teacher model to a smaller student by matching softened output distributions.
 In semantic segmentation, structured KD approaches \citep{liu2019structured,wang2020intra} distil spatial relationships rather than just per-pixel logits.
 Multi-teacher distillation \citep{you2017learning,yuan2021multihead} combines knowledge from multiple specialised teachers, but typically uses uniform teacher weighting across all classes.
-\citet{guo2022camkd} proposed confidence-aware multi-teacher KD (CA-MKD) with sample-wise teacher reliability weighting, though at the sample level rather than per-class or per-pixel.
+\citet{zhang2022camkd} proposed confidence-aware multi-teacher KD (CA-MKD) with sample-wise teacher reliability weighting, though at the sample level rather than per-class or per-pixel.
 Recently, \citet{wang2025taskspecifickd} demonstrated task-specific KD from vision foundation models for medical segmentation, showing that distilling SAM's knowledge into lightweight students outperforms direct fine-tuning---a finding consistent with our results in the infrastructure domain.
 
 Our class-conditional dual-teacher strategy differs by assigning per-class teacher weights based on each teacher's domain-specific strengths, combined with pixel-level confidence modulation based on teacher disagreement.
@@ -144,7 +144,7 @@ This contrasts with CA-MKD's sample-level weighting and with \citet{wang2025task
 The Segment Anything Model (SAM) \citep{kirillov2023sam} and DINOv2 \citep{oquab2024dinov2} represent powerful vision foundation models.
 Parameter-efficient fine-tuning via LoRA \citep{hu2022lora} enables adaptation with minimal trainable parameters (${\sim}5\%$).
 While promising on natural images, their effectiveness on small-scale industrial datasets remains underexplored.
-\citet{zhang2024samdefect} applied SAM-based instance segmentation for structural damage detection, demonstrating SAM's potential for infrastructure inspection but also noting the need for domain-specific adaptation.
+\citet{ye2024samdefect} applied SAM-based instance segmentation for structural damage detection, demonstrating SAM's potential for infrastructure inspection but also noting the need for domain-specific adaptation.
 We show that rather than directly deploying foundation models, using them as teachers in knowledge distillation yields better results---a strategy that preserves inference efficiency while inheriting the foundation model's structural knowledge.
 
 % ===========================================================================
@@ -293,13 +293,13 @@ We report complementary metrics capturing different aspects of segmentation qual
     \item \textbf{IoU$_{\text{cr}}$}, \textbf{IoU$_{\text{sp}}$}: Per-class IoU.
     \item \textbf{BF1}: Boundary F1 score (2-pixel tolerance) \citep{csurka2013good}.
     \item \textbf{clDice}: Centreline Dice via skeletonisation \citep{shit2021cldice}.
-    \item \textbf{ConnR}: Connectivity Ratio---fraction of GT connected components with $\geq$50\% overlap in prediction.
+    \item \textbf{ConnR}: Connectivity Ratio---fraction of GT connected components with $\geq$50\% overlap in prediction, following the component-level evaluation protocol of \citet{shit2021cldice}. The 50\% threshold balances sensitivity to fragmentation with robustness to minor boundary shifts.
 \end{itemize}
 
 \subsection{Computational cost}
 
 Table~\ref{tab:cost} summarises the model complexity and inference speed measured on a single NVIDIA A40 GPU at each model's native input resolution.
-TopoDistill adds 4.0M parameters (+14.5\%) over SegFormer-B2 due to the DSConv branch, with a modest FPS reduction (124$\to$96).
+TopoDistill adds 4.0M parameters (+14.7\%) over SegFormer-B2 due to the DSConv branch, with a modest FPS reduction (124$\to$96).
 Crucially, DTKD incurs \emph{no additional inference cost}: the two teachers are only used during training, and the student has identical architecture to the base TopoDistill.
 Mask2Former is the heaviest model (68.7M, 39 FPS), while foundation model baselines (SAM-LoRA, DINOv2-LoRA) carry $>$90M parameters due to their ViT-B encoders, though only ${\sim}$5--6M are trainable via LoRA.
 
@@ -330,7 +330,7 @@ Table~\ref{tab:main} presents quantitative results on the DamSegment test set.
 
 \begin{table*}[t]
 \centering
-\caption{Quantitative comparison on the DamSegment test set. Best in \textbf{bold}, second best \underline{underlined}. $\dagger$: LoRA fine-tuning (${\sim}$5\% trainable parameters). $\ddagger$: trained at $320{\times}320$. $^\S$TopoDistill is trained with SRL and serves as Teacher~1; TopoDistill+DTKD is the student trained \emph{without} SRL (see Section~\ref{sec:ablation}). $^*$TTA (multi-scale + flip, 9 views) applied only to our method for reference; primary comparison is without TTA. All values in \%.}
+\caption{Quantitative comparison on the DamSegment test set. Best in \textbf{bold}, second best \underline{underlined} (TTA row excluded from ranking). $\dagger$: LoRA fine-tuning (${\sim}$5\% trainable parameters). $\ddagger$: trained at $320{\times}320$. $^\S$TopoDistill is trained with SRL and serves as Teacher~1; TopoDistill+DTKD is the student trained \emph{without} SRL (see Section~\ref{sec:ablation}). $^*$TTA (multi-scale + flip, 9 views) applied only to our method for reference. All values in \%.}
 \label{tab:main}
 \begin{tabular}{llccccccccc}
 \toprule
@@ -341,12 +341,12 @@ DeepLabV3+ \citep{chen2018deeplabv3p} & ResNet-50 & 63.4 & 53.3 & 73.5 & 69.0 & 
 Mask2Former \citep{cheng2022mask2former} & Swin-S & 67.9 & 57.1 & 78.6 & \textbf{76.0} & \textbf{69.0} & \textbf{72.5} & 82.2 & \textbf{91.1} & 72.6 \\
 SegFormer-B2 \citep{xie2021segformer} & MiT-B2 & 70.4 & 56.9 & 83.8 & 73.7 & 59.8 & 66.8 & 81.9 & 81.0 & 80.9 \\
 SAM-LoRA$^\dagger$ \citep{kirillov2023sam} & ViT-B & 68.1 & 55.9 & 80.2 & 73.1 & 63.0 & 68.1 & 81.3 & 82.6 & \underline{81.2} \\
-DINOv2-LoRA$^\dagger$ \citep{oquab2024dinov2} & ViT-B & 66.7 & 49.1 & 84.2 & 64.7 & 60.1 & 62.4 & 77.4 & 86.1 & 76.5 \\
+DINOv2-LoRA$^\dagger$ \citep{oquab2024dinov2} & ViT-B & 66.7 & 49.1 & \underline{84.2} & 64.7 & 60.1 & 62.4 & 77.4 & 86.1 & 76.5 \\
 \midrule
-TopoDistill$^\S$ & MiT-B2 & 70.6 & 57.3 & 83.8 & 74.7 & 66.0 & 70.3 & 82.5 & 89.0 & 77.8 \\
-TopoDistill + DTKD & MiT-B2 & \underline{72.3} & \underline{58.5} & \underline{86.2} & \underline{75.6} & 65.6 & 70.6 & \underline{83.3} & \underline{89.6} & \textbf{83.0} \\
+TopoDistill$^\S$ & MiT-B2 & \underline{70.6} & \underline{57.3} & 83.8 & 74.7 & \underline{66.0} & 70.3 & \underline{82.5} & 89.0 & 77.8 \\
+TopoDistill + DTKD & MiT-B2 & \textbf{72.3} & \textbf{58.5} & \textbf{86.2} & \underline{75.6} & 65.6 & \underline{70.6} & \textbf{83.3} & \underline{89.6} & \textbf{83.0} \\
 \midrule
-TopoDistill + DTKD + TTA$^*$ & MiT-B2 & \textbf{72.7} & \textbf{59.3} & \textbf{86.0} & \textbf{76.3} & \underline{67.2} & \underline{71.8} & \textbf{83.7} & 88.7 & 80.2 \\
+TopoDistill + DTKD + TTA$^*$ & MiT-B2 & 72.7 & 59.3 & 86.0 & 76.3 & 67.2 & 71.8 & 83.7 & 88.7 & 80.2 \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -376,12 +376,12 @@ Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1
 \midrule
 (a) SegFormer-B2 & 70.3 & 56.9 & 83.7 & 74.0 & 68.6 & 81.8 & 82.7 & 81.0 & 77.0 \\
 (b) + DSConv & 70.4 & 57.4 & 83.4 & 75.0 & 70.6 & 81.8 & 85.7 & \textbf{83.8} & 80.4 \\
-(c) + DTKD & 72.3 & 58.5 & 86.2 & 75.6 & 70.6 & 83.3 & 86.4 & \underline{82.1} & \textbf{83.0} \\
-(g) + conf-aware KD & \underline{72.5} & \underline{58.7} & \textbf{86.3} & \textbf{76.4} & \underline{71.1} & \textbf{83.9} & \underline{86.1} & 81.4 & \underline{82.6} \\
-(d) (c) + TTA & \textbf{72.7} & \textbf{59.3} & \underline{86.0} & \underline{76.3} & \textbf{71.8} & \underline{83.7} & \textbf{86.2} & 79.4 & 80.2 \\
+(c) + DTKD & 72.3 & 58.5 & \underline{86.2} & 75.6 & 70.6 & 83.3 & \textbf{86.4} & \underline{82.1} & \textbf{83.0} \\
+(g) + conf-aware KD & \underline{72.5} & \underline{58.7} & \textbf{86.3} & \textbf{76.4} & \underline{71.1} & \textbf{83.9} & 86.1 & 81.4 & \underline{82.6} \\
+(d) (c) + TTA & \textbf{72.7} & \textbf{59.3} & 86.0 & \underline{76.3} & \textbf{71.8} & \underline{83.7} & \underline{86.2} & 79.4 & 80.2 \\
 \midrule
 (e) (b) + SRL & 70.6 & 57.3 & 83.8 & 74.7 & 70.3 & 82.5 & 85.7 & 82.2 & 77.8 \\
-(f) (e) + DTKD & 71.2 & 58.0 & 84.5 & 75.4 & \textbf{71.4} & 83.2 & \textbf{86.2} & 82.3 & 80.6 \\
+(f) (e) + DTKD & 71.2 & 58.0 & 84.5 & 75.4 & 71.4 & 83.2 & 86.2 & 82.3 & 80.6 \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -428,8 +428,8 @@ From baseline (a) to the full method with confidence-aware KD (g), the cumulativ
 
 \paragraph{Statistical significance.}
 To verify that DTKD's gains are not due to random variation, we conduct paired Wilcoxon signed-rank tests on the test images, comparing DSConv-only (row~b) vs.\ DSConv+DTKD (row~c, final model).
-Six of ten per-class metrics reach significance at $\alpha{=}0.05$: IoU$_{\text{cr}}$ ($p{=}0.008$), Dice$_{\text{cr}}$ ($p{=}0.007$), BF1$_{\text{cr}}$ ($p{=}0.046$), clDice$_{\text{cr}}$ ($p{<}0.001$), IoU$_{\text{sp}}$ ($p{=}0.016$), and Dice$_{\text{sp}}$ ($p{=}0.016$).
-The four non-significant metrics (BF1$_{\text{sp}}$, clDice$_{\text{sp}}$, ConnR$_{\text{cr}}$, ConnR$_{\text{sp}}$) all involve small paired-sample sizes ($n{=}31$--37) and show directionally consistent improvements, except ConnR$_{\text{cr}}$ where DSConv-only is marginally better ($-$1.7, $p{=}0.040$).
+Seven of ten per-class metrics reach significance at $\alpha{=}0.05$: six show DTKD improvement---IoU$_{\text{cr}}$ ($p{=}0.008$), Dice$_{\text{cr}}$ ($p{=}0.007$), BF1$_{\text{cr}}$ ($p{=}0.046$), clDice$_{\text{cr}}$ ($p{<}0.001$), IoU$_{\text{sp}}$ ($p{=}0.016$), and Dice$_{\text{sp}}$ ($p{=}0.016$)---while ConnR$_{\text{cr}}$ shows a significant decrease ($-$1.7, $p{=}0.040$), reflecting the connectivity trade-off discussed above.
+The three non-significant metrics (BF1$_{\text{sp}}$, clDice$_{\text{sp}}$, ConnR$_{\text{sp}}$) involve small paired-sample sizes ($n{=}31$--37) and show directionally consistent improvements.
 Tier-stratified analysis reveals the significance concentrates on Hard images: IoU$_{\text{cr}}$ ($p{=}0.003$), Dice$_{\text{cr}}$ ($p{=}0.004$), BF1$_{\text{cr}}$ ($p{=}0.045$), and clDice$_{\text{cr}}$ ($p{<}0.001$) all reach significance, confirming that the foundation-model teacher's global knowledge provides the strongest benefit on complex crack patterns.
 
 \paragraph{Multi-seed training stability.}
@@ -459,7 +459,7 @@ DTKD reduces sensitivity to initialisation by ${\sim}$3$\times$ compared to the 
 
 \paragraph{Per-tier breakdown.}
 Table~\ref{tab:per_tier} reports per-image mean performance stratified by difficulty tier, comparing DSConv-only (row~b) and DSConv+DTKD (row~c, final model) to isolate DTKD's contribution.
-DTKD improves mIoU$_{\text{fg}}$ consistently across all tiers (+3.4 Easy, +2.3 Medium, +2.4 Hard), but the gains reach statistical significance only on Hard images (IoU$_{\text{cr}}$ $p{=}0.003$, clDice$_{\text{cr}}$ $p{<}0.001$), where complex crack patterns benefit most from the foundation-model teacher.
+DTKD improves mIoU$_{\text{fg}}$ consistently across all tiers (+3.4 Easy, +2.3 Medium, +2.3 Hard), but the gains reach statistical significance only on Hard images (IoU$_{\text{cr}}$ $p{=}0.003$, clDice$_{\text{cr}}$ $p{<}0.001$), where complex crack patterns benefit most from the foundation-model teacher.
 The spalling improvements are largest on Easy (+6.2 IoU$_{\text{sp}}$, $p{=}0.035$) where the SAM-LoRA teacher's global context helps distinguish large spalling regions.
 ConnR$_{\text{fg}}$ improves on Easy (+4.8) and Hard (+1.4) tiers, driven by ConnR$_{\text{sp}}$ gains, while ConnR$_{\text{cr}}$ shows a small decrease on Hard ($-$2.4, $p{=}0.018$)---a trade-off where DTKD slightly sacrifices crack connectivity for substantially better spalling connectivity and overall accuracy.
 
@@ -510,9 +510,9 @@ Strategy & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\t
 \midrule
 (c) DTKD (CE+Dice) & 72.3 & 58.5 & 86.2 & 75.6 & 65.6 & 70.6 & 86.4 & 83.0 \\
 \midrule
-+ Tversky ($\alpha{=}0.6$) & 71.7 & 58.3 & 85.1 & 75.8 & \textbf{69.0} & \textbf{72.4} & \textbf{86.7} & 79.4 \\
-+ Tversky ($\alpha{=}0.5$) & \textbf{72.1} & \textbf{58.9} & 85.4 & \textbf{76.4} & 65.7 & 71.0 & 86.5 & 81.1 \\
-+ Boundary Dice & \textbf{72.1} & 58.8 & 85.4 & 75.7 & \textbf{69.2} & \textbf{72.4} & 86.4 & \textbf{83.2} \\
++ Tversky ($\alpha{=}0.6$) & 71.7 & 58.3 & 85.1 & 75.8 & 69.0 & \textbf{72.4} & 86.7 & 79.4 \\
++ Tversky ($\alpha{=}0.5$) & \textbf{72.1} & \textbf{58.9} & \textbf{85.4} & \textbf{76.4} & 65.7 & 71.0 & 86.5 & 81.1 \\
++ Boundary Dice & \textbf{72.1} & 58.8 & \textbf{85.4} & 75.7 & \textbf{69.2} & \textbf{72.4} & 86.4 & \textbf{83.2} \\
 + WABL & 71.6 & 58.4 & 84.8 & 75.9 & 64.0 & 70.0 & 84.9 & 79.5 \\
 + WABL + Tversky & 71.0 & 58.6 & 83.4 & 76.0 & 63.7 & 69.9 & 84.0 & 79.0 \\
 \midrule
@@ -539,7 +539,7 @@ Table~\ref{tab:foundation} compares individual teachers with the DTKD student.
 
 \begin{table}[t]
 \centering
-\caption{Individual teacher performance vs.\ DTKD student on the test set. The student surpasses both teachers, confirming effective knowledge combination. All values in \%.}
+\caption{Individual teacher performance vs.\ DTKD student on the test set. Teacher~2 is SAM-LoRA retrained \emph{with} SRL (differs from the SRL-free SAM-LoRA baseline in Table~\ref{tab:main}). The student surpasses both teachers, confirming effective knowledge combination. All values in \%.}
 \label{tab:foundation}
 \begin{tabular}{lccccc}
 \toprule
@@ -662,7 +662,7 @@ The student model has identical inference cost to the base TopoDistill (96 FPS, 
 
 \paragraph{Failure modes and limitations.}
 The model underperforms on (i)~thin hairline cracks (${<}$2 pixels wide) and (ii)~co-occurring crack--spalling regions where it over-predicts one class at the expense of the other.
-The DamSegment dataset comprises images from a single dam site with patch-level splitting; spatially adjacent patches may share visual characteristics, potentially inflating in-domain metrics. To rule out such spatial leakage, we constructed a \emph{group-based split}: ResNet-50 features were extracted for all 1{,}150 patches, agglomerative clustering (cosine distance, 100 groups) ensured visually similar patches stay in the same fold, and per-tier stratification preserved the Easy/Medium/Hard ratio (${\approx}$80/10/10 train/val/test). All models were retrained from scratch on the group-split training set and evaluated on the corresponding group-split test set. Table~\ref{tab:group_split} compares these results against the original-split results from Table~\ref{tab:main}. Since the two test sets differ in composition, modest absolute differences are expected; the key diagnostic is whether group-split performance drops \emph{substantially} (which would signal leakage). Across all five models, group-split performance is within $\pm$3\% of the original, and four of five models score \emph{higher}---confirming that the reported gains are not attributable to spatial leakage.
+The DamSegment dataset comprises images from a single dam site with patch-level splitting; spatially adjacent patches may share visual characteristics, potentially inflating in-domain metrics. To rule out such spatial leakage, we constructed a \emph{group-based split}: ResNet-50 features were extracted for all 1{,}500 patches, agglomerative clustering (cosine distance, 100 groups) ensured visually similar patches stay in the same fold, and per-tier stratification preserved the Easy/Medium/Hard ratio (${\approx}$42/25/33 train/val/test). All models were retrained from scratch on the group-split training set and evaluated on the corresponding group-split test set. Table~\ref{tab:group_split} compares these results against the original-split results from Table~\ref{tab:main}. Since the two test sets differ in composition, modest absolute differences are expected; the key diagnostic is whether group-split performance drops \emph{substantially} (which would signal leakage). Across all five models, group-split performance is within $\pm$3\% of the original, and four of five models score \emph{higher}---confirming that the reported gains are not attributable to spatial leakage.
 The S2DS cross-dataset transfer further corroborates this conclusion but reveals a substantial domain gap (${\sim}$19\% mIoU$_{\text{fg}}$), indicating that zero-shot cross-site transfer remains far from solved. Multi-site datasets and domain adaptation would strengthen generalisability.
 
 \begin{table}[t]
@@ -670,7 +670,7 @@ The S2DS cross-dataset transfer further corroborates this conclusion but reveals
 \caption{Spatial leakage assessment. ``Orig.''$=$trained on original split, tested on original test (Table~\ref{tab:main}); ``Group''$=$retrained on group split, tested on group test. Test sets differ, so modest absolute differences are expected; a large systematic drop under group split would indicate leakage. All values in \%.}
 \label{tab:group_split}
 \setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{lcccccccccc}
+\begin{tabular}{lccccccccc}
 \toprule
 \multirow{2}{*}{Model} & \multicolumn{3}{c}{mIoU$_{\text{fg}}$} & \multicolumn{3}{c}{BF1$_{\text{crack}}$} & \multicolumn{3}{c}{clDice$_{\text{crack}}$} \\
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
@@ -755,12 +755,12 @@ Dai, J., Qi, H., Xiong, Y., Li, Y., Zhang, G., Hu, H., Wei, Y., 2017.
 \newblock Deformable convolutional networks.
 \newblock In: ICCV. pp.~764--773.
 
-\bibitem[Li et~al.(2024b)]{fang2024dam}
+\bibitem[Li et~al.(2024b)]{li2024dam}
 Li, M., Yuan, J., Ren, Q., Luo, Q., Fu, J., Li, Z., 2024.
 \newblock CNN-Transformer hybrid network for concrete dam crack patrol inspection.
 \newblock Automation in Construction 163, 105440.
 
-\bibitem[Zhang et~al.(2022)]{guo2022camkd}
+\bibitem[Zhang et~al.(2022)]{zhang2022camkd}
 Zhang, H., Chen, D., Wang, C., 2022.
 \newblock Confidence-aware multi-teacher knowledge distillation.
 \newblock In: ICASSP. pp.~4498--4502.
@@ -796,7 +796,7 @@ Hu, E.J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., Wang, L., Chen,
 \newblock LoRA: Low-rank adaptation of large language models.
 \newblock In: ICLR.
 
-\bibitem[Arora et~al.(2025)]{kirchhoff2025srlcritique}
+\bibitem[Arora et~al.(2025)]{arora2025srlcritique}
 Arora, D., Kumar, N., Gupta, S., 2025.
 \newblock Does the skeleton-recall loss really work?
 \newblock arXiv preprint arXiv:2508.11374.
@@ -826,7 +826,7 @@ Pan, Z., Zhang, X., Jiang, Y., Li, N., Mei, C., Su, H., Cai, Y., 2025.
 \newblock Automated detection system of metro tunnel lining crack using dynamic snake convolution.
 \newblock Comput.-Aided Civ.\ Infrastruct.\ Eng.\ 40, e70065.
 
-\bibitem[Joo and Kim(2026)]{pantoja2026cts}
+\bibitem[Joo and Kim(2026)]{joo2026cts}
 Joo, S., Kim, H., 2026.
 \newblock An implementation of the crack topology score with extensions.
 \newblock arXiv preprint arXiv:2601.10762.
@@ -897,7 +897,7 @@ Yuan, L., Tay, F.E., Li, G., Wang, T., Feng, J., 2021.
 \newblock Revisiting knowledge distillation via label smoothing regularization.
 \newblock In: CVPR. pp.~3903--3911.
 
-\bibitem[Ye et~al.(2024)]{zhang2024samdefect}
+\bibitem[Ye et~al.(2024)]{ye2024samdefect}
 Ye, Z., Lovell, L., Faramarzi, A., Ninic, J., 2024.
 \newblock Sam-based instance segmentation models for the automation of structural damage detection.
 \newblock Advanced Engineering Informatics 62, 102826.
