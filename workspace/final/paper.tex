@@ -43,7 +43,7 @@
 Automated semantic segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring, yet existing methods optimise pixel-level objectives without preserving the structural continuity of detected defects.
 We propose \textbf{TopoDistill}, a topology-aware segmentation framework that augments a SegFormer-B2 backbone with two complementary enhancements:
 (1)~a \emph{Dynamic Snake Convolution} (DSConv) branch that captures elongated crack geometry through deformable sampling, adding only 4M parameters; and
-(2)~\emph{Class-Conditional Dual-Teacher Knowledge Distillation} (DTKD) that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher with per-class weighting and pixel-level agreement-aware modulation, at zero additional inference cost.
+(2)~\emph{Class-Conditional Dual-Teacher Knowledge Distillation} (DTKD) that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher with per-class weighting, at zero additional inference cost. An optional agreement-aware extension further modulates the distillation signal based on inter-teacher agreement.
 On the \textbf{DamSegment} dataset \citep{damsegment2026} (1{,}500 images, 3~classes), the primary method (DSConv+DTKD, row~c in Table~\ref{tab:ablation}) achieves 72.3\% foreground mIoU---the highest among all compared methods---with DSConv driving crack connectivity (ConnR$_{\text{fg}}$ +3.4) and DTKD driving pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9) while reducing cross-seed variance by ${\sim}$3$\times$.
 An investigation of Skeleton Recall Loss reveals an asymmetric effect in distillation: SRL benefits teachers but harms students, indicating that optimal training recipes differ across pipeline stages.
 Zero-shot cross-dataset evaluation confirms that the full pipeline substantially improves cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$), with DSConv's geometric inductive bias as a key contributor.
@@ -242,12 +242,13 @@ We empirically validate that teacher disagreement correlates with sample difficu
     \label{fig:agreement}
 \end{figure}
 
-\paragraph{Total loss.} The final training objective balances the segmentation loss and distillation loss:
+\paragraph{Total loss.} The primary training objective (row~c) balances the segmentation loss and distillation loss:
 \begin{equation}
-    \mathcal{L} = (1-\alpha) \left[\lambda_1 \mathcal{L}_{\text{CE}} + \lambda_2 \mathcal{L}_{\text{Dice}}\right] + \alpha \, \mathcal{L}_{\text{KD}}^{\text{conf}}
+    \mathcal{L} = (1-\alpha) \left[\lambda_1 \mathcal{L}_{\text{CE}} + \lambda_2 \mathcal{L}_{\text{Dice}}\right] + \alpha \, \mathcal{L}_{\text{KD}}
     \label{eq:total_loss}
 \end{equation}
 with $\alpha = 0.5$, $\tau = 4$, and $\lambda_1 = \lambda_2 = 0.5$.
+The agreement-aware variant (row~g) substitutes $\mathcal{L}_{\text{KD}}^{\text{conf}}$ (Eq.~\ref{eq:conf_kd}) for $\mathcal{L}_{\text{KD}}$, down-weighting unreliable pixels.
 Note that SRL is used only during \emph{teacher} training; the student does not use SRL, as we find it conflicts with the distillation objective (Section~\ref{sec:ablation}).
 
 \subsection{Test-time augmentation}
