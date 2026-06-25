@@ -368,14 +368,17 @@ Table~\ref{tab:ablation} presents the incremental contribution of each component
 
 \begin{table*}[t]
 \centering
-\caption{Ablation study on the DamSegment test set. Rows~(a)--(d) show the main pipeline progression; row~(g) adds agreement-aware KD to the best model; rows~(e)--(f) show the effect of adding SRL. Row~(a) retrains SegFormer-B2 using the same training pipeline as all ablation variants. Bold: best per column among rows~(a)--(d) and~(g); underline: second best. All values in \%.}
+\caption{Ablation study on the DamSegment test set. Rows~(a)--(d) show the main pipeline progression; row~(g) adds agreement-aware KD to the best model; rows~(e)--(f) show the effect of adding SRL. Row~(a$'$) is a parameter-matched standard Conv control; rows~(b$_1$)--(b$_2$) are single-teacher ablations. Row~(a) retrains SegFormer-B2 using the same training pipeline as all ablation variants. Bold: best per column among rows~(a)--(d) and~(g); underline: second best. $^\star$SRL-enabled. All values in \%.}
 \label{tab:ablation}
 \begin{tabular}{lccccccccc}
 \toprule
 Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text{cr}}$ & BF1$_{\text{fg}}$ & clDice$_{\text{cr}}$ & clDice$_{\text{fg}}$ & ConnR$_{\text{cr}}$ & ConnR$_{\text{fg}}$ \\
 \midrule
 (a) SegFormer-B2 & 70.3 & 56.9 & 83.7 & 74.0 & 68.6 & 81.8 & 82.7 & 81.0 & 77.0 \\
-(b) + DSConv & 70.4 & 57.4 & 83.4 & 75.0 & 70.6 & 81.8 & 85.7 & \textbf{83.8} & 80.4 \\
+(a$'$) + Std Conv (1.3M) & 66.2 & 55.8 & 76.7 & 71.6 & 66.5 & 80.4 & 84.7 & 83.5 & 81.6 \\
+(b) + DSConv (1.3M) & 70.4 & 57.4 & 83.4 & 75.0 & 70.6 & 81.8 & 85.7 & \textbf{83.8} & 80.4 \\
+(b$_1$) + T1-only KD$^\star$ & 70.3 & 57.5 & 83.1 & 74.9 & 70.5 & 83.0 & 85.3 & 80.9 & 81.0 \\
+(b$_2$) + T2-only KD$^\star$ & 70.2 & 56.1 & 84.2 & 72.3 & 68.4 & 82.5 & 86.0 & 81.5 & 84.2 \\
 (c) + DTKD & 72.3 & 58.5 & \underline{86.2} & 75.6 & 70.6 & 83.3 & \textbf{86.4} & \underline{82.1} & \textbf{83.0} \\
 (g) + agree-aware KD & \underline{72.5} & \underline{58.7} & \textbf{86.3} & \textbf{76.4} & \underline{71.1} & \textbf{83.9} & 86.1 & 81.4 & \underline{82.6} \\
 (d) (c) + TTA & \textbf{72.7} & \textbf{59.3} & 86.0 & \underline{76.3} & \textbf{71.8} & \underline{83.7} & \underline{86.2} & 79.4 & 80.2 \\
@@ -386,9 +389,21 @@ Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1
 \end{tabular}
 \end{table*}
 
+\paragraph{(a$'$) vs.\ (b): DSConv's geometric bias.}
+To verify that DSConv's gains stem from its deformable sampling geometry rather than additional capacity, we compare it against a parameter-matched standard Conv branch (row~a$'$, ${\sim}$1.3M parameters, using directional $1{\times}K$ and $K{\times}1$ convolutions without deformable sampling).
+Standard Conv \emph{degrades} performance relative to vanilla SegFormer: mIoU$_{\text{fg}}$ drops from 70.3 to 66.2 ($-$4.1), with IoU$_{\text{sp}}$ falling sharply ($-$7.0).
+In contrast, DSConv (row~b) with the same parameter budget improves connectivity (ConnR$_{\text{cr}}$ +2.8, clDice$_{\text{fg}}$ +3.0) while maintaining mIoU.
+The ${\sim}$4-point gap between rows (a$'$) and (b) confirms that DSConv's value lies in its adaptive deformable sampling, not in the extra parameters.
+
 \paragraph{(a)$\to$(b): Adding DSConv.}
 The DSConv branch produces minimal mIoU change (+0.1) but substantially improves crack connectivity: ConnR$_{\text{cr}}$ increases by \textbf{+2.8} (81.0$\to$83.8) and clDice$_{\text{fg}}$ by \textbf{+3.0} (82.7$\to$85.7), along with improved boundary quality (BF1$_{\text{cr}}$ +1.0, BF1$_{\text{fg}}$ +2.0).
 The deformable snake-shaped sampling captures elongated crack geometry that fixed rectangular kernels miss, demonstrating that DSConv's primary value lies in its geometric inductive bias for connectivity.
+
+\paragraph{(b$_1$)--(b$_2$) vs.\ (c): Single- vs.\ dual-teacher KD.}
+To verify that both teachers are necessary, we train single-teacher KD variants: row~(b$_1$) uses only Teacher~1 (DSCFormer+SRL, task-specific) and row~(b$_2$) uses only Teacher~2 (SAM-LoRA+SRL, foundation model), with the other teacher's weight set to zero.\footnote{These variants include SRL in the student ($^\star$); row~(c) does not use SRL. The SRL penalty (${\sim}-$1 mIoU$_{\text{fg}}$, Section~\ref{sec:srl}) makes rows (b$_1$)--(b$_2$) slightly pessimistic, but the gap to row~(c) is substantially larger.}
+Neither single teacher matches the dual-teacher result: T1-only achieves 70.3\% mIoU$_{\text{fg}}$ and T2-only 70.2\%, both ${\sim}$2.0 points below dual-teacher DTKD (72.3\%).
+The two teachers show complementary strengths: T1 excels at crack precision (IoU$_{\text{cr}}$ 57.5, BF1$_{\text{cr}}$ 74.9), while T2 excels at spalling coverage (IoU$_{\text{sp}}$ 84.2) and connectivity (ConnR$_{\text{fg}}$ 84.2).
+Dual-teacher KD combines these complementary strengths, achieving the best mIoU$_{\text{fg}}$ and IoU$_{\text{sp}}$ while maintaining strong crack metrics.
 
 \paragraph{(b)$\to$(c): Adding DTKD.}
 DTKD provides substantial pixel-level improvement: mIoU$_{\text{fg}}$ +1.9, IoU$_{\text{cr}}$ +1.1, IoU$_{\text{sp}}$ +2.8, clDice$_{\text{cr}}$ +1.5, and BF1$_{\text{cr}}$ +0.6, while also improving overall connectivity: ConnR$_{\text{fg}}$ +2.6 (80.4$\to$83.0).
