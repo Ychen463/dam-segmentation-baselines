@@ -369,7 +369,7 @@ Table~\ref{tab:ablation} presents the incremental contribution of each component
 
 \begin{table*}[t]
 \centering
-\caption{Ablation study on the DamSegment test set. Rows~(a)--(d) show the main pipeline progression; row~(g) adds agreement-aware KD to the best model; rows~(e)--(f) show the effect of adding SRL. Row~(a$'$) is a parameter-matched standard Conv control; rows~(b$_1$)--(b$_2$) are single-teacher ablations. Row~(a) retrains SegFormer-B2 using the same training pipeline as all ablation variants. Bold: best per column among rows~(a)--(d) and~(g); underline: second best. $^\star$SRL-enabled. All values in \%.}
+\caption{Ablation study on the DamSegment test set. Rows~(a)--(d) show the main pipeline progression; row~(g) adds agreement-aware KD to the best model; rows~(e)--(f) show the effect of adding SRL. Row~(a$'$) is a parameter-matched standard Conv control; rows~(b$_1$)--(b$_2$) are single-teacher ablations with identical student settings as row~(c). Row~(a) retrains SegFormer-B2 using the same training pipeline as all ablation variants. Bold: best per column among rows~(a)--(d) and~(g); underline: second best. All values in \%.}
 \label{tab:ablation}
 \begin{tabular}{lccccccccc}
 \toprule
@@ -378,8 +378,8 @@ Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1
 (a) SegFormer-B2 & 70.3 & 56.9 & 83.7 & 74.0 & 68.6 & 81.8 & 82.7 & 81.0 & 77.0 \\
 (a$'$) + Std Conv (1.3M) & 66.2 & 55.8 & 76.7 & 71.6 & 66.5 & 80.4 & 84.7 & 83.5 & 81.6 \\
 (b) + DSConv (1.3M) & 70.4 & 57.4 & 83.4 & 75.0 & 70.6 & 81.8 & 85.7 & \textbf{83.8} & 80.4 \\
-(b$_1$) + T1-only KD$^\star$ & 70.3 & 57.5 & 83.1 & 74.9 & 70.5 & 83.0 & 85.3 & 80.9 & 81.0 \\
-(b$_2$) + T2-only KD$^\star$ & 70.2 & 56.1 & 84.2 & 72.3 & 68.4 & 82.5 & 86.0 & 81.5 & 84.2 \\
+(b$_1$) + T1-only KD & 69.0 & 56.4 & 81.5 & 72.9 & 68.4 & 81.8 & 83.6 & 80.5 & 81.0 \\
+(b$_2$) + T2-only KD & 69.2 & 56.2 & 82.2 & 73.0 & 68.4 & 82.6 & 85.9 & 83.1 & 85.0 \\
 (c) + DTKD & 72.3 & 58.5 & \underline{86.2} & 75.6 & 70.6 & 83.3 & \textbf{86.4} & \underline{82.1} & \textbf{83.0} \\
 (g) + agree-aware KD & \underline{72.5} & \underline{58.7} & \textbf{86.3} & \textbf{76.4} & \underline{71.1} & \textbf{83.9} & 86.1 & 81.4 & \underline{82.6} \\
 (d) (c) + TTA & \textbf{72.7} & \textbf{59.3} & 86.0 & \underline{76.3} & \textbf{71.8} & \underline{83.7} & \underline{86.2} & 79.4 & 80.2 \\
@@ -401,9 +401,10 @@ The DSConv branch produces minimal mIoU change (+0.1) but substantially improves
 The deformable snake-shaped sampling captures elongated crack geometry that fixed rectangular kernels miss, demonstrating that DSConv's primary value lies in its geometric inductive bias for connectivity.
 
 \paragraph{(b$_1$)--(b$_2$) vs.\ (c): Single- vs.\ dual-teacher KD.}
-To verify that both teachers are necessary, we train single-teacher KD variants: row~(b$_1$) uses only Teacher~1 (DSCFormer+SRL, task-specific) and row~(b$_2$) uses only Teacher~2 (SAM-LoRA+SRL, foundation model), with the other teacher's weight set to zero.\footnote{These variants include SRL in the student ($^\star$); row~(c) does not use SRL. The SRL penalty (${\sim}-$1 mIoU$_{\text{fg}}$, Section~\ref{sec:srl}) makes rows (b$_1$)--(b$_2$) slightly pessimistic, but the gap to row~(c) is substantially larger.}
-Neither single teacher matches the dual-teacher result: T1-only achieves 70.3\% mIoU$_{\text{fg}}$ and T2-only 70.2\%, both ${\sim}$2.0 points below dual-teacher DTKD (72.3\%).
-The two teachers show complementary strengths: T1 excels at crack precision (IoU$_{\text{cr}}$ 57.5, BF1$_{\text{cr}}$ 74.9), while T2 excels at spalling coverage (IoU$_{\text{sp}}$ 84.2) and connectivity (ConnR$_{\text{fg}}$ 84.2).
+To verify that both teachers are necessary, we train single-teacher KD variants with identical student settings as row~(c): row~(b$_1$) uses only Teacher~1 (task-specific) and row~(b$_2$) uses only Teacher~2 (foundation model), with the other teacher's weight set to zero.
+Neither single teacher matches the dual-teacher result: T1-only achieves 69.0\% mIoU$_{\text{fg}}$ and T2-only 69.2\%, both ${\sim}$3 points below dual-teacher DTKD (72.3\%) and even below the no-KD DSConv baseline (row~b, 70.4\%).
+This indicates that a single teacher's soft labels, occupying 50\% of the training signal ($\alpha{=}0.5$), can introduce more noise than useful information when the teacher lacks complementary knowledge to counterbalance its biases.
+The two teachers nonetheless show complementary connectivity strengths: T2 achieves substantially higher ConnR$_{\text{fg}}$ (85.0 vs.\ T1's 81.0), while both show similar IoU$_{\text{cr}}$ (${\sim}$56).
 Dual-teacher KD combines these complementary strengths, achieving the best mIoU$_{\text{fg}}$ and IoU$_{\text{sp}}$ while maintaining strong crack metrics.
 
 \paragraph{(b)$\to$(c): Adding DTKD.}
