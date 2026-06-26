@@ -141,6 +141,10 @@ class RunCfg:
     kd_crack_t2_weight: float = 0.6        # SAM2 weight for crack class (higher = more SAM2)
     kd_spalling_t2_weight: float = 0.3     # SAM2 weight for spalling class (lower = more G1)
 
+    # Pixel-Adaptive Ensemble (PAE)
+    use_pixel_adaptive_ensemble: bool = False   # entropy-based pixel-level teacher weighting
+    pae_beta: float = 0.5                       # sharpness (lower = more decisive)
+
     # Adaptive Class-Conditional Weighting (ACCW)
     use_accw: bool = False                  # learn per-class weights via val feedback
     accw_lr: float = 0.01                   # learning rate for weight logits
@@ -1822,6 +1826,71 @@ ABLATION_PRESETS = {
               "kd_alpha": 0.5, "kd_temperature": 4.0,
               "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
               "kd_class_weights": False,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False,
+              "use_srl_loss": False,
+              "use_soft_boundary_schedule": False},
+
+    # DKD15: Pixel-Adaptive Ensemble (PAE), beta=0.5
+    "DKD15": {"name": "dkd15_pixel_adaptive",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": False,
+              "use_pixel_adaptive_ensemble": True,
+              "pae_beta": 0.5,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False,
+              "use_srl_loss": False,
+              "use_soft_boundary_schedule": False},
+
+    # DKD16: PAE sharper (beta=0.2)
+    "DKD16": {"name": "dkd16_pae_sharp",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": False,
+              "use_pixel_adaptive_ensemble": True,
+              "pae_beta": 0.2,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False,
+              "use_srl_loss": False,
+              "use_soft_boundary_schedule": False},
+
+    # DKD17: PAE + agreement-aware KD loss
+    "DKD17": {"name": "dkd17_pae_confkd",
+              "model_type": "dscformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": False,
+              "use_pixel_adaptive_ensemble": True,
+              "pae_beta": 0.5,
+              "use_dgacl": True,
+              "dgacl_pixel_kd": True,
               "no_curriculum": True,
               "use_soft_curriculum": False, "use_softmax_sampling": False,
               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,

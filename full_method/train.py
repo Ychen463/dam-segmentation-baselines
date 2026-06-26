@@ -19,6 +19,7 @@ _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent))
 
 import argparse
 import csv
+import math
 import random
 import time
 from pathlib import Path
@@ -207,6 +208,36 @@ def dual_teacher_ensemble(t1_logits: torch.Tensor, t2_logits: torch.Tensor,
         return cfg.kd_t1_weight * t1_logits + cfg.kd_t2_weight * t2_logits
 
 
+def pixel_adaptive_ensemble(t1_logits: torch.Tensor, t2_logits: torch.Tensor,
+                            temperature: float = 4.0,
+                            beta: float = 0.5) -> torch.Tensor:
+    """Pixel-level adaptive teacher ensemble based on prediction entropy.
+
+    At each pixel, the teacher with lower entropy (higher confidence)
+    receives proportionally greater weight via softmax over negative
+    normalized entropies.
+    """
+    C = t1_logits.shape[1]
+    log_C = math.log(C)
+
+    t1_prob = F.softmax(t1_logits / temperature, dim=1)
+    t2_prob = F.softmax(t2_logits / temperature, dim=1)
+
+    # Normalized entropy per pixel: 0 = certain, 1 = uniform
+    h1 = -(t1_prob * t1_prob.clamp_min(1e-8).log()).sum(dim=1) / log_C  # (B,H,W)
+    h2 = -(t2_prob * t2_prob.clamp_min(1e-8).log()).sum(dim=1) / log_C
+
+    # Softmax over negative entropies: lower entropy → higher weight
+    neg_H = torch.stack([-h1, -h2], dim=1) / beta  # (B, 2, H, W)
+    weights = F.softmax(neg_H, dim=1)
+    w1 = weights[:, 0:1]  # (B, 1, H, W)
+    w2 = weights[:, 1:2]
+
+    ensemble = w1 * t1_prob + w2 * t2_prob
+    ensemble = ensemble / (ensemble.sum(dim=1, keepdim=True) + 1e-8)
+    return torch.log(ensemble + 1e-8) * temperature
+
+
 def boundary_conditional_ensemble(t1_logits: torch.Tensor, t2_logits: torch.Tensor,
                                   masks: torch.Tensor, cfg) -> torch.Tensor:
     """Ensemble with boundary-conditional T1/T2 weights.
@@ -326,6 +357,9 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                         if accw is not None:
                             t_logits = adaptive_dual_teacher_ensemble(
                                 t1_logits, t2_logits, accw, cfg.kd_temperature)
+                        elif cfg.use_pixel_adaptive_ensemble:
+                            t_logits = pixel_adaptive_ensemble(
+                                t1_logits, t2_logits, cfg.kd_temperature, cfg.pae_beta)
                         elif cfg.use_boundary_ensemble:
                             t_logits = boundary_conditional_ensemble(
                                 t1_logits, t2_logits, masks, cfg)
