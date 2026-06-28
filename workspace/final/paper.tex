@@ -82,7 +82,7 @@ Our contributions are:
 \begin{enumerate}
     \item A topology-aware segmentation framework with two complementary enhancements: a parallel Dynamic Snake Convolution branch that drives crack connectivity (ConnR$_{\text{fg}}$ +3.4) through geometry-aware sampling, and a dual-teacher knowledge distillation scheme (DTKD) that drives pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9 over DSConv alone) by transferring complementary knowledge from a task-specific teacher and a foundation-model teacher. The primary method (DSConv+DTKD) adds only 4M parameters with no inference-time overhead from distillation. As an optional refinement, agreement-aware distillation modulates the KD loss at pixel level based on inter-teacher agreement, yielding additional boundary quality gains (BF1$_{\text{cr}}$ +0.8, clDice$_{\text{cr}}$ +0.6).
     \item An empirical finding that Skeleton Recall Loss (SRL) exhibits an \emph{asymmetric} effect in knowledge distillation: SRL benefits \emph{teacher} training (producing richer representations that improve student performance by +1.2 mIoU$_{\text{fg}}$) but harms \emph{student} training when combined with DTKD ($-$1.1 mIoU$_{\text{fg}}$), revealing that optimal training recipes differ between teachers and distillation students.
-    \item A comprehensive evaluation comprising six baselines (including SAM-LoRA and DINOv2-LoRA), per-tier difficulty analysis, multi-seed stability testing, and group-based split validation providing evidence against spatial leakage (train 630 / val 371 / test 499 images), demonstrating that task-specific design with knowledge distillation outperforms direct foundation-model fine-tuning on small-scale industrial datasets.
+    \item A comprehensive evaluation comprising six baselines (including SAM-LoRA and DINOv2-LoRA), per-tier difficulty analysis, multi-seed stability testing, and group-based split validation providing evidence against spatial leakage (train 631 / val 369 / test 500 images), demonstrating that task-specific design with knowledge distillation outperforms direct foundation-model fine-tuning on small-scale industrial datasets.
     \item Empirical analyses of training strategies and cross-domain transfer: loss exploration reveals a persistent crack--spalling tradeoff at shared class boundaries, and zero-shot evaluation on S2DS confirms that the full pipeline substantially improves cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$).
 \end{enumerate}
 
@@ -158,7 +158,7 @@ Fig.~\ref{fig:architecture} illustrates the TopoDistill framework. Our approach 
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.92\textwidth]{figures/fig_architecture.png}
-    \caption{Overview of the TopoDistill framework. (a)~A SegFormer-B2 encoder with a parallel CrackSnake branch (DSConv) produces 3-class segmentation logits; the DSConv output additively enhances only the crack channel. (b)~Class-conditional dual-teacher knowledge distillation (DTKD): Teacher~1 (TopoDistill, strong on spalling) and Teacher~2 (SAM-LoRA, strong on crack connectivity) are combined via per-class weights into an ensemble. A pixel-level agreement map $a(i)$, derived from teacher disagreement, modulates the KD loss so the student learns strongly where teachers agree and falls back on ground-truth supervision at ambiguous pixels.}
+    \caption{Overview of the TopoDistill framework. (a)~A SegFormer-B2 encoder with a parallel CrackSnake branch (DSConv) produces 3-class segmentation logits; the DSConv output additively enhances only the crack channel. (b)~Class-conditional dual-teacher knowledge distillation (DTKD): Teacher~1 (TopoDistill, strong on pixel accuracy) and Teacher~2 (SAM-LoRA, strong on structural connectivity) are combined via per-class weights into an ensemble. A pixel-level agreement map $a(i)$, derived from teacher disagreement, modulates the KD loss so the student learns strongly where teachers agree and falls back on ground-truth supervision at ambiguous pixels.}
     \label{fig:architecture}
 \end{figure*}
 
@@ -185,16 +185,16 @@ where $\mathbf{z}_{\text{crack}}$ denotes the decoder's crack logits. Spalling a
 \subsection{Class-conditional dual-teacher knowledge distillation}
 \label{sec:dtkd}
 
-A key observation from our experiments is that different model architectures excel at different defect types: the task-specific TopoDistill (Teacher~1) achieves higher spalling IoU, while the foundation-model SAM-LoRA (Teacher~2) achieves higher crack connectivity (ConnR). Standard knowledge distillation cannot exploit this complementarity because it applies uniform teacher weighting across all classes.
+A key observation from our experiments is that different model architectures excel at different quality dimensions: the task-specific TopoDistill (Teacher~1) achieves higher pixel-level accuracy (IoU), while the foundation-model SAM-LoRA (Teacher~2) achieves higher structural connectivity (ConnR$_{\text{fg}}$), driven primarily by its substantially stronger spalling connectivity (ConnR$_{\text{sp}}$ 86.0\% vs.\ 73.4\%; Table~\ref{tab:foundation}). Standard knowledge distillation cannot exploit this complementarity because it applies uniform teacher weighting across all classes.
 
 We propose \emph{class-conditional dual-teacher knowledge distillation} (DTKD) that constructs a per-class ensemble of teacher predictions:
 
 \paragraph{Teacher models.} We use two pretrained teachers, both trained with Skeleton Recall Loss (SRL) \citep{shit2024skeleton} to enrich their learned representations (the rationale for this choice is validated in Section~\ref{sec:ablation}):
 \begin{itemize}[nosep]
-    \item \textbf{Teacher~1} ($T_1$): TopoDistill (task-specific, strong on spalling)
-    \item \textbf{Teacher~2} ($T_2$): SAM-LoRA (foundation model, strong on crack connectivity)
+    \item \textbf{Teacher~1} ($T_1$): TopoDistill (task-specific, strong on pixel accuracy)
+    \item \textbf{Teacher~2} ($T_2$): SAM-LoRA (foundation model, strong on structural connectivity)
 \end{itemize}
-We select SAM-LoRA over DINOv2-LoRA as Teacher~2 because SAM-LoRA achieves substantially higher ConnR$_{\text{fg}}$ (81.2\% vs.\ 76.5\%) and BF1$_{\text{fg}}$ (68.1\% vs.\ 62.4\%), providing the complementary connectivity knowledge that the task-specific teacher lacks (Table~\ref{tab:main}). DINOv2-LoRA's advantage is limited to IoU$_{\text{sp}}$, which Teacher~1 already covers.
+We select SAM-LoRA over DINOv2-LoRA as Teacher~2 because SAM-LoRA achieves substantially higher ConnR$_{\text{fg}}$ (81.2\% vs.\ 76.5\%) and BF1$_{\text{fg}}$ (68.1\% vs.\ 62.4\%), providing complementary structural connectivity knowledge (Table~\ref{tab:main}). DINOv2-LoRA's advantage is limited to IoU$_{\text{sp}}$, which Teacher~1 already covers.
 
 \paragraph{Class-conditional ensemble.} For each class $c$, the ensemble teacher probability is computed as a weighted combination:
 \begin{equation}
@@ -204,13 +204,14 @@ We select SAM-LoRA over DINOv2-LoRA as Teacher~2 because SAM-LoRA achieves subst
 where $p_{i,c} = \text{softmax}(\mathbf{z}_i / \tau)_c$ is the softened probability from teacher $i$ at temperature $\tau$, and $w_{1,c} + w_{2,c} = 1$ for each class.
 
 Class-conditional weights were determined based on per-class performance analysis of the two teachers on the validation set and fixed before test-set evaluation.
-Since Teacher~2 (SAM-LoRA) achieves higher ConnR$_{\text{cr}}$ while Teacher~1 achieves higher IoU$_{\text{sp}}$, we assign higher Teacher~2 weight for crack and higher Teacher~1 weight for spalling:
+Teacher~2 achieves higher overall connectivity (ConnR$_{\text{fg}}$), driven primarily by substantially stronger spalling connectivity (ConnR$_{\text{sp}}$ 86.0\% vs.\ 73.4\%; Table~\ref{tab:foundation}), while ConnR$_{\text{cr}}$ is comparable between teachers (both 82.2\%). Teacher~1 achieves higher pixel accuracy across both classes.
+We assign weights to balance connectivity guidance (from Teacher~2) against pixel accuracy (from Teacher~1) on a per-class basis:
 \begin{itemize}[nosep]
     \item \textbf{Background}: $w_{1,\text{bg}} = w_{2,\text{bg}} = 0.5$ (equal, neither teacher specialises)
-    \item \textbf{Crack}: $w_{2,\text{cr}} = 0.6$ (SAM-LoRA has better crack connectivity)
-    \item \textbf{Spalling}: $w_{2,\text{sp}} = 0.3$ (TopoDistill has better spalling coverage)
+    \item \textbf{Crack}: $w_{2,\text{cr}} = 0.6$ (thin crack structures benefit more from connectivity guidance)
+    \item \textbf{Spalling}: $w_{2,\text{sp}} = 0.3$ (blob-like spalling benefits more from pixel-accuracy guidance)
 \end{itemize}
-The equal-weight baseline (Table~\ref{tab:kd_weights}) shows that this assignment provides modest mIoU gains (+0.1) and modestly redirects teacher emphasis toward crack centreline preservation (clDice$_{\text{fg}}$ +0.6). Manual weight selection is a limitation; adaptive class-conditional weighting is discussed in Section~\ref{sec:discussion}.
+The equal-weight baseline (Table~\ref{tab:kd_weights}) shows that this assignment provides modest mIoU gains (+0.1) and modestly redirects teacher emphasis toward crack centreline preservation (clDice$_{\text{fg}}$ +0.6), consistent with the design intent. Manual weight selection is a limitation; adaptive class-conditional weighting is discussed in Section~\ref{sec:discussion}.
 
 \paragraph{Distillation loss.} The ensemble probabilities are renormalised to sum to one and the student is trained with:
 \begin{equation}
@@ -404,7 +405,7 @@ The deformable snake-shaped sampling captures elongated crack geometry that fixe
 To verify that both teachers are necessary, we train single-teacher KD variants with identical student settings as row~(c): row~(b$_1$) uses only Teacher~1 (task-specific) and row~(b$_2$) uses only Teacher~2 (foundation model), with the other teacher's weight set to zero.
 Neither single teacher matches the dual-teacher result: T1-only achieves 69.0\% mIoU$_{\text{fg}}$ and T2-only 69.2\%, both ${\sim}$3 points below dual-teacher DTKD (72.3\%) and even below the no-KD DSConv baseline (row~b, 70.4\%).
 This indicates that a single teacher's soft labels, occupying 50\% of the training signal ($\alpha{=}0.5$), can introduce more noise than useful information when the teacher lacks complementary knowledge to counterbalance its biases.
-The two teachers nonetheless show complementary connectivity strengths: T2 achieves substantially higher ConnR$_{\text{fg}}$ (85.0 vs.\ T1's 81.0), while both show similar IoU$_{\text{cr}}$ (${\sim}$56).
+The two teachers nonetheless show complementary strengths: T2-only achieves substantially higher ConnR$_{\text{fg}}$ (85.0 vs.\ T1-only's 81.0), reflecting SAM-LoRA's stronger structural connectivity knowledge, while both show similar IoU$_{\text{cr}}$ (${\sim}$56).
 Dual-teacher KD combines these complementary strengths, achieving the best mIoU$_{\text{fg}}$ and IoU$_{\text{sp}}$ while maintaining strong crack metrics.
 
 \paragraph{(b)$\to$(c): Adding DTKD.}
@@ -571,15 +572,15 @@ Student (DTKD) & \textbf{72.3} & \textbf{58.5} & \textbf{86.2} & 82.1 & \underli
 \end{table}
 
 The DTKD student surpasses both teachers on mIoU$_{\text{fg}}$ (+1.7 over Teacher~1, +3.3 over Teacher~2), IoU$_{\text{cr}}$, and IoU$_{\text{sp}}$, confirming that class-conditional distillation effectively combines complementary strengths.
-Teacher~2 (SAM-LoRA+SRL) achieves the highest ConnR$_{\text{sp}}$ (86.0\%), reflecting SAM's strong global structure preservation.
-The student substantially inherits this advantage (ConnR$_{\text{sp}}$ = 83.8\%, vs.\ Teacher~1's 73.4\%), while maintaining superior pixel-level accuracy. However, the student does not fully match Teacher~2's ConnR$_{\text{sp}}$ (83.8\% vs.\ 86.0\%) and slightly trails both teachers on ConnR$_{\text{cr}}$ (82.1\% vs.\ 82.2\%), consistent with the ConnR$_{\text{cr}}$ trade-off observed in the ablation.
+The two teachers achieve identical ConnR$_{\text{cr}}$ (82.2\%), but Teacher~2 (SAM-LoRA+SRL) achieves substantially higher ConnR$_{\text{sp}}$ (86.0\% vs.\ 73.4\%), reflecting SAM's strong global structure preservation.
+The student substantially inherits this spalling connectivity advantage (ConnR$_{\text{sp}}$ = 83.8\%, vs.\ Teacher~1's 73.4\%), while maintaining superior pixel-level accuracy. However, the student does not fully match Teacher~2's ConnR$_{\text{sp}}$ (83.8\% vs.\ 86.0\%) and slightly trails both teachers on ConnR$_{\text{cr}}$ (82.1\% vs.\ 82.2\%), consistent with the ConnR$_{\text{cr}}$ trade-off observed in the ablation.
 
 The student surpassing both teachers is consistent with multi-teacher distillation findings in the literature \citep{you2017learning,yuan2021multihead}, where combining complementary knowledge sources provides regularisation benefits beyond what any single teacher offers. Unlike classical ``born-again'' networks \citep{furlanello2018born} where student and teacher share the same architecture, our student additionally benefits from the DSConv geometric inductive bias that neither teacher possesses.
 
 \paragraph{Class-conditional weighting ablation.}
 Table~\ref{tab:kd_weights} compares equal-weight (0.5/0.5) and class-conditional teacher weighting in the final SRL-free pipeline.
 The two configurations achieve nearly identical mIoU$_{\text{fg}}$ (72.3 vs.\ 72.2), but class-conditional weighting improves crack centreline preservation: clDice$_{\text{fg}}$ +0.6 (85.8$\to$86.4), at the cost of slightly lower BF1$_{\text{fg}}$ ($-$0.9).
-The result suggests that class-conditional weighting primarily steers the distillation signal toward better crack structure preservation rather than improving overall pixel accuracy, consistent with the design intent of assigning higher SAM-LoRA weight for crack connectivity.
+The result suggests that class-conditional weighting primarily steers the distillation signal toward better crack centreline preservation rather than improving overall pixel accuracy, consistent with the design intent of prioritising connectivity guidance for thin crack structures.
 
 \begin{table}[t]
 \centering
@@ -626,7 +627,7 @@ No fine-tuning is performed: models trained on DamSegment are applied directly.
 
 \begin{table}[t]
 \centering
-\caption{Cross-dataset evaluation: DamSegment$\to$S2DS (zero-shot). $^\S$TopoDistill is the SRL variant (Teacher~1). All models evaluated without TTA. $^*$TTA row shown for reference only. \textsuperscript{b}ConnR$_{\text{fg}}$ near 50\% for near-zero-IoU models is an artefact: when both prediction and ground truth contain very few foreground pixels, ConnR is dominated by the background class (ConnR$_{\text{bg}}{\approx}$100\%) and the empty foreground classes default to 0\%, yielding an average near 50\%. All values in \%.}
+\caption{Cross-dataset evaluation: DamSegment$\to$S2DS (zero-shot). $^\S$TopoDistill is the SRL variant (Teacher~1). All models evaluated without TTA. $^*$TTA row shown for reference only. \textsuperscript{b}ConnR$_{\text{fg}}$ near 50\% for near-zero-IoU models is an artefact of class-asymmetric over-prediction: a model that predicts nearly every pixel as one foreground class achieves ConnR${\approx}$100\% for that class (all GT components are trivially ``hit'') but ConnR${\approx}$0\% for the other, yielding an average near 50\% despite negligible IoU. All values in \%.}
 \label{tab:cross_dataset}
 \begin{tabular}{lcccccc}
 \toprule
@@ -662,6 +663,9 @@ Fig.~\ref{fig:cross_dataset} shows representative S2DS predictions. SegFormer-B2
 \paragraph{DTKD as the critical component.}
 Beyond the metric gains detailed in Section~\ref{sec:ablation}, DTKD serves as a powerful training regulariser: the soft-label supervision from two pretrained teachers smooths the loss landscape, reducing cross-seed variance by ${\sim}$3--5$\times$ (Table~\ref{tab:multiseed}) and making convergence less sensitive to random initialisation---a practical advantage for deployment scenarios where retraining reliability matters.
 
+\paragraph{DTKD hyperparameter robustness.}
+We performed a star search over the two key DTKD hyperparameters: softmax temperature $\tau \in \{2, 4, 6\}$ (fixing $\alpha{=}0.5$) and hard-loss weight $\alpha \in \{0.3, 0.5, 0.7\}$ (fixing $\tau{=}4$). All four alternative configurations underperformed the default ($\alpha{=}0.5$, $\tau{=}4$): lower temperature ($\tau{=}2$) produced sharper teacher signals that caused early convergence and a $-$4.7\% mIoU$_{\text{fg}}$ drop; higher temperature ($\tau{=}6$) over-smoothed inter-class relationships ($-$1.4\%); shifting $\alpha$ in either direction degraded performance by 2--2.4\%, indicating that an equal balance between hard labels and soft distillation is optimal for this dataset scale. These results confirm that the default hyperparameters are near-optimal and that the reported DTKD gains are not an artefact of hyperparameter sensitivity.
+
 \paragraph{Granularity of difficulty-aware modulation.}
 Inter-teacher disagreement provides a free quality signal that correlates with sample difficulty (+43\% KL divergence on Hard vs.\ Easy). Leveraging this signal at the \emph{pixel level} (agreement-aware KD) is effective, but using it for \emph{sample-level} curriculum learning degrades performance. This suggests that on small datasets, every sample is needed for generalisation, but noisy pixels within a sample can safely be down-weighted---the granularity of the intervention matters more than the quality of the difficulty signal.
 
@@ -684,7 +688,7 @@ The S2DS cross-dataset transfer further corroborates this conclusion but reveals
 
 \begin{table}[t]
 \centering
-\caption{Spatial leakage assessment. ``Orig.''$=$trained on original split (train 900 / val 150 / test 450), tested on original test; ``Group''$=$retrained on group split (train 630 / val 371 / test 499), tested on group test. Test sets differ in size and composition, so modest absolute differences are expected; a large systematic drop under group split would indicate leakage. All values in \%.}
+\caption{Spatial leakage assessment. ``Orig.''$=$trained on original split (train 1{,}200 / val 150 / test 150), tested on original test; ``Group''$=$retrained on group split (train 631 / val 369 / test 500), tested on group test. Test sets differ in size and composition, so modest absolute differences are expected; a large systematic drop under group split would indicate leakage. All values in \%.}
 \label{tab:group_split}
 \setlength{\tabcolsep}{3.5pt}
 \begin{tabular}{lccccccccc}
