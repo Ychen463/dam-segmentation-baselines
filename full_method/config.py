@@ -127,7 +127,7 @@ class RunCfg:
     # Knowledge Distillation (self-distillation from teacher checkpoint)
     use_kd: bool = False
     kd_teacher_checkpoint: str = ""         # path to teacher best.pt
-    kd_alpha: float = 0.5                   # weight for hard loss (1-alpha for KD loss)
+    kd_alpha: float = 0.5                   # weight for supervised loss; KD weight = 1-kd_alpha (paper α = 1-kd_alpha)
     kd_temperature: float = 4.0             # softmax temperature for KD
 
     # Dual-Teacher KD (complementary distillation from task-specific + foundation model)

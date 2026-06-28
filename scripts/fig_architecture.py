@@ -92,7 +92,7 @@ def main():
                            facecolor=C_BG_B, edgecolor=C_T2, alpha=0.18,
                            linewidth=1.5, linestyle="--", zorder=0)
     ax.add_patch(bg_b)
-    ax.text(0.6, 6.9, "(b) Class-Conditional Dual-Teacher KD (DTKD)",
+    ax.text(0.6, 6.9, "(b) Dual-Teacher KD (DTKD)",
             fontsize=15, fontweight="bold", color=C_T2,
             family="sans-serif", alpha=0.85)
 
@@ -220,7 +220,7 @@ def main():
     # ==================================================================
     ens_x, ens_y = 3.9, 3.8
     draw_box(ax, ens_x, ens_y, 3.8, 1.0, "", C_ENS, fontsize=10, alpha=0.20)
-    ax.text(ens_x, 4.5, "Class-Conditional Ensemble", fontsize=11,
+    ax.text(ens_x, 4.5, "Teacher Ensemble", fontsize=11,
             fontweight="bold", ha="center", color=C_ENS, family="sans-serif")
 
     # Weight boxes inside
