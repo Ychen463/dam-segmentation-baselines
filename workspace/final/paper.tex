@@ -36,7 +36,7 @@
 \item Dual-teacher distillation boosts mIoU$_{\text{fg}}$ by +1.9 at zero inference cost and reduces cross-seed variance (3 seeds) by \textasciitilde{}3$\times$.
 \item SRL benefits teacher training but harms student under distillation, revealing asymmetric training dynamics.
 \item The full pipeline (DSConv+DTKD) achieves 18.7\% cross-dataset mIoU$_{\text{fg}}$ vs.\ 0.1\% for vanilla SegFormer in zero-shot transfer, though precise attribution among pipeline components requires further ablation.
-\item Systematic loss exploration identifies sampling-based strategies as more effective than loss-based approaches for crack--spalling boundary refinement.
+\item Systematic loss exploration reveals a persistent crack--spalling tradeoff: no loss-based or sampling-based strategy surpasses the base CE+Dice on mIoU$_{\text{fg}}$.
 \end{highlights}
 
 \begin{abstract}
@@ -281,7 +281,7 @@ For DTKD, Teacher~1 (TopoDistill+SRL) and Teacher~2 (SAM-LoRA+SRL) are trained i
 The student has identical architecture to Teacher~1 but is trained \emph{without} SRL (CE + Dice + KD only).
 Distillation uses $\alpha = 0.5$, $\tau = 4$.
 
-For foundation model baselines, SAM-LoRA uses ViT-B with LoRA (rank 16, $\alpha$=32) and an FPN decoder. DINOv2-LoRA adapts ViT-B/14 similarly with input size $518{\times}518$ (patch-size multiple). Both train for 50 epochs with batch size 2.
+For foundation model baselines, SAM-LoRA uses SAM's ViT-B encoder with LoRA (rank 16, $\alpha$=32); we replace SAM's original prompt-conditioned mask decoder with a lightweight FPN decoder for prompt-free semantic segmentation, so no prompts (ground-truth-derived or otherwise) are used at training or test time. DINOv2-LoRA adapts ViT-B/14 similarly with input size $518{\times}518$ (patch-size multiple). Both train for 50 epochs with batch size 2.
 
 \subsection{Evaluation metrics}
 
@@ -303,7 +303,7 @@ Mask2Former is the heaviest model (68.7M, 39 FPS), while foundation model baseli
 
 \begin{table}[t]
 \centering
-\caption{Computational cost comparison. Params: total parameters. Train: trainable parameters (all are fully trainable unless noted). FPS: images/second on a single A40 GPU (batch size 1). $\dagger$: LoRA fine-tuning. \textsuperscript{a}SAM-LoRA requires prompt-based inference incompatible with our batch FPS benchmark; we omit this value rather than report a non-comparable measurement.}
+\caption{Computational cost comparison. Params: total parameters. Train: trainable parameters (all are fully trainable unless noted). FPS: images/second on a single A40 GPU (batch size 1). $\dagger$: LoRA fine-tuning. \textsuperscript{a}SAM-LoRA uses an FPN decoder (not SAM's original prompt-conditioned decoder); its FPS is omitted because the two-stage encoder--decoder pipeline is not directly comparable to single-pass models in our benchmark.}
 \label{tab:cost}
 \begin{tabular}{llrrr}
 \toprule
@@ -388,7 +388,7 @@ Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1
 \end{table*}
 
 \paragraph{(a$'$) vs.\ (b): DSConv's geometric bias.}
-To verify that DSConv's gains stem from its deformable sampling geometry rather than additional capacity, we compare it against a parameter-matched standard Conv branch (row~a$'$, ${\sim}$1.3M parameters, using directional $1{\times}K$ and $K{\times}1$ convolutions without deformable sampling).
+To verify that DSConv's gains stem from its deformable sampling geometry rather than additional capacity, we compare it against a parameter-matched standard Conv branch (row~a$'$, ${\sim}$1.3M parameters, using directional $1{\times}K$ and $K{\times}1$ convolutions without deformable sampling). Note: the DSConv branch itself contains ${\sim}$1.3M parameters; the 4.0M total overhead reported in Table~\ref{tab:cost} includes the additional decode head parameters needed to fuse the branch output with the SegFormer decoder.
 Standard Conv \emph{degrades} performance relative to vanilla SegFormer: mIoU$_{\text{fg}}$ drops from 70.3 to 66.2 ($-$4.1), with IoU$_{\text{sp}}$ falling sharply ($-$7.0).
 In contrast, DSConv (row~b) with the same parameter budget improves connectivity (ConnR$_{\text{cr}}$ +2.8, clDice$_{\text{fg}}$ +3.0) while maintaining mIoU.
 The ${\sim}$4-point gap between rows (a$'$) and (b) confirms that DSConv's value lies in its adaptive deformable sampling, not in the extra parameters.
@@ -473,6 +473,7 @@ DTKD reduces sensitivity to initialisation by ${\sim}$3$\times$ compared to the 
 
 \paragraph{Per-tier breakdown.}
 Table~\ref{tab:per_tier} reports per-image mean performance stratified by difficulty tier, comparing DSConv-only (row~b) and DSConv+DTKD (row~c, final model) to isolate DTKD's contribution.
+Note: per-tier values are \emph{macro-averaged} over images within each tier (each image contributes equally), whereas the global metrics in Table~\ref{tab:ablation} are computed on all test pixels pooled together (\emph{micro-average}). For images where a class is absent from the ground truth, the per-class IoU is undefined; we exclude such images from the per-class mean for that tier. These differences in aggregation explain the numerical gap between per-tier means and global values.
 DTKD improves mIoU$_{\text{fg}}$ consistently across all tiers (+3.4 Easy, +2.3 Medium, +2.3 Hard), with the strongest uncorrected $p$-values on Hard images (IoU$_{\text{cr}}$ $p{=}0.003$, clDice$_{\text{cr}}$ $p{<}0.001$), though these are uncorrected for multiple comparisons.
 The spalling improvements are largest on Easy (+6.2 IoU$_{\text{sp}}$, $p{=}0.035$) where the SAM-LoRA teacher's global context helps distinguish large spalling regions.
 ConnR$_{\text{fg}}$ improves on Easy (+4.8) and Hard (+1.4) tiers, driven by ConnR$_{\text{sp}}$ gains, while ConnR$_{\text{cr}}$ shows a small decrease on Hard ($-$2.4, $p{=}0.018$)---a trade-off where DTKD slightly sacrifices crack connectivity for substantially better spalling connectivity and overall accuracy.
@@ -571,7 +572,7 @@ The DTKD student surpasses both teachers on mIoU$_{\text{fg}}$ (+1.7 over Teache
 The two teachers achieve identical ConnR$_{\text{cr}}$ (82.2\%), but Teacher~2 (SAM-LoRA+SRL) achieves substantially higher ConnR$_{\text{sp}}$ (86.0\% vs.\ 73.4\%), reflecting SAM's strong global structure preservation.
 The student substantially inherits this spalling connectivity advantage (ConnR$_{\text{sp}}$ = 83.8\%, vs.\ Teacher~1's 73.4\%), while maintaining superior pixel-level accuracy. However, the student does not fully match Teacher~2's ConnR$_{\text{sp}}$ (83.8\% vs.\ 86.0\%) and slightly trails both teachers on ConnR$_{\text{cr}}$ (82.1\% vs.\ 82.2\%), consistent with the ConnR$_{\text{cr}}$ trade-off observed in the ablation.
 
-The student surpassing both teachers is consistent with multi-teacher distillation findings in the literature \citep{you2017learning,yuan2021multihead}, where combining complementary knowledge sources provides regularisation benefits beyond what any single teacher offers. Unlike classical ``born-again'' networks \citep{furlanello2018born} where student and teacher share the same architecture, our student additionally benefits from the DSConv geometric inductive bias that neither teacher possesses.
+The student surpassing both teachers is consistent with multi-teacher distillation findings in the literature \citep{you2017learning,yuan2021multihead}, where combining complementary knowledge sources provides regularisation benefits beyond what any single teacher offers. Unlike classical ``born-again'' networks \citep{furlanello2018born} where student and teacher share the same architecture, our student combines DSConv's geometric inductive bias (shared with Teacher~1) with Teacher~2's foundation-model representations, integrating complementary knowledge that no single teacher provides alone.
 
 \paragraph{Per-class weighting ablation.}
 Table~\ref{tab:kd_weights} compares equal-weight (0.5/0.5) and per-class teacher weighting in the final SRL-free pipeline.
@@ -674,7 +675,7 @@ Rather than directly fine-tuning SAM or DINOv2 (which underperforms task-specifi
 The persistent tradeoff across all loss-based strategies (Section~\ref{sec:strategy}) arises from shared geometric boundaries between defect types. Pixel-level loss modification alone cannot resolve the crack precision bottleneck without collateral damage to spalling, suggesting that sampling-based, architectural, or post-processing approaches (e.g., class-specific CRF refinement) are more promising.
 
 \paragraph{Practical implications.}
-The student model has identical inference cost to the base TopoDistill (96 FPS, 31.3M parameters), with teachers used only during training. The per-tier analysis suggests prioritising deployment on Hard-tier regions where DTKD provides the largest benefit. The model's connectivity (ConnR$_{\text{fg}}$ 83.0\%) helps produce predictions directly usable for crack length estimation without extensive post-processing to reconnect fragmented segments.
+The student model has identical inference cost to the base TopoDistill (96 FPS, 31.3M parameters), with teachers used only during training. The per-tier analysis shows DTKD improves all tiers, with the largest mIoU$_{\text{fg}}$ gain on Easy (+3.4) and the strongest crack-specific significance on Hard (uncorrected $p$-values).
 
 \paragraph{Failure modes and limitations.}
 The model underperforms on (i)~thin hairline cracks (${<}$2 pixels wide) and (ii)~co-occurring crack--spalling regions where it over-predicts one class at the expense of the other.
