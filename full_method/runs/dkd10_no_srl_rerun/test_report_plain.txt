@@ -1,0 +1,25 @@
+run: dkd10_no_srl_rerun
+mode: plain (no TTA)
+test set metrics (plain):
+  IoU_background: 0.9754586826515133
+  IoU_crack: 0.5726208608294903
+  IoU_spalling: 0.8408757968754735
+  Dice_background: 0.9875769017271743
+  Dice_crack: 0.7282376510349192
+  Dice_spalling: 0.9135605979531001
+  mIoU_fg: 0.7067483288524818
+  mIoU_all: 0.7963184467854924
+  pixel_acc: 0.9762617746988932
+  BF1_crack: 0.7390908961685652
+  BF1_spalling: 0.6073608550443776
+  BF1_fg_mean: 0.6732258756064714
+  clDice_crack: 0.8293621925828509
+  clDice_spalling: 0.8693801305345891
+  clDice_fg_mean: 0.8493711615587201
+  ConnR_crack: 0.8163079704337203
+  ConnR_spalling: 0.8243243243243243
+  ConnR_fg_mean: 0.8203161473790224
+confusion matrix (rows=gt, cols=pred):
+[[36753024   583246    44198]
+ [  255678  1135770     1962]
+ [   41538     6803   499381]]
