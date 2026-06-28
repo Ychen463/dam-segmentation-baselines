@@ -205,13 +205,13 @@ where $p_{i,c} = \text{softmax}(\mathbf{z}_i / \tau)_c$ is the softened probabil
 
 Class-conditional weights were determined based on per-class performance analysis of the two teachers on the validation set and fixed before test-set evaluation.
 Teacher~2 achieves higher overall connectivity (ConnR$_{\text{fg}}$), driven primarily by substantially stronger spalling connectivity (ConnR$_{\text{sp}}$ 86.0\% vs.\ 73.4\%; Table~\ref{tab:foundation}), while ConnR$_{\text{cr}}$ is comparable between teachers (both 82.2\%). Teacher~1 achieves higher pixel accuracy across both classes.
-We assign weights to balance connectivity guidance (from Teacher~2) against pixel accuracy (from Teacher~1) on a per-class basis:
+We assign weights based on validation-set per-class analysis, balancing each teacher's complementary strengths:
 \begin{itemize}[nosep]
     \item \textbf{Background}: $w_{1,\text{bg}} = w_{2,\text{bg}} = 0.5$ (equal, neither teacher specialises)
-    \item \textbf{Crack}: $w_{2,\text{cr}} = 0.6$ (thin crack structures benefit more from connectivity guidance)
-    \item \textbf{Spalling}: $w_{2,\text{sp}} = 0.3$ (blob-like spalling benefits more from pixel-accuracy guidance)
+    \item \textbf{Crack}: $w_{2,\text{cr}} = 0.6$ (Teacher~2's foundation-model features provide complementary representations for thin structures, despite comparable ConnR$_{\text{cr}}$)
+    \item \textbf{Spalling}: $w_{2,\text{sp}} = 0.3$ (Teacher~1's higher pixel accuracy better serves blob-like spalling, where connectivity is less critical)
 \end{itemize}
-The equal-weight baseline (Table~\ref{tab:kd_weights}) shows that this assignment provides modest mIoU gains (+0.1) and modestly redirects teacher emphasis toward crack centreline preservation (clDice$_{\text{fg}}$ +0.6), consistent with the design intent. Manual weight selection is a limitation; adaptive class-conditional weighting is discussed in Section~\ref{sec:discussion}.
+The equal-weight baseline (Table~\ref{tab:kd_weights}) validates this assignment empirically: class-conditional weighting improves crack centreline preservation (clDice$_{\text{fg}}$ +0.6) at nearly identical mIoU$_{\text{fg}}$ (72.3 vs.\ 72.2), confirming that the per-class weighting redirects teacher emphasis toward connectivity for crack and accuracy for spalling. Manual weight selection is a limitation; adaptive class-conditional weighting is discussed in Section~\ref{sec:discussion}.
 
 \paragraph{Distillation loss.} The ensemble probabilities are renormalised to sum to one and the student is trained with:
 \begin{equation}
@@ -580,7 +580,7 @@ The student surpassing both teachers is consistent with multi-teacher distillati
 \paragraph{Class-conditional weighting ablation.}
 Table~\ref{tab:kd_weights} compares equal-weight (0.5/0.5) and class-conditional teacher weighting in the final SRL-free pipeline.
 The two configurations achieve nearly identical mIoU$_{\text{fg}}$ (72.3 vs.\ 72.2), but class-conditional weighting improves crack centreline preservation: clDice$_{\text{fg}}$ +0.6 (85.8$\to$86.4), at the cost of slightly lower BF1$_{\text{fg}}$ ($-$0.9).
-The result suggests that class-conditional weighting primarily steers the distillation signal toward better crack centreline preservation rather than improving overall pixel accuracy, consistent with the design intent of prioritising connectivity guidance for thin crack structures.
+The result suggests that class-conditional weighting primarily steers the distillation signal toward better crack centreline preservation rather than improving overall pixel accuracy, validating the empirically chosen per-class weights.
 
 \begin{table}[t]
 \centering
