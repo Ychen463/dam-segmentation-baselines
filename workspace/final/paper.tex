@@ -35,7 +35,7 @@
 \item Dynamic Snake Convolution improves crack connectivity (ConnR$_{\text{fg}}$ +3.4) with only 4M additional parameters.
 \item Dual-teacher distillation boosts mIoU$_{\text{fg}}$ by +1.9 at zero inference cost and reduces cross-seed variance by \textasciitilde{}3$\times$.
 \item SRL benefits teacher training but harms student under distillation, revealing asymmetric training dynamics.
-\item The full pipeline (DSConv+DTKD) achieves 18.7\% cross-dataset mIoU$_{\text{fg}}$ vs.\ 0.1\% for vanilla SegFormer, with DSConv's geometric bias as a key contributor to cross-domain robustness.
+\item The full pipeline (DSConv+DTKD) achieves 18.7\% cross-dataset mIoU$_{\text{fg}}$ vs.\ 0.1\% for vanilla SegFormer in zero-shot transfer, though precise attribution among pipeline components requires further ablation.
 \item Systematic loss exploration identifies sampling-based strategies as more effective than loss-based approaches for crack--spalling boundary refinement.
 \end{highlights}
 
@@ -46,7 +46,7 @@ We propose \textbf{TopoDistill}, a topology-aware segmentation framework that au
 (2)~\emph{Dual-Teacher Knowledge Distillation} (DTKD) that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher at zero additional inference cost. Optional refinements include per-class teacher weighting and agreement-aware pixel-level modulation of the distillation signal.
 On the \textbf{DamSegment} dataset \citep{damsegment2026} (1{,}500 images, 3~classes), the primary method (DSConv+DTKD, row~c in Table~\ref{tab:ablation}) achieves 72.3\% foreground mIoU---the highest among all compared methods---with DSConv driving crack connectivity (ConnR$_{\text{fg}}$ +3.4) and DTKD driving pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9) while reducing cross-seed variance by ${\sim}$3$\times$.
 An investigation of Skeleton Recall Loss reveals an asymmetric effect in distillation: SRL benefits teachers but harms students, indicating that optimal training recipes differ across pipeline stages.
-Zero-shot cross-dataset evaluation confirms that the full pipeline substantially improves cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$), with DSConv's geometric inductive bias as a key contributor.
+Zero-shot cross-dataset evaluation confirms that the full pipeline substantially improves cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$), though the individual contributions of DSConv, DTKD, and training recipe remain to be disentangled.
 \end{abstract}
 
 \begin{keyword}
@@ -711,7 +711,7 @@ Crack IoU remains challenging (${\sim}$59\%) due to extreme class imbalance, and
 We presented TopoDistill, a topology-aware segmentation framework for concrete dam defects that combines Dynamic Snake Convolution with dual-teacher knowledge distillation (DTKD).
 The two enhancements are complementary: DSConv provides geometric inductive bias for crack connectivity, while DTKD improves pixel-level accuracy and serves as a training regulariser, together achieving state-of-the-art performance on the DamSegment benchmark (72.3\% mIoU$_{\text{fg}}$, 83.0\% ConnR$_{\text{fg}}$) at no additional inference cost. A preliminary agreement-aware distillation extension shows promising boundary quality improvements in single-run evaluation (BF1$_{\text{cr}}$ +0.8), warranting future multi-seed validation.
 An investigation of Skeleton Recall Loss revealed an asymmetric effect in distillation---SRL benefits teachers but harms students---highlighting that optimal training recipes differ across pipeline stages.
-Exploration of alternative loss functions uncovered a persistent crack--spalling tradeoff at shared class boundaries, and zero-shot cross-dataset evaluation confirmed that the full pipeline substantially improves cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$), with DSConv's geometric prior as a key contributor.
+Exploration of alternative loss functions uncovered a persistent crack--spalling tradeoff at shared class boundaries, and zero-shot cross-dataset evaluation confirmed that the full pipeline substantially improves cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$), though disentangling the contributions of DSConv, DTKD, and training recipe to this transfer gain requires further ablation.
 These findings demonstrate that indirectly leveraging foundation models through knowledge distillation is more effective than direct fine-tuning on small-scale industrial datasets, providing practical guidance for data-scarce inspection scenarios.
 
 \section*{Data availability}
