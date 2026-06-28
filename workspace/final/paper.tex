@@ -33,7 +33,7 @@
 
 \begin{highlights}
 \item Dynamic Snake Convolution improves crack connectivity (ConnR$_{\text{fg}}$ +3.4) with only 4M additional parameters.
-\item Dual-teacher distillation boosts mIoU$_{\text{fg}}$ by +1.9 at zero inference cost and reduces cross-seed variance by \textasciitilde{}3$\times$.
+\item Dual-teacher distillation boosts mIoU$_{\text{fg}}$ by +1.9 at zero inference cost and reduces cross-seed variance (3 seeds) by \textasciitilde{}3$\times$.
 \item SRL benefits teacher training but harms student under distillation, revealing asymmetric training dynamics.
 \item The full pipeline (DSConv+DTKD) achieves 18.7\% cross-dataset mIoU$_{\text{fg}}$ vs.\ 0.1\% for vanilla SegFormer in zero-shot transfer, though precise attribution among pipeline components requires further ablation.
 \item Systematic loss exploration identifies sampling-based strategies as more effective than loss-based approaches for crack--spalling boundary refinement.
@@ -44,7 +44,7 @@ Automated semantic segmentation of cracks and spalling on concrete dam surfaces 
 We propose \textbf{TopoDistill}, a topology-aware segmentation framework that augments a SegFormer-B2 backbone with two complementary enhancements:
 (1)~a \emph{Dynamic Snake Convolution} (DSConv) branch that captures elongated crack geometry through deformable sampling, adding only 4M parameters; and
 (2)~\emph{Dual-Teacher Knowledge Distillation} (DTKD) that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher at zero additional inference cost. Optional refinements include per-class teacher weighting and agreement-aware pixel-level modulation of the distillation signal.
-On the \textbf{DamSegment} dataset \citep{damsegment2026} (1{,}500 images, 3~classes), the primary method (DSConv+DTKD, row~c in Table~\ref{tab:ablation}) achieves 72.3\% foreground mIoU---the highest among all compared methods---with DSConv driving crack connectivity (ConnR$_{\text{fg}}$ +3.4) and DTKD driving pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9) while reducing cross-seed variance by ${\sim}$3$\times$.
+On the \textbf{DamSegment} dataset \citep{damsegment2026} (1{,}500 images, 3~classes), the primary method (DSConv+DTKD, row~c in Table~\ref{tab:ablation}) achieves 72.3\% foreground mIoU---the highest among all compared methods---with DSConv driving crack connectivity (ConnR$_{\text{fg}}$ +3.4) and DTKD driving pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9) while reducing cross-seed variance by ${\sim}$3$\times$ (3 seeds).
 An investigation of Skeleton Recall Loss reveals an asymmetric effect in distillation: SRL benefits teachers but harms students, indicating that optimal training recipes differ across pipeline stages.
 Zero-shot cross-dataset evaluation confirms that the full pipeline substantially improves cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$), though the individual contributions of DSConv, DTKD, and training recipe remain to be disentangled.
 \end{abstract}
@@ -441,9 +441,9 @@ Multi-seed experiments (Table~\ref{tab:multiseed}) further confirm that the SRL 
 From baseline (a) to the primary method DSConv+DTKD (c), the cumulative improvement is +2.0 mIoU$_{\text{fg}}$, +1.7 BF1$_{\text{fg}}$, +2.8 clDice$_{\text{fg}}$, and +5.6 ConnR$_{\text{fg}}$; DSConv drives connectivity while DTKD drives pixel accuracy. The exploratory agreement-aware extension (g) adds modest boundary gains (+0.8 BF1$_{\text{cr}}$) that require multi-seed confirmation.
 
 \paragraph{Statistical significance.}
-To verify that DTKD's gains are not due to random variation, we conduct paired Wilcoxon signed-rank tests on the test images, comparing DSConv-only (row~b) vs.\ DSConv+DTKD (row~c, final model).
+We conduct paired Wilcoxon signed-rank tests on the test images, comparing DSConv-only (row~b) vs.\ DSConv+DTKD (row~c, final model).
 Seven of ten per-class metrics reach \emph{uncorrected} significance at $\alpha{=}0.05$: six show DTKD improvement---IoU$_{\text{cr}}$ ($p{=}0.008$), Dice$_{\text{cr}}$ ($p{=}0.007$), BF1$_{\text{cr}}$ ($p{=}0.046$), clDice$_{\text{cr}}$ ($p{<}0.001$), IoU$_{\text{sp}}$ ($p{=}0.016$), and Dice$_{\text{sp}}$ ($p{=}0.016$)---while ConnR$_{\text{cr}}$ shows a significant decrease ($-$1.7, $p{=}0.040$), reflecting the connectivity trade-off discussed above.
-After Holm--Bonferroni correction for 10 simultaneous comparisons, only clDice$_{\text{cr}}$ ($p_{\text{adj}}{=}0.010$) remains significant at the family-wise $\alpha{=}0.05$ level; the remaining metrics show adjusted $p$-values between 0.063 and 0.30. While the individual corrected tests lose significance due to the conservative nature of the correction, the \emph{directional consistency} across all six improving metrics---combined with multi-seed stability (Table~\ref{tab:multiseed}) and the group-split replication (Table~\ref{tab:group_split})---provides converging evidence that DTKD's gains are genuine rather than attributable to random variation.
+After Holm--Bonferroni correction for 10 simultaneous comparisons, only clDice$_{\text{cr}}$ ($p_{\text{adj}}{=}0.010$) remains significant at the family-wise $\alpha{=}0.05$ level; the remaining metrics show adjusted $p$-values between 0.063 and 0.30. The results consistently favour DTKD across several metrics, but the core measures (mIoU, IoU$_{\text{cr}}$, IoU$_{\text{sp}}$) do not survive multiple-comparison correction. Therefore, while the directional consistency is encouraging, we cannot claim statistically confirmed gains on these metrics based on the current test set.
 Tier-stratified analysis reveals the strongest effects on Hard images: IoU$_{\text{cr}}$ ($p{=}0.003$), Dice$_{\text{cr}}$ ($p{=}0.004$), BF1$_{\text{cr}}$ ($p{=}0.045$), and clDice$_{\text{cr}}$ ($p{<}0.001$) all reach uncorrected significance, suggesting that the foundation-model teacher's global knowledge provides the strongest benefit on complex crack patterns.
 
 \paragraph{Multi-seed training stability.}
@@ -469,11 +469,11 @@ ConnR$_{\text{fg}}$   & 80.3 $\pm$ 2.13 & 75.7 $\pm$ 3.68 & \textbf{81.3 $\pm$ 1
 
 DTKD achieves the highest mean performance on all six metrics while exhibiting the lowest variance on four of six.
 Notably, TopoDistill+SRL shows the highest variance (mIoU$_{\text{fg}}$ std = 2.42), and its multi-seed mean (67.9\%) is \emph{lower} than the baseline SegFormer-B2 (69.2\%), indicating that the single-seed improvement reported in Table~\ref{tab:ablation} is not robust.
-DTKD reduces sensitivity to initialisation by ${\sim}$3$\times$ compared to the baseline (mIoU$_{\text{fg}}$ std: 0.52 vs.\ 1.47), likely because the soft-label supervision from two pretrained teachers smooths the loss landscape.
+DTKD reduces sensitivity to initialisation by ${\sim}$3$\times$ compared to the baseline (mIoU$_{\text{fg}}$ std: 0.52 vs.\ 1.47), suggesting that soft-label supervision from two pretrained teachers may improve training stability.
 
 \paragraph{Per-tier breakdown.}
 Table~\ref{tab:per_tier} reports per-image mean performance stratified by difficulty tier, comparing DSConv-only (row~b) and DSConv+DTKD (row~c, final model) to isolate DTKD's contribution.
-DTKD improves mIoU$_{\text{fg}}$ consistently across all tiers (+3.4 Easy, +2.3 Medium, +2.3 Hard), but the gains reach the strongest uncorrected significance on Hard images (IoU$_{\text{cr}}$ $p{=}0.003$, clDice$_{\text{cr}}$ $p{<}0.001$), where complex crack patterns benefit most from the foundation-model teacher.
+DTKD improves mIoU$_{\text{fg}}$ consistently across all tiers (+3.4 Easy, +2.3 Medium, +2.3 Hard), with the strongest uncorrected $p$-values on Hard images (IoU$_{\text{cr}}$ $p{=}0.003$, clDice$_{\text{cr}}$ $p{<}0.001$), though these are uncorrected for multiple comparisons.
 The spalling improvements are largest on Easy (+6.2 IoU$_{\text{sp}}$, $p{=}0.035$) where the SAM-LoRA teacher's global context helps distinguish large spalling regions.
 ConnR$_{\text{fg}}$ improves on Easy (+4.8) and Hard (+1.4) tiers, driven by ConnR$_{\text{sp}}$ gains, while ConnR$_{\text{cr}}$ shows a small decrease on Hard ($-$2.4, $p{=}0.018$)---a trade-off where DTKD slightly sacrifices crack connectivity for substantially better spalling connectivity and overall accuracy.
 
@@ -656,7 +656,7 @@ Fig.~\ref{fig:cross_dataset} shows representative S2DS predictions. SegFormer-B2
 \label{sec:discussion}
 
 \paragraph{DTKD as the critical component.}
-Beyond the metric gains detailed in Section~\ref{sec:ablation}, DTKD serves as a powerful training regulariser: the soft-label supervision from two pretrained teachers smooths the loss landscape, reducing cross-seed variance by ${\sim}$3--5$\times$ (Table~\ref{tab:multiseed}) and making convergence less sensitive to random initialisation---a practical advantage for deployment scenarios where retraining reliability matters.
+Beyond the metric gains detailed in Section~\ref{sec:ablation}, DTKD appears to improve training stability: soft-label supervision from two pretrained teachers reduces cross-seed variance by ${\sim}$3$\times$ (mIoU$_{\text{fg}}$ std 0.52 vs.\ 1.47, Table~\ref{tab:multiseed}), making convergence less sensitive to random initialisation. We note that this observation is based on three seeds and does not constitute evidence for a specific mechanism (e.g., loss landscape smoothing); additional seeds and loss landscape analysis would be needed to support mechanistic claims.
 
 \paragraph{DTKD hyperparameter robustness.}
 We performed a star search over the two key DTKD hyperparameters: softmax temperature $\tau \in \{2, 4, 6\}$ (fixing $\alpha{=}0.5$) and hard-loss weight $\alpha \in \{0.3, 0.5, 0.7\}$ (fixing $\tau{=}4$). All four alternative configurations underperformed the default ($\alpha{=}0.5$, $\tau{=}4$): lower temperature ($\tau{=}2$) produced sharper teacher signals that caused early convergence and a $-$4.7\% mIoU$_{\text{fg}}$ drop; higher temperature ($\tau{=}6$) over-smoothed inter-class relationships ($-$1.4\%); shifting $\alpha$ in either direction degraded performance by 2--2.4\%, indicating that an equal balance between hard labels and soft distillation is optimal for this dataset scale. These results confirm that the default hyperparameters are near-optimal and that the reported DTKD gains are not an artefact of hyperparameter sensitivity.
