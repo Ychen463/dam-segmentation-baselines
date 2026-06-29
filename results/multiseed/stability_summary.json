@@ -59,8 +59,68 @@
       }
     }
   },
+  "dscformer_plain_G0": {
+    "paper_label": "DSConv-only",
+    "n_seeds": 3,
+    "metrics": {
+      "mIoU_fg": {
+        "mean": 70.76,
+        "std": 0.7,
+        "values": [
+          71.55,
+          70.22,
+          70.51
+        ]
+      },
+      "IoU_crack": {
+        "mean": 57.13,
+        "std": 0.58,
+        "values": [
+          57.8,
+          56.74,
+          56.85
+        ]
+      },
+      "IoU_spalling": {
+        "mean": 84.4,
+        "std": 0.82,
+        "values": [
+          85.31,
+          83.71,
+          84.18
+        ]
+      },
+      "BF1_fg_mean": {
+        "mean": 71.07,
+        "std": 1.25,
+        "values": [
+          72.05,
+          69.66,
+          71.5
+        ]
+      },
+      "clDice_fg_mean": {
+        "mean": 85.94,
+        "std": 0.6,
+        "values": [
+          86.62,
+          85.76,
+          85.45
+        ]
+      },
+      "ConnR_fg_mean": {
+        "mean": 80.38,
+        "std": 2.44,
+        "values": [
+          82.96,
+          78.12,
+          80.06
+        ]
+      }
+    }
+  },
   "dscformer_srl_G1": {
-    "paper_label": "DSCFormer",
+    "paper_label": "DSCFormer+SRL",
     "n_seeds": 3,
     "metrics": {
       "mIoU_fg": {
