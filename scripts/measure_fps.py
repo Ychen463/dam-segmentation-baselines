@@ -26,4 +26,10 @@ for _ in range(N):
         model(x)
 torch.cuda.synchronize()
 elapsed = time.perf_counter() - t0
-print(f"SAM-LoRA @ 1024: {N/elapsed:.1f} FPS ({elapsed/N*1000:.1f} ms/img)")
+result = f"SAM-LoRA @ 1024: {N/elapsed:.1f} FPS ({elapsed/N*1000:.1f} ms/img)"
+print(result)
+
+out_path = Path(__file__).resolve().parent.parent / "results" / "sam_lora_fps.txt"
+out_path.parent.mkdir(parents=True, exist_ok=True)
+out_path.write_text(result + "\n")
+print(f"Saved to {out_path}")
