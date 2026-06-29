@@ -151,12 +151,11 @@ class DSConv(nn.Module):
 
 
 class StandardConvBranch(nn.Module):
-    """Parameter-matched standard Conv control for CrackSnakeBranch.
+    """Standard Conv control for CrackSnakeBranch.
 
     Same projections + head structure, but replaces DSConv with standard
-    directional convolutions (1xK and Kx1). Parameter count closely matches
-    CrackSnakeBranch (~1.32M for K=9, hidden=64) to isolate the contribution
-    of DSConv's adaptive deformable sampling from extra capacity.
+    directional convolutions (1xK and Kx1). Note: parameter count is
+    ~1.93M vs CrackSnakeBranch's ~1.32M due to the dense Conv2d(64->1088, 3x3).
     """
 
     def __init__(self, s1_ch: int = 128, s2_ch: int = 320,
@@ -196,8 +195,9 @@ class StandardConvBranch(nn.Module):
 class CrackSnakeBranch(nn.Module):
     """Lightweight dual-DSConv branch for crack-specific geometric features.
 
-    Consumes SegFormer encoder stages 1 (H/8) and 2 (H/16), produces a
-    single-channel crack enhancement map at H/8 resolution.
+    Consumes SegFormer encoder hidden_states[1] (128ch, H/8) and
+    hidden_states[2] (320ch, H/16), produces a single-channel crack
+    enhancement map at H/8 resolution.
     Output is zero-initialized so the branch starts as a no-op.
     """
 
@@ -220,8 +220,8 @@ class CrackSnakeBranch(nn.Module):
     def forward(self, s1: torch.Tensor, s2: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            s1: (B, 128, H/8, W/8) — encoder stage 1
-            s2: (B, 320, H/16, W/16) — encoder stage 2
+            s1: (B, 128, H/8, W/8) — hidden_states[1]
+            s2: (B, 320, H/16, W/16) — hidden_states[2]
         Returns:
             (B, 1, H/8, W/8) crack enhancement logits
         """
@@ -281,8 +281,8 @@ class MultiScaleCrackSnakeBranch(nn.Module):
     def forward(self, s1: torch.Tensor, s2: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            s1: (B, 128, H/8, W/8) — encoder stage 1
-            s2: (B, 320, H/16, W/16) — encoder stage 2
+            s1: (B, 128, H/8, W/8) — hidden_states[1]
+            s2: (B, 320, H/16, W/16) — hidden_states[2]
         Returns:
             (B, 1, H/8, W/8) crack enhancement logits
         """

@@ -146,14 +146,14 @@ def main():
              "Proj → $\\mathbf{E}_{\\mathrm{crack}}$",
              C_DSC, fontsize=9, alpha=0.45)
 
-    # Encoder Stage 1,2 → DSConv branch
-    draw_arrow(ax, enc_x + 1.1, enc_stages[0][1],
-               dsc_x - 1.3, dsc_y + 0.4,
-               color=C_DSC, lw=1.1)
+    # Encoder Stage 2,3 → DSConv branch (hidden_states[1] and [2])
     draw_arrow(ax, enc_x + 1.1, enc_stages[1][1],
                dsc_x - 1.3, dsc_y + 0.4,
                color=C_DSC, lw=1.1)
-    ax.text(4.5, 13.5, "Stage 1, 2", fontsize=8.5, ha="center",
+    draw_arrow(ax, enc_x + 1.1, enc_stages[2][1],
+               dsc_x - 1.3, dsc_y + 0.4,
+               color=C_DSC, lw=1.1)
+    ax.text(4.5, 12.5, "Stage 2, 3", fontsize=8.5, ha="center",
             color=C_DSC, alpha=0.7, family="sans-serif")
 
     # ==================================================================

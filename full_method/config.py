@@ -193,6 +193,10 @@ class RunCfg:
     use_lovasz_loss: bool = False
     lovasz_weight: float = 0.5      # replaces loss_dice_w when active
 
+    # Label smoothing (soft-target regularisation control, no teachers)
+    use_label_smoothing: bool = False
+    label_smoothing_epsilon: float = 0.1
+
     # OHEM CE loss (keep only top-k% hardest pixels)
     use_ohem: bool = False
     ohem_ratio: float = 0.25        # keep top 25% hardest pixels
@@ -2789,6 +2793,89 @@ ABLATION_PRESETS = {
               "use_boundary_loss": False, "use_tversky_loss": False,
               "use_cldice_loss": False, "use_srl_loss": False,
               "use_soft_boundary_schedule": False},
+
+    # =========================================================================
+    # Factorial & control experiments (Issue: missing 2x2 + ensemble baselines)
+    # =========================================================================
+
+    # FACT1: SegFormer + DTKD (NO DSConv) — missing cell in 2x2 factorial
+    #   Student = plain SegFormer-B2, teachers = same DSCformer+SRL & SAM-LoRA+SRL
+    #   Tests whether DTKD benefits a vanilla backbone without DSConv
+    "FACT1": {"name": "segformer_dtkd_FACT1",
+              "model_type": "segformer",
+              "use_kd": True, "use_dual_kd": True,
+              "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+              "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+              "kd_teacher2_model_type": "sam_lora",
+              "kd_alpha": 0.5, "kd_temperature": 4.0,
+              "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+              "kd_class_weights": True,
+              "kd_crack_t2_weight": 0.6, "kd_spalling_t2_weight": 0.3,
+              "no_curriculum": True,
+              "use_soft_curriculum": False, "use_softmax_sampling": False,
+              "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+              "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+              "use_boundary_loss": False, "use_tversky_loss": False,
+              "use_cldice_loss": False, "use_srl_loss": False,
+              "use_soft_boundary_schedule": False},
+
+    # CTRL_DUP_T1: DSConv + duplicated Teacher 1 (same teacher used twice)
+    #   Tests whether dual-teacher benefit comes from architectural diversity
+    #   or just from having soft-target regularisation
+    "CTRL_DUP_T1": {"name": "dscformer_dup_t1_CTRL",
+                    "model_type": "dscformer",
+                    "use_kd": True, "use_dual_kd": True,
+                    "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+                    "kd_teacher2_checkpoint": "runs/dscformer_srl_G1/best.pt",
+                    "kd_teacher2_model_type": "dscformer",
+                    "kd_alpha": 0.5, "kd_temperature": 4.0,
+                    "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+                    "kd_class_weights": False,
+                    "no_curriculum": True,
+                    "use_soft_curriculum": False, "use_softmax_sampling": False,
+                    "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                    "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                    "use_boundary_loss": False, "use_tversky_loss": False,
+                    "use_cldice_loss": False, "use_srl_loss": False,
+                    "use_soft_boundary_schedule": False},
+
+    # CTRL_SAME_ARCH: DSConv + two same-architecture different-seed teachers
+    #   Teacher 1 = DSCformer+SRL (seed 42), Teacher 2 = DSCformer+SRL (seed 123)
+    #   Tests whether benefit comes from architectural complementarity or seed diversity
+    #   NOTE: requires dscformer_srl_G1_seed123 to be trained first (run_multiseed.sh)
+    "CTRL_SAME_ARCH": {"name": "dscformer_samearch_CTRL",
+                       "model_type": "dscformer",
+                       "use_kd": True, "use_dual_kd": True,
+                       "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+                       "kd_teacher2_checkpoint": "runs/dscformer_srl_G1_seed123/best.pt",
+                       "kd_teacher2_model_type": "dscformer",
+                       "kd_alpha": 0.5, "kd_temperature": 4.0,
+                       "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+                       "kd_class_weights": False,
+                       "no_curriculum": True,
+                       "use_soft_curriculum": False, "use_softmax_sampling": False,
+                       "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                       "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                       "use_boundary_loss": False, "use_tversky_loss": False,
+                       "use_cldice_loss": False, "use_srl_loss": False,
+                       "use_soft_boundary_schedule": False},
+
+    # CTRL_LABEL_SMOOTH: DSConv + label smoothing (no KD)
+    #   Tests whether DTKD's benefit is just soft-target regularisation
+    #   Label smoothing (epsilon=0.1) provides similar soft targets without teachers
+    #   NOTE: requires label_smoothing support in CompositeLoss (added separately)
+    "CTRL_LABEL_SMOOTH": {"name": "dscformer_labelsmooth_CTRL",
+                          "model_type": "dscformer",
+                          "use_kd": False, "use_dual_kd": False,
+                          "use_label_smoothing": True,
+                          "label_smoothing_epsilon": 0.1,
+                          "no_curriculum": True,
+                          "use_soft_curriculum": False, "use_softmax_sampling": False,
+                          "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                          "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                          "use_boundary_loss": False, "use_tversky_loss": False,
+                          "use_cldice_loss": False, "use_srl_loss": False,
+                          "use_soft_boundary_schedule": False},
 }
 
 

@@ -850,6 +850,9 @@ class CompositeLoss(nn.Module):
         bd_logits = F.interpolate(outputs["boundary_logits"], targets.shape[-2:],
                                   mode="bilinear", align_corners=False)
 
+        # Label smoothing epsilon (0.0 = no smoothing)
+        ls_eps = self.cfg.label_smoothing_epsilon if self.cfg.use_label_smoothing else 0.0
+
         # CE weight: apply MAC class-conditional multipliers if provided
         ce_w = self.ce_weight
         if mac_ce_multipliers is not None:
@@ -892,21 +895,26 @@ class CompositeLoss(nn.Module):
                     bg_near_crack_w=self.cfg.sdwl_w_bg_near,
                 )  # (B, H, W)
                 ce_unreduced = F.cross_entropy(seg_logits, targets, weight=ce_w,
-                                               reduction='none')  # (B,H,W)
+                                               reduction='none',
+                                               label_smoothing=ls_eps)  # (B,H,W)
                 loss_ce = (ce_unreduced * sdw).mean()
             else:
-                loss_ce = F.cross_entropy(seg_logits, targets, weight=ce_w)
+                loss_ce = F.cross_entropy(seg_logits, targets, weight=ce_w,
+                                          label_smoothing=ls_eps)
         elif pixel_w is not None:
             ce_unreduced = F.cross_entropy(seg_logits, targets, weight=ce_w,
-                                           reduction='none')  # (B,H,W)
+                                           reduction='none',
+                                           label_smoothing=ls_eps)  # (B,H,W)
             loss_ce = (ce_unreduced * pixel_w).mean()
         elif sample_weights is not None:
             ce_unreduced = F.cross_entropy(seg_logits, targets, weight=ce_w,
-                                           reduction='none')  # (B,H,W)
+                                           reduction='none',
+                                           label_smoothing=ls_eps)  # (B,H,W)
             ce_per_sample = ce_unreduced.mean(dim=(1, 2))  # (B,)
             loss_ce = (ce_per_sample * sample_weights).mean()
         else:
-            loss_ce = F.cross_entropy(seg_logits, targets, weight=ce_w)
+            loss_ce = F.cross_entropy(seg_logits, targets, weight=ce_w,
+                                      label_smoothing=ls_eps)
 
         # Dice or Lovász loss
         if self.cfg.use_lovasz_loss:
