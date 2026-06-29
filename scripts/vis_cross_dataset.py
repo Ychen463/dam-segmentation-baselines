@@ -107,7 +107,7 @@ def generate_vis(data_dir: Path, device: str, num_images: int, output_path: Path
     n_cols = len(col_labels)
     n_rows = len(stems)
 
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(3.5 * n_cols, 3.5 * n_rows))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(4.5 * n_cols, 4.5 * n_rows))
     if n_rows == 1:
         axes = axes[np.newaxis, :]
 
@@ -150,7 +150,7 @@ def generate_vis(data_dir: Path, device: str, num_images: int, output_path: Path
 
     # Column titles
     for j, label in enumerate(col_labels):
-        axes[0, j].set_title(label, fontsize=11, fontweight="bold", pad=10)
+        axes[0, j].set_title(label, fontsize=13, fontweight="bold", pad=10)
 
     # Legend
     legend_patches = [
@@ -158,16 +158,16 @@ def generate_vis(data_dir: Path, device: str, num_images: int, output_path: Path
         mpatches.Patch(color=(0.24, 0.78, 0.24), label="Spalling"),
     ]
     fig.legend(handles=legend_patches, loc="lower center", ncol=2,
-               fontsize=11, frameon=True, bbox_to_anchor=(0.5, -0.01))
+               fontsize=13, frameon=True, bbox_to_anchor=(0.5, -0.01))
 
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
 
     # Save
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(str(output_path), dpi=200, bbox_inches="tight")
+    fig.savefig(str(output_path), dpi=300, bbox_inches="tight")
     print(f"[vis] Saved: {output_path}")
     pdf_path = output_path.with_suffix(".pdf")
-    fig.savefig(str(pdf_path), dpi=200, bbox_inches="tight")
+    fig.savefig(str(pdf_path), dpi=300, bbox_inches="tight")
     print(f"[vis] Saved: {pdf_path}")
     plt.close(fig)
 

@@ -95,7 +95,7 @@ def main():
     split_file = SPLITS_DIR / f"{args.split}.txt"
     tiers = ["Easy", "Medium", "Hard"]
 
-    fig, axes = plt.subplots(3, 4, figsize=(16, 12))
+    fig, axes = plt.subplots(3, 4, figsize=(20, 15))
 
     for row, tier in enumerate(tiers):
         samples = pick_samples(split_file, tier, n=2, seed=args.seed)
@@ -108,7 +108,7 @@ def main():
             # Image
             ax_img = axes[row, j * 2]
             ax_img.imshow(img)
-            ax_img.set_title(f"{tier} — {Path(rel).stem}", fontsize=10)
+            ax_img.set_title(f"{tier} — {Path(rel).stem}", fontsize=13)
             ax_img.axis("off")
 
             # Overlay
@@ -119,7 +119,7 @@ def main():
             total_px = label.shape[0] * label.shape[1]
             ax_ov.set_title(
                 f"Crack: {cr_px/total_px*100:.1f}%  Spall: {sp_px/total_px*100:.1f}%",
-                fontsize=9)
+                fontsize=11)
             ax_ov.axis("off")
 
     # Legend
@@ -132,11 +132,11 @@ def main():
 
     fig.suptitle("DamSegment Dataset: Samples by Difficulty Tier", fontsize=14, y=0.98)
     fig.tight_layout(rect=[0, 0.02, 1, 0.96])
-    fig.savefig(str(out_path), dpi=200, bbox_inches="tight")
+    fig.savefig(str(out_path), dpi=300, bbox_inches="tight")
     print(f"Saved: {out_path}")
     # Also save PNG
     png_path = out_path.with_suffix(".png")
-    fig.savefig(str(png_path), dpi=200, bbox_inches="tight")
+    fig.savefig(str(png_path), dpi=300, bbox_inches="tight")
     print(f"Saved: {png_path}")
     plt.close(fig)
 

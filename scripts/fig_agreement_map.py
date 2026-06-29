@@ -163,7 +163,7 @@ def main():
                   "Teacher 2\n(SAM-LoRA)", "Disagreement\nMap", "Student\n(DTKD)"]
     n_cols = len(col_titles)
 
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(3.2 * n_cols, 3.2 * n_rows))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(4.2 * n_cols, 4.2 * n_rows))
     if n_rows == 1:
         axes = axes[np.newaxis, :]
 
@@ -206,9 +206,9 @@ def main():
         axes[i, 0].imshow(img_raw)
         if i == 0:
             axes[i, 0].set_title(f"{col_titles[0]}\n{row_label}",
-                                  fontsize=10, fontweight="bold", pad=6)
+                                  fontsize=13, fontweight="bold", pad=8)
         else:
-            axes[i, 0].set_title(row_label, fontsize=9, pad=6)
+            axes[i, 0].set_title(row_label, fontsize=11, pad=6)
 
         # Col 1: GT
         axes[i, 1].imshow(overlay(img_raw, gt))
@@ -234,7 +234,7 @@ def main():
 
     # Column titles (skip col 0 which already has title+row label)
     for j in range(1, len(col_titles)):
-        axes[0, j].set_title(col_titles[j], fontsize=10, fontweight="bold")
+        axes[0, j].set_title(col_titles[j], fontsize=13, fontweight="bold")
 
     # Legend
     legend_patches = [
@@ -242,16 +242,16 @@ def main():
         mpatches.Patch(color=(0.24, 0.78, 0.24), label="Spalling"),
     ]
     fig.legend(handles=legend_patches, loc="lower center", ncol=2,
-               fontsize=10, frameon=True, bbox_to_anchor=(0.35, -0.01))
+               fontsize=12, frameon=True, bbox_to_anchor=(0.35, -0.01))
 
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
 
     out_path = CODES_DIR / args.output
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(str(out_path), dpi=200, bbox_inches="tight")
+    fig.savefig(str(out_path), dpi=300, bbox_inches="tight")
     print(f"Saved: {out_path}")
     png_path = out_path.with_suffix(".png")
-    fig.savefig(str(png_path), dpi=200, bbox_inches="tight")
+    fig.savefig(str(png_path), dpi=300, bbox_inches="tight")
     print(f"Saved: {png_path}")
     plt.close(fig)
 

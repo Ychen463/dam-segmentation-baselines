@@ -179,7 +179,7 @@ def main():
     n_rows = len(samples)
     n_cols = 2 + n_models  # Image, GT, model1, model2, ...
 
-    fig, axes = plt.subplots(n_rows, n_cols, figsize=(3.8 * n_cols, 3.8 * n_rows))
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(4.5 * n_cols, 4.5 * n_rows))
     if n_rows == 1:
         axes = axes[np.newaxis, :]
 
@@ -201,15 +201,15 @@ def main():
         axes[i, 0].imshow(img_raw)
         if i == 0:
             axes[i, 0].set_title(f"{col_headers[0]}\n{row_label}",
-                                  fontsize=11, fontweight="bold", pad=6)
+                                  fontsize=13, fontweight="bold", pad=8)
         else:
-            axes[i, 0].set_title(row_label, fontsize=9, pad=6)
+            axes[i, 0].set_title(row_label, fontsize=11, pad=6)
         axes[i, 0].axis("off")
 
         # Col 1: GT overlay
         axes[i, 1].imshow(overlay(img_raw, gt))
         if i == 0:
-            axes[i, 1].set_title(col_headers[1], fontsize=11,
+            axes[i, 1].set_title(col_headers[1], fontsize=13,
                                   fontweight="bold", pad=10)
         axes[i, 1].axis("off")
 
@@ -239,9 +239,9 @@ def main():
             # Column header on first row, IoU scores on all rows
             if i == 0:
                 ax.set_title(f"{col_headers[2 + j]}\n{iou_str}",
-                             fontsize=11, fontweight="bold", pad=6)
+                             fontsize=13, fontweight="bold", pad=8)
             else:
-                ax.set_title(iou_str, fontsize=9, pad=6)
+                ax.set_title(iou_str, fontsize=11, pad=6)
             ax.axis("off")
 
     # Legend
@@ -250,16 +250,16 @@ def main():
         mpatches.Patch(color=(0.24, 0.78, 0.24), label="Spalling"),
     ]
     fig.legend(handles=legend_patches, loc="lower center", ncol=2,
-               fontsize=11, frameon=True, bbox_to_anchor=(0.5, -0.01))
+               fontsize=13, frameon=True, bbox_to_anchor=(0.5, -0.01))
 
     fig.tight_layout(rect=[0, 0.03, 1, 0.97])
 
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(str(out_path), dpi=200, bbox_inches="tight")
+    fig.savefig(str(out_path), dpi=300, bbox_inches="tight")
     print(f"Saved: {out_path}")
     png_path = out_path.with_suffix(".png")
-    fig.savefig(str(png_path), dpi=200, bbox_inches="tight")
+    fig.savefig(str(png_path), dpi=300, bbox_inches="tight")
     print(f"Saved: {png_path}")
     plt.close(fig)
 
