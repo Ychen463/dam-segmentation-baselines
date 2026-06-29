@@ -336,28 +336,28 @@ We report complementary metrics capturing different aspects of segmentation qual
 
 \subsection{Computational cost}
 
-Table~\ref{tab:cost} summarises the model complexity and inference speed measured on a single NVIDIA A40 GPU at each model's native input resolution.
-SegFormer-DSConv adds 4.0M total parameters over SegFormer-B2 (1.32M from the CrackSnakeBranch, 2.65M from an auxiliary boundary head that is present but not trained in the reported experiments; see Section~\ref{sec:dsconv}), with a modest FPS reduction (124$\to$96).
-Crucially, DTKD incurs \emph{no additional inference cost}: the two teachers are only used during training, and the student has identical architecture to SegFormer-DSConv.
-Mask2Former is the heaviest model (68.7M, 39 FPS), while foundation model baselines (SAM-LoRA, DINOv2-LoRA) carry $>$90M parameters due to their ViT-B encoders, though only ${\sim}$5--6M are trainable via LoRA.
+Table~\ref{tab:cost} summarises model complexity and reference inference speed. FPS values are measured at each model's native training resolution (shown in the table), so they are \emph{not directly comparable} across models---U-Net's 519 FPS at $320{\times}320$ is not comparable to SegFormer's 124 FPS at $512{\times}512$, and SAM-LoRA's 18 FPS reflects its $1024{\times}1024$ input. A fair speed comparison would require all models to be benchmarked at a uniform resolution, which we did not perform.
+SegFormer-DSConv adds 4.0M total parameters over SegFormer-B2 (1.32M from the CrackSnakeBranch, 2.65M from an auxiliary boundary head that is present but not trained in the reported experiments; see Section~\ref{sec:dsconv}), with a FPS reduction from 124 to 96 at $512{\times}512$.
+DTKD incurs \emph{no additional inference cost}: the two teachers are only used during training, and the student has identical architecture to SegFormer-DSConv.
+Foundation model baselines carry $>$90M parameters due to their ViT-B encoders, though only ${\sim}$5--6M are trainable via LoRA.
 
 \begin{table}[t]
 \centering
-\caption{Computational cost comparison. Params: total parameters. Train: trainable parameters (all are fully trainable unless noted). FPS: images/second on a single A40 GPU (batch size 1). $\dagger$: LoRA fine-tuning. \textsuperscript{a}SAM-LoRA uses an FPN decoder (not SAM's original prompt-conditioned decoder); its FPS is omitted because the two-stage encoder--decoder pipeline is not directly comparable to single-pass models in our benchmark.}
+\caption{Computational cost comparison. Params: total parameters. Train: trainable parameters (all are fully trainable unless noted). FPS: images/second on a single A40 GPU (batch size 1) at each model's native training resolution (shown in parentheses). $\dagger$: LoRA fine-tuning. \textbf{Caveat}: FPS values are measured at different input resolutions and are therefore \emph{not directly comparable} across models; they are provided as reference for each model's typical operating point. A fair latency comparison would require uniform resolution, precision, and measurement protocol.}
 \label{tab:cost}
-\begin{tabular}{llrrr}
+\begin{tabular}{llrrrr}
 \toprule
-Model & Backbone & Params (M) & Train (M) & FPS \\
+Model & Backbone & Params (M) & Train (M) & Res. & FPS \\
 \midrule
-U-Net & ResNet-34 & 24.4 & 24.4 & 519 \\
-DeepLabV3+ & ResNet-50 & 26.7 & 26.7 & 333 \\
-SegFormer-B2 & MiT-B2 & 27.3 & 27.3 & 124 \\
-Mask2Former & Swin-S & 68.7 & 68.7 & 39 \\
-SAM-LoRA$^\dagger$ & ViT-B & 93.7 & 5.0 & --\textsuperscript{a} \\
-DINOv2-LoRA$^\dagger$ & ViT-B/14 & 92.7 & 6.1 & 68 \\
+U-Net & ResNet-34 & 24.4 & 24.4 & 320 & 519 \\
+DeepLabV3+ & ResNet-50 & 26.7 & 26.7 & 512 & 333 \\
+SegFormer-B2 & MiT-B2 & 27.3 & 27.3 & 512 & 124 \\
+Mask2Former & Swin-S & 68.7 & 68.7 & 512 & 39 \\
+SAM-LoRA$^\dagger$ & ViT-B & 93.7 & 5.0 & 1024 & \textbf{??} \\
+DINOv2-LoRA$^\dagger$ & ViT-B/14 & 92.7 & 6.1 & 518 & 68 \\
 \midrule
-SegFormer-DSConv & MiT-B2 & 31.3 & 31.3 & 96 \\
-TopoDistill (DSConv+DTKD) & MiT-B2 & 31.3 & 31.3 & 96 \\
+SegFormer-DSConv & MiT-B2 & 31.3 & 31.3 & 512 & 96 \\
+TopoDistill (DSConv+DTKD) & MiT-B2 & 31.3 & 31.3 & 512 & 96 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -390,7 +390,7 @@ TopoDistill + TTA$^*$ & MiT-B2 & 72.7 & 59.3 & 86.0 & 76.3 & 67.2 & 71.8 & 83.7 
 \end{table*}
 
 TopoDistill achieves the highest mIoU$_{\text{fg}}$ (72.3\% without TTA, 72.7\% with TTA) and the highest IoU for both crack and spalling classes among all compared methods.
-Mask2Former achieves the highest BF1$_{\text{fg}}$ (72.5\%) due to its mask-attention mechanism, though with substantially lower mIoU$_{\text{fg}}$ (67.9\%). TopoDistill+TTA surpasses Mask2Former on BF1$_{\text{cr}}$ (76.3\% vs.\ 76.0\%).
+Mask2Former achieves the highest BF1$_{\text{fg}}$ (72.5\%) due to its mask-attention mechanism, though with substantially lower mIoU$_{\text{fg}}$ (67.9\%).
 TopoDistill achieves CompR$_{\text{fg}}$ 83.0\%, surpassing SAM-LoRA (81.2\%); this component recall reflects complementary contributions from DSConv's geometric inductive bias (+3.4 CompR$_{\text{fg}}$) and DTKD's improved spalling component preservation (+2.6 CompR$_{\text{fg}}$).
 Compared to the SegFormer-B2 baseline, TopoDistill improves mIoU$_{\text{fg}}$ by \textbf{+1.9}, IoU$_{\text{cr}}$ by \textbf{+1.6}, IoU$_{\text{sp}}$ by \textbf{+2.4}, and CompR$_{\text{fg}}$ by \textbf{+2.1}.
 
