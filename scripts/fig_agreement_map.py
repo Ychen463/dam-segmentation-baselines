@@ -159,7 +159,7 @@ def main():
 
     tau = args.temperature
     n_rows = len(samples)
-    col_titles = ["Input", "Ground Truth", "Teacher 1\n(TopoDistill)",
+    col_titles = ["Input", "Ground Truth", "Teacher 1\n(DSConv+SRL)",
                   "Teacher 2\n(SAM-LoRA)", "Disagreement\nMap", "Student\n(DTKD)"]
     n_cols = len(col_titles)
 

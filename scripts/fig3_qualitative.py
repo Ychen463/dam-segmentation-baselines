@@ -99,10 +99,10 @@ DISPLAY_NAMES = {
     "segformer_b2_plain_512": "SegFormer",
     "segformer_b2_staticcurr_512": "SegFormer+Curr",
     "mask2former_swin_small_512": "Mask2Former",
-    "dscformer_plain_G0": "TopoDistill",
-    "dscformer_srl_G1": "TopoDistill",
-    "dkd10_no_srl": "TopoDistill+DTKD",
-    "dataopt_baseline_N0": "TopoDistill+SRL (T1)",
+    "dscformer_plain_G0": "DSConv",
+    "dscformer_srl_G1": "DSConv+SRL",
+    "dkd10_no_srl": "TopoDistill",
+    "dataopt_baseline_N0": "DSConv+SRL (T1)",
 }
 
 

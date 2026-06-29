@@ -3,7 +3,7 @@
 
 Matches the paper's final method:
   (a) TopoDistill: SegFormer-B2 + parallel DSConv branch
-  (b) DTKD: class-conditional dual-teacher KD with confidence-aware distillation
+  (b) DTKD: dual-teacher KD with agreement-aware distillation
 
 Usage:
     python scripts/fig_architecture.py [--output figures/fig_architecture.pdf]
@@ -83,7 +83,7 @@ def main():
                            facecolor=C_BG_A, edgecolor=C_ENC, alpha=0.20,
                            linewidth=1.5, linestyle="--", zorder=0)
     ax.add_patch(bg_a)
-    ax.text(0.6, 16.0, "(a) TopoDistill Architecture", fontsize=15,
+    ax.text(0.6, 16.0, "(a) SegFormer-DSConv Architecture", fontsize=15,
             fontweight="bold", color=C_ENC, family="sans-serif", alpha=0.85)
 
     # Background region (b): Training / DTKD  (lower half)
@@ -201,9 +201,9 @@ def main():
     # TEACHER 1  (left)
     # ==================================================================
     t1_x, t1_y = 1.8, 5.8
-    draw_box(ax, t1_x, t1_y, 2.4, 1.2, "Teacher 1\nTopoDistill\n(frozen)",
+    draw_box(ax, t1_x, t1_y, 2.4, 1.2, "Teacher 1\nDSConv+SRL\n(frozen)",
              C_T1, fontsize=10, alpha=0.30, fontweight="bold")
-    ax.text(t1_x, 5.0, "Strong on spalling", fontsize=8.5,
+    ax.text(t1_x, 5.0, "Strong on pixel accuracy", fontsize=8.5,
             ha="center", color=C_T1, fontstyle="italic",
             family="sans-serif", alpha=0.7)
 
@@ -211,7 +211,7 @@ def main():
     t2_x, t2_y = 6.0, 5.8
     draw_box(ax, t2_x, t2_y, 2.4, 1.2, "Teacher 2\nSAM-LoRA\n(frozen)",
              C_T2, fontsize=10, alpha=0.30, fontweight="bold")
-    ax.text(t2_x, 5.0, "Strong on crack connectivity", fontsize=8.5,
+    ax.text(t2_x, 5.0, "Strong on spalling connectivity", fontsize=8.5,
             ha="center", color=C_T2, fontstyle="italic",
             family="sans-serif", alpha=0.7)
 
@@ -267,7 +267,7 @@ def main():
     # ==================================================================
     kd_x, kd_y = 5.5, 1.8
     draw_box(ax, kd_x, kd_y, 5.5, 1.0, "", C_CONF, fontsize=10, alpha=0.22)
-    ax.text(kd_x, 2.5, "Confidence-Aware KD Loss", fontsize=12,
+    ax.text(kd_x, 2.5, "Agreement-Aware KD Loss", fontsize=12,
             fontweight="bold", ha="center", color="#7D6608",
             family="sans-serif")
     ax.text(kd_x, kd_y,
@@ -299,7 +299,7 @@ def main():
             "$\\mathcal{L} = (1{-}\\alpha)"
             "[\\lambda_1\\mathcal{L}_{\\mathrm{CE}}"
             " + \\lambda_2\\mathcal{L}_{\\mathrm{Dice}}]"
-            " + \\alpha\\,\\mathcal{L}_{\\mathrm{KD}}^{\\mathrm{conf}}$"
+            " + \\alpha\\,\\mathcal{L}_{\\mathrm{KD}}$"
             "      ($\\alpha{=}0.5,\\;\\tau{=}4$)",
             fontsize=9.5, ha="center", color="black",
             family="sans-serif", fontweight="bold")
@@ -333,7 +333,7 @@ def main():
         (C_T1,  "Teacher 1 (task-specific)"),
         (C_T2,  "Teacher 2 (foundation model)"),
         (C_ENS, "Ensemble / DTKD"),
-        (C_CONF, "Confidence-aware KD"),
+        (C_CONF, "Agreement-aware KD"),
     ]
     handles = [mpatches.Patch(facecolor=c, edgecolor="black", alpha=0.4,
                                label=l) for c, l in legend_items]

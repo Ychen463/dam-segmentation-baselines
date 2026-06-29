@@ -34,8 +34,8 @@ S2DS_DIR = CODES_DIR / "Dataset" / "S2DS"
 MODELS = [
     ("SegFormer-B2", "segformer_b2_plain_512"),
     ("Mask2Former", "mask2former_swin_small_512"),
-    ("TopoDistill", "dscformer_srl_G1"),
-    ("TopoDistill+DTKD", "dual_kd_classaware_DKD2"),
+    ("DSConv+SRL", "dscformer_srl_G1"),
+    ("TopoDistill", "dual_kd_classaware_DKD2"),
 ]
 
 
