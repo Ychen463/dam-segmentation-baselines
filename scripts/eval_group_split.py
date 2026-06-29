@@ -71,6 +71,7 @@ GSPLIT_RUN_DIRS = {
     "deeplabv3p_r50_512": ("baseline_deeplab", "deeplabv3p_r50_512_gsplit"),
     "segformer_b2_plain_512": ("baseline_segformer", "segformer_b2_plain_512_gsplit"),
     "mask2former_swin_small_512": ("baseline_mask2former", "mask2former_plain_M0_gsplit"),
+    "dscformer_plain_G0": ("full_method", "dscformer_plain_G0_gsplit"),
     "dscformer_srl_G1": ("full_method", "dscformer_srl_G1_gsplit"),
     "dual_kd_classaware_DKD2": ("full_method", "dual_kd_classaware_DKD2_gsplit"),
 }
