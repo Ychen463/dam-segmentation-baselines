@@ -24,7 +24,8 @@ import numpy as np
 # Models to aggregate (base_name -> paper label)
 MODELS = {
     "plain_segformer_P0": "SegFormer-B2",
-    "dscformer_srl_G1": "DSCFormer",
+    "dscformer_plain_G0": "DSConv-only",
+    "dscformer_srl_G1": "DSCFormer+SRL",
     "dual_kd_classaware_DKD2": "DSCFormer+DTKD",
 }
 
