@@ -15,7 +15,7 @@ device = "cuda"
 
 # Build SAM-LoRA model
 cfg = RunCfg()
-apply_preset(cfg, "SAM")
+apply_preset(cfg, "SAM2")
 model = TopoLoRASAM(
     sam_checkpoint=cfg.sam_checkpoint,
     num_classes=fm_C.NUM_CLASSES,
