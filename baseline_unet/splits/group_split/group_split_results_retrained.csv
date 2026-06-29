@@ -1,0 +1,2 @@
+model,IoU_background,Dice_background,IoU_crack,Dice_crack,IoU_spalling,Dice_spalling,mIoU_fg,mIoU_all,pixel_acc,BF1_crack,BF1_spalling,BF1_fg_mean,clDice_crack,ConnR_crack,clDice_spalling,ConnR_spalling,clDice_fg_mean,ConnR_fg_mean
+dscformer_plain_G0,0.9760,0.9878,0.5679,0.7244,0.7891,0.8821,0.6785,0.7777,0.9766,0.7449,0.6030,0.6740,0.8081,0.8101,0.8672,0.7551,0.8376,0.7826
