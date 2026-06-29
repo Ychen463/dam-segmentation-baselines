@@ -69,7 +69,7 @@ However, IoU and related region-overlap metrics are insensitive to topological e
 For structural safety assessment, the \emph{connectivity} of a predicted crack is as important as its pixel coverage---a fragmented prediction can lead an engineer to underestimate propagation length and thus misjudge residual capacity.
 
 Topology-preserving losses such as clDice \citep{shit2021cldice} and persistent-homology penalties \citep{hu2019topology,clough2020topological} partially address this gap, yet they either incur prohibitive GPU memory for high-resolution dam images or operate on binary masks without multi-class support.
-The recently proposed Skeleton Recall Loss (SRL) \citep{shit2024skeleton} overcomes both limitations by computing recall on CPU-extracted ground-truth skeletons with over 90\% reduction in computational overhead.
+The recently proposed Skeleton Recall Loss (SRL) \citep{kirchhoff2024skeleton} overcomes both limitations by computing recall on CPU-extracted ground-truth skeletons with over 90\% reduction in computational overhead.
 Concurrently, Dynamic Snake Convolution (DSConv) \citep{qi2023dynamic} reshapes kernel sampling grids to follow elongated, tortuous paths---a morphological prior that aligns naturally with the geometry of cracks.
 
 Meanwhile, large vision foundation models such as SAM \citep{kirillov2023sam} and DINOv2 \citep{oquab2024dinov2} offer powerful pretrained representations, yet our experiments show that parameter-efficient fine-tuning via LoRA \citep{hu2022lora} on small industrial datasets underperforms fully fine-tuned task-specific architectures.
@@ -112,7 +112,7 @@ More recently, CCT~Net \citep{gao2026cctnet} combined CNN and Transformer branch
 However, persistent-homology computation scales poorly to high-resolution images.
 
 For tubular structures, \citet{shit2021cldice} proposed clDice, a differentiable soft-skeleton metric, but it requires GPU-based skeletonisation with substantial memory overhead.
-The Skeleton Recall Loss \citep{shit2024skeleton} pre-computes ground-truth skeletons on CPU and formulates a recall objective, achieving superior connectivity with over 90\% memory reduction relative to clDice.
+The Skeleton Recall Loss \citep{kirchhoff2024skeleton} pre-computes ground-truth skeletons on CPU and formulates a recall objective, achieving superior connectivity with over 90\% memory reduction relative to clDice.
 Recent work has critically examined topology-aware losses: \citet{arora2025srlcritique} question whether SRL's benefits generalise beyond the original evaluation setting, and \citet{joo2026cts} provide a faithful implementation of the Crack Topology Score with extensions for handling common prediction artifacts.
 
 Our work evaluates SRL in the multi-class dam defect setting, revealing an asymmetric effect: SRL improves teacher utility for downstream distillation but harms student training when combined with soft-label objectives---consistent with the growing evidence that topology-aware losses require careful integration.
@@ -189,7 +189,7 @@ A key observation from our experiments is that different model architectures exc
 
 We propose \emph{dual-teacher knowledge distillation} (DTKD) that constructs an ensemble of teacher predictions:
 
-\paragraph{Teacher models.} We use two pretrained teachers, both trained with Skeleton Recall Loss (SRL) \citep{shit2024skeleton} to improve their utility as distillation teachers (the rationale for this choice is validated in Section~\ref{sec:ablation}):
+\paragraph{Teacher models.} We use two pretrained teachers, both trained with Skeleton Recall Loss (SRL) \citep{kirchhoff2024skeleton} to improve their utility as distillation teachers (the rationale for this choice is validated in Section~\ref{sec:ablation}):
 \begin{itemize}[nosep]
     \item \textbf{Teacher~1} ($T_1$): TopoDistill (task-specific, strong on pixel accuracy)
     \item \textbf{Teacher~2} ($T_2$): SAM-LoRA (foundation model, strong on structural connectivity)
@@ -424,7 +424,7 @@ TTA provides modest additional gains (mIoU$_{\text{fg}}$ +0.4, IoU$_{\text{cr}}$
 
 \paragraph{Effect of SRL (rows e--f).}
 \label{sec:srl}
-Skeleton Recall Loss (SRL) \citep{shit2024skeleton} penalises low predicted probability at ground-truth skeleton pixels $\mathcal{S}$, precomputed offline via morphological skeletonisation:
+Skeleton Recall Loss (SRL) \citep{kirchhoff2024skeleton} penalises low predicted probability at ground-truth skeleton pixels $\mathcal{S}$, precomputed offline via morphological skeletonisation:
 \begin{equation}
     \mathcal{L}_{\text{SRL}} = 1 - \frac{1}{|\mathcal{S}|} \sum_{p \in \mathcal{S}} \hat{y}_{\text{crack}}(p)
     \label{eq:srl}
@@ -844,6 +844,11 @@ Arora, D., Kumar, N., Gupta, S., 2025.
 \newblock Does the skeleton-recall loss really work?
 \newblock arXiv preprint arXiv:2508.11374.
 
+\bibitem[Kirchhoff et~al.(2024)]{kirchhoff2024skeleton}
+Kirchhoff, Y., Rokuss, M.R., Roy, S., Seibold, C., Stiefelhagen, R., Maier-Hein, K.H., Maier-Hein, L., 2024.
+\newblock Skeleton recall loss for connectivity conserving and resource efficient segmentation of thin tubular structures.
+\newblock In: ECCV, LNCS~15118. pp.~363--380.
+
 \bibitem[Kirillov et~al.(2023)]{kirillov2023sam}
 Kirillov, A., Mintun, E., Ravi, N., Mao, H., Rolland, C., Gustafson, L., Xiao, T., Whitehead, S., Berg, A.C., Lo, W.-Y., Doll\'{a}r, P., Girshick, R., 2023.
 \newblock Segment anything.
@@ -903,11 +908,6 @@ Ronneberger, O., Fischer, P., Brox, T., 2015.
 Shit, S., Paetzold, J.C., Sekuboyina, A., Ezhov, I., Unber, A., Zhylka, A., Pluim, J.P.W., Bauer, U., Menze, B.H., 2021.
 \newblock clDice -- A novel topology-preserving loss function for tubular structure segmentation.
 \newblock In: CVPR. pp.~16560--16569.
-
-\bibitem[Shit et~al.(2024)]{shit2024skeleton}
-Shit, S., Koner, R., Paetzold, J.C., Ezhov, I., Menze, B.H., 2024.
-\newblock Skeleton recall loss for connectivity conserving and resource efficient segmentation of thin tubular structures.
-\newblock In: ECCV, LNCS~15118. pp.~363--380.
 
 \bibitem[Liang et~al.(2025)]{wang2025taskspecifickd}
 Liang, P., Huang, H., Pu, B., Chen, J., Hua, X., Zhang, J., Ma, W., Chen, Z., Li, Y., Chang, Q., 2025.
