@@ -1,5 +1,5 @@
 {
-  "dscformer_plain_G0": {
+  "s2ds": {
     "IoU_background": 0.9362037676539492,
     "Dice_background": 0.9670508686059675,
     "IoU_crack": 0.06793618473570347,
