@@ -73,7 +73,7 @@ Topology-preserving losses such as clDice \citep{shit2021cldice} and persistent-
 The recently proposed Skeleton Recall Loss (SRL) \citep{kirchhoff2024skeleton} overcomes both limitations by computing recall on CPU-extracted ground-truth skeletons with over 90\% reduction in computational overhead.
 Concurrently, Dynamic Snake Convolution (DSConv) \citep{qi2023dynamic} reshapes kernel sampling grids to follow elongated, tortuous paths---a morphological prior that aligns naturally with the geometry of cracks.
 
-Meanwhile, large vision foundation models such as SAM \citep{kirillov2023sam} and DINOv2 \citep{oquab2024dinov2} offer powerful pretrained representations, yet our experiments show that parameter-efficient fine-tuning via LoRA \citep{hu2022lora} on small industrial datasets underperforms fully fine-tuned task-specific architectures.
+Meanwhile, large vision foundation models such as SAM \citep{kirillov2023sam} and DINOv2 \citep{oquab2024dinov2} offer powerful pretrained representations, yet in our experiments, parameter-efficient fine-tuning via LoRA \citep{hu2022lora} on small industrial datasets underperforms fully fine-tuned task-specific architectures under the configurations we evaluated.
 A natural question arises: \emph{can the complementary strengths of task-specific and foundation models be combined}?
 We address this through knowledge distillation, where a student model learns from both a task-specific teacher and a foundation-model teacher.
 
@@ -83,7 +83,7 @@ Our contributions are:
 \begin{enumerate}
     \item A topology-aware segmentation framework combining a parallel Dynamic Snake Convolution branch (1.3M functional parameters) with dual-teacher knowledge distillation (DTKD, zero inference overhead). DSConv drives crack connectivity (clDice$_{\text{fg}}$ +3.0, CompR$_{\text{cr}}$ +2.8) and cross-seed stability (std 1.47$\to$0.70); DTKD adds +1.9 mIoU$_{\text{fg}}$ on the original split, though this gain does not replicate on a feature-cluster split ($-$0.6; Table~\ref{tab:group_split}). Equal-weight and per-class weighted ensembles achieve comparable results; agreement-aware pixel-level modulation is explored as an extension (Section~\ref{sec:ablation}).
     \item An empirical finding that Skeleton Recall Loss (SRL) exhibits an \emph{asymmetric} effect in knowledge distillation: SRL improves \emph{teacher} utility for downstream distillation (students trained from SRL teachers achieve +1.2 mIoU$_{\text{fg}}$) but harms direct \emph{student} optimisation when combined with DTKD ($-$1.1 mIoU$_{\text{fg}}$), revealing that optimal training recipes differ between teachers and distillation students.
-    \item A comprehensive evaluation comprising six baselines (including SAM-LoRA and DINOv2-LoRA), per-tier difficulty analysis, multi-seed stability testing, and a feature-cluster split as a partial sanity check for visual near-duplicate leakage (though the different split ratio and test-set composition limit its diagnostic power; see Section~\ref{sec:discussion}), demonstrating that task-specific design with knowledge distillation outperforms direct foundation-model fine-tuning on small-scale industrial datasets.
+    \item A comprehensive evaluation comprising six baselines (including SAM-LoRA and DINOv2-LoRA), per-tier difficulty analysis, multi-seed stability testing, and a feature-cluster split as a partial sanity check for visual near-duplicate leakage (though the different split ratio and test-set composition limit its diagnostic power; see Section~\ref{sec:discussion}). Under the evaluated LoRA configurations, task-specific design with knowledge distillation outperforms direct foundation-model fine-tuning on this small-scale industrial dataset.
     \item Empirical analyses of training strategies and cross-domain transfer: loss exploration reveals a persistent crack--spalling tradeoff at shared class boundaries, and zero-shot evaluation on S2DS with component-level ablation shows that DSConv accounts for ${\sim}$80\% of the cross-domain mIoU$_{\text{fg}}$ gain.
 \end{enumerate}
 
@@ -146,7 +146,7 @@ The Segment Anything Model (SAM) \citep{kirillov2023sam} and DINOv2 \citep{oquab
 Parameter-efficient fine-tuning via LoRA \citep{hu2022lora} enables adaptation with minimal trainable parameters (${\sim}5\%$).
 While promising on natural images, their effectiveness on small-scale industrial datasets remains underexplored.
 \citet{ye2024samdefect} applied SAM-based instance segmentation for structural damage detection, demonstrating SAM's potential for infrastructure inspection but also noting the need for domain-specific adaptation.
-We show that rather than directly deploying foundation models, using them as teachers in knowledge distillation yields better results---a strategy that preserves inference efficiency while inheriting the foundation model's structural knowledge.
+In our experiments, using foundation models as teachers in knowledge distillation outperforms direct LoRA fine-tuning under the configurations evaluated---a strategy that preserves inference efficiency while inheriting the foundation model's structural knowledge, though the comparison is limited by the absence of systematic hyperparameter tuning for the LoRA baselines.
 
 % ===========================================================================
 \section{Method}
@@ -316,7 +316,12 @@ For DTKD, Teacher~1 (DSConv+SRL) and Teacher~2 (SAM-LoRA+SRL) are trained indepe
 The student has identical architecture to Teacher~1 but is trained \emph{without} SRL (CE + Dice + KD only).
 Distillation uses $\alpha = 0.5$, $\tau = 4$.
 
-For foundation model baselines, SAM-LoRA uses SAM's ViT-B encoder with LoRA (rank 16, $\alpha$=32); we replace SAM's original prompt-conditioned mask decoder with a lightweight FPN decoder for prompt-free semantic segmentation, so no prompts (ground-truth-derived or otherwise) are used at training or test time. DINOv2-LoRA adapts ViT-B/14 similarly with input size $518{\times}518$ (patch-size multiple). Both train for 50 epochs with batch size 2.
+For foundation model baselines, we freeze the pretrained encoder and train only LoRA adapters plus a lightweight decoder.
+\textbf{SAM-LoRA} uses SAM's ViT-B encoder (frozen) with LoRA (rank~16, $\alpha{=}16$) injected into all attention Q/K/V and MLP projection layers (48 layers total); we replace SAM's original prompt-conditioned mask decoder with a 4-scale FPN decoder (features from blocks [2,\,5,\,8,\,11], $d_{\text{fpn}}{=}256$, Conv$1{\times}1$ lateral projections with GroupNorm-32 + Conv$3{\times}3$ top-down fusion, sum-aggregated to the highest resolution, followed by a Conv$3{\times}3$ + GroupNorm + ReLU + Conv$1{\times}1$ segmentation head) for prompt-free semantic segmentation---no prompts are used at training or test time.
+\textbf{DINOv2-LoRA} adapts ViT-B/14 (frozen) identically: LoRA (rank~16, $\alpha{=}16$) into attention Q/K/V and MLP fc1/fc2 layers, same FPN decoder architecture, input size $518{\times}518$ ($37{\times}14$ patch-size multiple).
+Both use AdamW with separate learning rates for LoRA ($10^{-4}$) and decoder ($3{\times}10^{-4}$) parameters, weight decay $10^{-4}$, 5-epoch warmup, 50 epochs, batch size~2.
+No hyperparameter search was conducted for the foundation model baselines; the LoRA rank, learning rates, and decoder architecture were set based on common practices in the literature without tuning on DamSegment validation data.
+Consequently, comparisons between foundation model baselines and our method (Section~\ref{sec:experiments}) reflect the specific LoRA configurations evaluated, and the conclusion that indirect use via distillation outperforms direct fine-tuning should be qualified accordingly.
 
 \subsection{Evaluation metrics}
 
@@ -390,8 +395,8 @@ TopoDistill achieves CompR$_{\text{fg}}$ 83.0\%, surpassing SAM-LoRA (81.2\%); t
 Compared to the SegFormer-B2 baseline, TopoDistill improves mIoU$_{\text{fg}}$ by \textbf{+1.9}, IoU$_{\text{cr}}$ by \textbf{+1.6}, IoU$_{\text{sp}}$ by \textbf{+2.4}, and CompR$_{\text{fg}}$ by \textbf{+2.1}.
 
 \paragraph{Foundation model comparison.}
-Despite leveraging powerful pretrained representations, SAM-LoRA (68.1\%) and DINOv2-LoRA (66.7\%) substantially underperform both DSConv+SRL (70.6\%) and TopoDistill (72.3\%).
-However, DTKD demonstrates that foundation model knowledge can be \emph{indirectly} leveraged through distillation---a more effective use of foundation models on small-scale industrial datasets (see ablation in Section~\ref{sec:ablation}).
+Under the evaluated LoRA configurations (no hyperparameter tuning; see Section~\ref{sec:experiments}), SAM-LoRA (68.1\%) and DINOv2-LoRA (66.7\%) underperform both DSConv+SRL (70.6\%) and TopoDistill (72.3\%).
+DTKD demonstrates that foundation model knowledge can be \emph{indirectly} leveraged through distillation, which proved more effective than direct fine-tuning in our experiments (see ablation in Section~\ref{sec:ablation}), though better-optimised baselines may narrow this gap.
 Mask2Former achieves the highest BF1$_{\text{fg}}$ (72.5\%) and clDice$_{\text{sp}}$ (91.1\%), but with substantially lower mIoU$_{\text{fg}}$ (67.9\%).
 
 \subsection{Ablation study}
@@ -729,7 +734,7 @@ Inter-teacher disagreement provides a free quality signal that correlates with s
 SRL leads the teacher to produce more useful soft supervision that transfers well through distillation, even though SRL degrades the teacher's own connectivity metrics. As a student training component, however, SRL interferes with DTKD's soft-label supervision. This asymmetry---that optimal teacher and student training recipes differ---has broader implications for distillation pipeline design.
 
 \paragraph{Indirect use of foundation models.}
-Rather than directly fine-tuning SAM or DINOv2 (which underperforms task-specific architectures by 2--4\% mIoU on small datasets), using them as \emph{teachers} in knowledge distillation yields better results. The student inherits the foundation model's structural knowledge while maintaining inference efficiency identical to the base model.
+Under the evaluated LoRA configurations, directly fine-tuning SAM or DINOv2 underperforms task-specific architectures by 2--4\% mIoU$_{\text{fg}}$. Using them as \emph{teachers} in knowledge distillation yields better results in our experiments, though this comparison is limited by the absence of hyperparameter tuning for the foundation model baselines (see Section~\ref{sec:experiments}).
 
 \paragraph{Crack--spalling tradeoff.}
 The persistent tradeoff across all loss-based strategies (Section~\ref{sec:strategy}) arises from shared geometric boundaries between defect types. Pixel-level loss modification alone cannot resolve the crack precision bottleneck without collateral damage to spalling, suggesting that sampling-based, architectural, or post-processing approaches (e.g., class-specific CRF refinement) are more promising.
@@ -789,7 +794,7 @@ DSConv provides robust geometric inductive bias for crack connectivity and is th
 DTKD adds +1.9 mIoU$_{\text{fg}}$ on the original split, though this gain exhibits split dependence ($-$0.6 on the cluster split), suggesting its incremental contribution over DSConv alone is more modest than the single-seed result implies.
 An investigation of Skeleton Recall Loss revealed that optimal training recipes differ between teachers and distillation students: SRL improves teacher utility but harms student optimisation under DTKD.
 Exploration of alternative loss functions uncovered a persistent crack--spalling tradeoff at shared class boundaries.
-These findings demonstrate that indirectly leveraging foundation models through knowledge distillation is more effective than direct fine-tuning on small-scale industrial datasets, and that geometry-aware architectural priors (DSConv) are the most transferable component for data-scarce inspection scenarios.
+Under the evaluated configurations, indirectly leveraging foundation models through knowledge distillation outperforms direct LoRA fine-tuning on this small-scale industrial dataset, though better-optimised foundation model baselines may narrow or close this gap. Geometry-aware architectural priors (DSConv) emerge as the most transferable component for data-scarce inspection scenarios.
 
 \section*{Data availability}
 
