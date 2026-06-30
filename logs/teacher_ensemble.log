@@ -1,0 +1,35 @@
+Some weights of SegformerForSemanticSegmentation were not initialized from the model checkpoint at nvidia/segformer-b2-finetuned-ade-512-512 and are newly initialized because the shapes did not match:
+- decode_head.classifier.weight: found shape torch.Size([150, 768, 1, 1]) in the checkpoint and torch.Size([3, 768, 1, 1]) in the model instantiated
+- decode_head.classifier.bias: found shape torch.Size([150]) in the checkpoint and torch.Size([3]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Device: cuda
+Dataset: 150 images (test)
+Loading Teacher 1...
+  Loaded dscformer from /workspace/dam-segmentation-baselines/full_method/runs/dscformer_srl_G1/best.pt (epoch=35, val_mIoU_fg=0.6961198938087753)
+Loading Teacher 2...
+[TopoLoRA-SAM] loaded SAM ViT-B from sam_vit_b_01ec64.pth
+[TopoLoRA-SAM] injected LoRA into 48 layers (rank=16)
+[TopoLoRA-SAM] total params: 95.8M, trainable: 6.1M (6.4%)
+  Loaded sam_lora from /workspace/dam-segmentation-baselines/full_method/runs/sam_lora_srl_SAM2/best.pt (epoch=43, val_mIoU_fg=0.698679166053821)
+
+=== Individual Teachers ===
+Teacher 1 (DSConv+SRL):     mIoU_fg=68.3  IoU_crack=55.5  IoU_spalling=81.1  BF1_fg_mean=67.1  clDice_fg_mean=83.7  ConnR_fg_mean=79.2
+Teacher 2 (SAM-LoRA+SRL):   mIoU_fg=67.8  IoU_crack=55.7  IoU_spalling=79.9  BF1_fg_mean=68.0  clDice_fg_mean=81.9  ConnR_fg_mean=80.7
+
+=== Ensemble Upper Bounds ===
+Equal-weight logit avg:     mIoU_fg=70.7  IoU_crack=57.5  IoU_spalling=83.8  BF1_fg_mean=69.0  clDice_fg_mean=83.7  ConnR_fg_mean=81.5
+Per-class prob ensemble:    mIoU_fg=69.7  IoU_crack=57.3  IoU_spalling=82.2  BF1_fg_mean=68.2  clDice_fg_mean=82.3  ConnR_fg_mean=79.4
+Agreement-weighted:         mIoU_fg=70.7  IoU_crack=57.5  IoU_spalling=83.8  BF1_fg_mean=69.0  clDice_fg_mean=83.7  ConnR_fg_mean=81.5
+
+Saved: results/factorial/teacher_ensemble.json
+
+=== Summary (key metrics, all in %) ===
+Configuration                   mIoU_fg   IoU_cr   IoU_sp   BF1_fg clDice_fg ConnR_fg
+------------------------------------------------------------------------------------------
+Teacher 1 (DSConv+SRL)            68.3%    55.5%    81.1%    67.1%     83.7%    79.2%
+Teacher 2 (SAM-LoRA+SRL)          67.8%    55.7%    79.9%    68.0%     81.9%    80.7%
+Ensemble: equal logit             70.7%    57.5%    83.8%    69.0%     83.7%    81.5%
+Ensemble: per-class prob          69.7%    57.3%    82.2%    68.2%     82.3%    79.4%
+Ensemble: agreement-wt            70.7%    57.5%    83.8%    69.0%     83.7%    81.5%
+
+Compare with DTKD student: mIoU_fg=72.3, IoU_cr=58.5, IoU_sp=86.2, BF1_fg=70.6, clDice_fg=86.4, ConnR_fg=83.0

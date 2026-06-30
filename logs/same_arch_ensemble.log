@@ -1,0 +1,36 @@
+Some weights of SegformerForSemanticSegmentation were not initialized from the model checkpoint at nvidia/segformer-b2-finetuned-ade-512-512 and are newly initialized because the shapes did not match:
+- decode_head.classifier.weight: found shape torch.Size([150, 768, 1, 1]) in the checkpoint and torch.Size([3, 768, 1, 1]) in the model instantiated
+- decode_head.classifier.bias: found shape torch.Size([150]) in the checkpoint and torch.Size([3]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Some weights of SegformerForSemanticSegmentation were not initialized from the model checkpoint at nvidia/segformer-b2-finetuned-ade-512-512 and are newly initialized because the shapes did not match:
+- decode_head.classifier.weight: found shape torch.Size([150, 768, 1, 1]) in the checkpoint and torch.Size([3, 768, 1, 1]) in the model instantiated
+- decode_head.classifier.bias: found shape torch.Size([150]) in the checkpoint and torch.Size([3]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Device: cuda
+Dataset: 150 images (test)
+Loading Teacher 1...
+  Loaded dscformer from /workspace/dam-segmentation-baselines/full_method/runs/dscformer_srl_G1/best.pt (epoch=35, val_mIoU_fg=0.6961198938087753)
+Loading Teacher 2...
+  Loaded dscformer from /workspace/dam-segmentation-baselines/full_method/runs/dscformer_srl_G1_seed123/best.pt (epoch=35, val_mIoU_fg=0.6992620983552086)
+
+=== Individual Teachers ===
+Teacher 1 (DSConv+SRL):     mIoU_fg=68.3  IoU_crack=55.5  IoU_spalling=81.1  BF1_fg_mean=67.1  clDice_fg_mean=83.7  ConnR_fg_mean=79.2
+Teacher 2 (SAM-LoRA+SRL):   mIoU_fg=67.9  IoU_crack=56.5  IoU_spalling=79.3  BF1_fg_mean=66.6  clDice_fg_mean=82.6  ConnR_fg_mean=80.6
+
+=== Ensemble Upper Bounds ===
+Equal-weight logit avg:     mIoU_fg=70.1  IoU_crack=56.8  IoU_spalling=83.3  BF1_fg_mean=66.8  clDice_fg_mean=82.2  ConnR_fg_mean=81.9
+Per-class prob ensemble:    mIoU_fg=69.4  IoU_crack=56.9  IoU_spalling=81.9  BF1_fg_mean=65.9  clDice_fg_mean=79.6  ConnR_fg_mean=80.2
+Agreement-weighted:         mIoU_fg=70.1  IoU_crack=56.8  IoU_spalling=83.3  BF1_fg_mean=66.8  clDice_fg_mean=82.2  ConnR_fg_mean=81.9
+
+Saved: results/factorial/same_arch_ensemble.json
+
+=== Summary (key metrics, all in %) ===
+Configuration                   mIoU_fg   IoU_cr   IoU_sp   BF1_fg clDice_fg ConnR_fg
+------------------------------------------------------------------------------------------
+Teacher 1 (DSConv+SRL)            68.3%    55.5%    81.1%    67.1%     83.7%    79.2%
+Teacher 2 (SAM-LoRA+SRL)          67.9%    56.5%    79.3%    66.6%     82.6%    80.6%
+Ensemble: equal logit             70.1%    56.8%    83.3%    66.8%     82.2%    81.9%
+Ensemble: per-class prob          69.4%    56.9%    81.9%    65.9%     79.6%    80.2%
+Ensemble: agreement-wt            70.1%    56.8%    83.3%    66.8%     82.2%    81.9%
+
+Compare with DTKD student: mIoU_fg=72.3, IoU_cr=58.5, IoU_sp=86.2, BF1_fg=70.6, clDice_fg=86.4, ConnR_fg=83.0

@@ -1,0 +1,1857 @@
+Some weights of SegformerForSemanticSegmentation were not initialized from the model checkpoint at nvidia/segformer-b2-finetuned-ade-512-512 and are newly initialized because the shapes did not match:
+- decode_head.classifier.weight: found shape torch.Size([150, 768, 1, 1]) in the checkpoint and torch.Size([3, 768, 1, 1]) in the model instantiated
+- decode_head.classifier.bias: found shape torch.Size([150]) in the checkpoint and torch.Size([3]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+Some weights of SegformerForSemanticSegmentation were not initialized from the model checkpoint at nvidia/segformer-b2-finetuned-ade-512-512 and are newly initialized because the shapes did not match:
+- decode_head.classifier.weight: found shape torch.Size([150, 768, 1, 1]) in the checkpoint and torch.Size([3, 768, 1, 1]) in the model instantiated
+- decode_head.classifier.bias: found shape torch.Size([150]) in the checkpoint and torch.Size([3]) in the model instantiated
+You should probably TRAIN this model on a down-stream task to be able to use it for predictions and inference.
+[train] cuDNN warmup OK
+[train] full_method (segformer_dtkd_FACT1)
+[train] device=cuda  torch=2.6.0+cu124  transformers=4.57.6
+[train] cfg: pretrained=nvidia/segformer-b2-finetuned-ade-512-512 img=512 bs=4 grad_accum=1 epochs=100 lr=6e-05 warmup=5
+[train] difficulty: alpha=1.0 beta=0.5 gamma=0.3 delta=0.3 ema=0.9 tau=0.5
+[train] bonuses: spalling=0.3 late_hard_crack=0.4
+[train] ablation switches: dynamic_difficulty=False class_sampling_bonus=False class_loss_schedule=False boundary_loss=False tversky_loss=False
+[train] new switches: soft_curriculum=False softmax_sampling=False dynamic_loss_reweight=False (lambda=0.5) soft_boundary=False (start=0.6 max=0.1)
+[train] cldice: use=False weight=0.15 start_epoch=40 iters=7
+[train] srl: use=False weight=0.15 start_epoch=40
+[train] snake_aux: use=False weight=0.1
+[train] model_type=segformer snake_channels=64 snake_kernel=9
+[train] no_curriculum=True
+[train] competence: hard=False soft=False c0=0.333 duration=70 floors=[0.05,0.02,0.0]
+[train] DGACL: use=False w_disagree=0.5 w_gap=0.3 w_loss=0.2 lambda=1.0 pixel_kd=True phase2_lr=1e-05 warmup=3
+[train] MAC: use=False morph_diff=False adaptive_pacing=False class_loss=False diff_gamma=0.5 weights=[0.4,0.3,0.2,0.1]
+[train] sizes: train=1200 val=150 test=150
+[train] building records (scanning masks for has_spalling) ...
+[train] records: {0: 400, 1: 400, 2: 400}  has_spalling=292/1200
+[train] raw pixel frequency: {'background': 0.952165391031901, 'crack': 0.03423014119466146, 'spalling': 0.0136044677734375}
+[train] clipped weights    : {'background': 0.25, 'crack': 1.080772481700143, 'spalling': 1.7143055384148256}
+[train] running OOM probe ...
+[train] OOM probe OK
+[train] mixed precision (AMP) enabled
+[train] viz samples (6):
+    Hard/H (99).jpg
+    Hard/H (365).jpg
+    Medium/M (127).jpg
+    Medium/M (422).jpg
+    Hard/H (431).jpg
+    Hard/H (476).jpg
+[KD] loading teacher 1 from /workspace/dam-segmentation-baselines/full_method/runs/dscformer_srl_G1/best.pt
+[KD] teacher 1 loaded (epoch=35, val_mIoU_fg=0.6961198938087753)
+[KD] alpha=0.5 temperature=4.0
+[KD] loading teacher 2 from /workspace/dam-segmentation-baselines/full_method/runs/sam_lora_srl_SAM2/best.pt
+[TopoLoRA-SAM] loaded SAM ViT-B from sam_vit_b_01ec64.pth
+[TopoLoRA-SAM] injected LoRA into 48 layers (rank=16)
+[TopoLoRA-SAM] total params: 95.8M, trainable: 6.1M (6.4%)
+[KD] teacher 2 loaded (epoch=43, val_mIoU_fg=0.698679166053821)
+[KD] dual-teacher mode: class-conditional (t1=0.5, t2=0.5)
+[segformer_dtkd_FACT1] [curriculum] epoch 1: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 1/100] batch 30/300 (10%) loss=1497904.8667 elapsed=21s eta=191s
+  [segformer_dtkd_FACT1] [epoch 1/100] batch 60/300 (20%) loss=1509175.0542 elapsed=41s eta=166s
+  [segformer_dtkd_FACT1] [epoch 1/100] batch 90/300 (30%) loss=1512535.5667 elapsed=61s eta=143s
+  [segformer_dtkd_FACT1] [epoch 1/100] batch 120/300 (40%) loss=1519047.4229 elapsed=81s eta=122s
+  [segformer_dtkd_FACT1] [epoch 1/100] batch 150/300 (50%) loss=1520189.3825 elapsed=102s eta=102s
+  [segformer_dtkd_FACT1] [epoch 1/100] batch 180/300 (60%) loss=1521628.7146 elapsed=122s eta=81s
+  [segformer_dtkd_FACT1] [epoch 1/100] batch 210/300 (70%) loss=1519304.5125 elapsed=142s eta=61s
+  [segformer_dtkd_FACT1] [epoch 1/100] batch 240/300 (80%) loss=1517866.5010 elapsed=162s eta=40s
+  [segformer_dtkd_FACT1] [epoch 1/100] batch 270/300 (90%) loss=1517579.4731 elapsed=182s eta=20s
+  [segformer_dtkd_FACT1] [epoch 1/100] batch 300/300 (100%) loss=1516261.3096 elapsed=202s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 001/100] remain=99 epochs ep_eta=351.6min (avg 213s/ep)
+[segformer_dtkd_FACT1] [epoch 001/100] lr=0.000012  dt=213.1s
+  train loss=1516261.3096  ce=1.0192 dice=0.9459  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.9684
+  IoU   bg=0.7004  crack=0.0492  spalling=0.0124  | mIoU_fg=0.0308  pix_acc=0.6974
+  Dice  bg=0.8238  crack=0.0939  spalling=0.0245
+  BF1   crack=0.0815  spalling=0.0300  | BF1_fg_mean=0.0558
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.0308  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 2: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 2/100] batch 30/300 (10%) loss=1484406.8292 elapsed=20s eta=183s
+  [segformer_dtkd_FACT1] [epoch 2/100] batch 60/300 (20%) loss=1459977.2667 elapsed=40s eta=159s
+  [segformer_dtkd_FACT1] [epoch 2/100] batch 90/300 (30%) loss=1441614.9958 elapsed=59s eta=138s
+  [segformer_dtkd_FACT1] [epoch 2/100] batch 120/300 (40%) loss=1421174.8229 elapsed=78s eta=117s
+  [segformer_dtkd_FACT1] [epoch 2/100] batch 150/300 (50%) loss=1402879.6883 elapsed=97s eta=97s
+  [segformer_dtkd_FACT1] [epoch 2/100] batch 180/300 (60%) loss=1388885.7465 elapsed=116s eta=78s
+  [segformer_dtkd_FACT1] [epoch 2/100] batch 210/300 (70%) loss=1371741.5994 elapsed=136s eta=58s
+  [segformer_dtkd_FACT1] [epoch 2/100] batch 240/300 (80%) loss=1356840.9724 elapsed=155s eta=39s
+  [segformer_dtkd_FACT1] [epoch 2/100] batch 270/300 (90%) loss=1338803.3995 elapsed=174s eta=19s
+  [segformer_dtkd_FACT1] [epoch 2/100] batch 300/300 (100%) loss=1322096.0371 elapsed=193s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 002/100] remain=98 epochs ep_eta=335.1min (avg 205s/ep)
+[segformer_dtkd_FACT1] [epoch 002/100] lr=0.000024  dt=192.9s
+  train loss=1322096.0371  ce=0.7491 dice=0.9226  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 5)
+[segformer_dtkd_FACT1] [curriculum] epoch 3: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 3/100] batch 30/300 (10%) loss=1127465.6500 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 3/100] batch 60/300 (20%) loss=1100542.9865 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 3/100] batch 90/300 (30%) loss=1071131.4417 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 3/100] batch 120/300 (40%) loss=1045120.0589 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 3/100] batch 150/300 (50%) loss=1017941.8633 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 3/100] batch 180/300 (60%) loss=992098.3681 elapsed=113s eta=75s
+  [segformer_dtkd_FACT1] [epoch 3/100] batch 210/300 (70%) loss=967116.9220 elapsed=132s eta=56s
+  [segformer_dtkd_FACT1] [epoch 3/100] batch 240/300 (80%) loss=947298.1344 elapsed=150s eta=38s
+  [segformer_dtkd_FACT1] [epoch 3/100] batch 270/300 (90%) loss=926884.8396 elapsed=169s eta=19s
+  [segformer_dtkd_FACT1] [epoch 3/100] batch 300/300 (100%) loss=906740.5306 elapsed=187s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 003/100] remain=97 epochs ep_eta=322.9min (avg 200s/ep)
+[segformer_dtkd_FACT1] [epoch 003/100] lr=0.000036  dt=187.5s
+  train loss=906740.5306  ce=0.4103 dice=0.8304  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 5)
+[segformer_dtkd_FACT1] [curriculum] epoch 4: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 4/100] batch 30/300 (10%) loss=669722.0938 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 4/100] batch 60/300 (20%) loss=668976.4167 elapsed=38s eta=150s
+  [segformer_dtkd_FACT1] [epoch 4/100] batch 90/300 (30%) loss=644065.0587 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 4/100] batch 120/300 (40%) loss=623168.4958 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 4/100] batch 150/300 (50%) loss=604447.2288 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 4/100] batch 180/300 (60%) loss=583944.1352 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 4/100] batch 210/300 (70%) loss=565045.0418 elapsed=129s eta=55s
+  [segformer_dtkd_FACT1] [epoch 4/100] batch 240/300 (80%) loss=547826.7770 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 4/100] batch 270/300 (90%) loss=530673.2734 elapsed=166s eta=18s
+  [segformer_dtkd_FACT1] [epoch 4/100] batch 300/300 (100%) loss=513800.6002 elapsed=184s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 004/100] remain=96 epochs ep_eta=314.0min (avg 196s/ep)
+[segformer_dtkd_FACT1] [epoch 004/100] lr=0.000048  dt=184.5s
+  train loss=513800.6002  ce=0.3417 dice=0.7179  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 5)
+[segformer_dtkd_FACT1] [curriculum] epoch 5: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 5/100] batch 30/300 (10%) loss=354909.0198 elapsed=19s eta=170s
+  [segformer_dtkd_FACT1] [epoch 5/100] batch 60/300 (20%) loss=338266.9813 elapsed=37s eta=149s
+  [segformer_dtkd_FACT1] [epoch 5/100] batch 90/300 (30%) loss=322248.5988 elapsed=56s eta=130s
+  [segformer_dtkd_FACT1] [epoch 5/100] batch 120/300 (40%) loss=306968.3977 elapsed=74s eta=111s
+  [segformer_dtkd_FACT1] [epoch 5/100] batch 150/300 (50%) loss=296965.1018 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 5/100] batch 180/300 (60%) loss=286696.3648 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 5/100] batch 210/300 (70%) loss=276282.3514 elapsed=129s eta=55s
+  [segformer_dtkd_FACT1] [epoch 5/100] batch 240/300 (80%) loss=268803.1868 elapsed=147s eta=37s
+  [segformer_dtkd_FACT1] [epoch 5/100] batch 270/300 (90%) loss=262129.5943 elapsed=166s eta=18s
+  [segformer_dtkd_FACT1] [epoch 5/100] batch 300/300 (100%) loss=253667.5431 elapsed=184s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+/usr/local/lib/python3.11/dist-packages/torch/optim/lr_scheduler.py:243: UserWarning: The epoch parameter in `scheduler.step()` was not necessary and is being deprecated where possible. Please use `scheduler.step()` to step the scheduler. During the deprecation, if epoch is different from None, the closed form is used instead of the new chainable form, where available. Please open an issue if you are unable to replicate your use case: https://github.com/pytorch/pytorch/issues/new/choose.
+  warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
+[segformer_dtkd_FACT1] [epoch 005/100] remain=95 epochs ep_eta=310.4min (avg 196s/ep)
+[segformer_dtkd_FACT1] [epoch 005/100] lr=0.000060  dt=193.7s
+  train loss=253667.5431  ce=0.3440 dice=0.6445  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.4691
+  IoU   bg=0.9636  crack=0.3695  spalling=0.1997  | mIoU_fg=0.2846  pix_acc=0.9640
+  Dice  bg=0.9814  crack=0.5396  spalling=0.3328
+  BF1   crack=0.5015  spalling=0.0411  | BF1_fg_mean=0.2713
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.2846  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 6: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 6/100] batch 30/300 (10%) loss=171367.7729 elapsed=19s eta=168s
+  [segformer_dtkd_FACT1] [epoch 6/100] batch 60/300 (20%) loss=166294.9465 elapsed=37s eta=146s
+  [segformer_dtkd_FACT1] [epoch 6/100] batch 90/300 (30%) loss=158605.0034 elapsed=55s eta=127s
+  [segformer_dtkd_FACT1] [epoch 6/100] batch 120/300 (40%) loss=155537.8706 elapsed=73s eta=110s
+  [segformer_dtkd_FACT1] [epoch 6/100] batch 150/300 (50%) loss=151313.5206 elapsed=91s eta=91s
+  [segformer_dtkd_FACT1] [epoch 6/100] batch 180/300 (60%) loss=147292.3395 elapsed=109s eta=73s
+  [segformer_dtkd_FACT1] [epoch 6/100] batch 210/300 (70%) loss=141231.0071 elapsed=128s eta=55s
+  [segformer_dtkd_FACT1] [epoch 6/100] batch 240/300 (80%) loss=138202.1761 elapsed=146s eta=36s
+  [segformer_dtkd_FACT1] [epoch 6/100] batch 270/300 (90%) loss=134578.2837 elapsed=164s eta=18s
+  [segformer_dtkd_FACT1] [epoch 6/100] batch 300/300 (100%) loss=132579.9652 elapsed=182s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 006/100] remain=94 epochs ep_eta=304.6min (avg 194s/ep)
+[segformer_dtkd_FACT1] [epoch 006/100] lr=0.000060  dt=182.1s
+  train loss=132579.9652  ce=0.3329 dice=0.5823  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[segformer_dtkd_FACT1] [curriculum] epoch 7: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 7/100] batch 30/300 (10%) loss=105080.9534 elapsed=19s eta=168s
+  [segformer_dtkd_FACT1] [epoch 7/100] batch 60/300 (20%) loss=100268.2056 elapsed=37s eta=147s
+  [segformer_dtkd_FACT1] [epoch 7/100] batch 90/300 (30%) loss=97640.6352 elapsed=55s eta=128s
+  [segformer_dtkd_FACT1] [epoch 7/100] batch 120/300 (40%) loss=95884.9493 elapsed=73s eta=110s
+  [segformer_dtkd_FACT1] [epoch 7/100] batch 150/300 (50%) loss=92162.5991 elapsed=92s eta=92s
+  [segformer_dtkd_FACT1] [epoch 7/100] batch 180/300 (60%) loss=88915.6837 elapsed=110s eta=73s
+  [segformer_dtkd_FACT1] [epoch 7/100] batch 210/300 (70%) loss=87092.3146 elapsed=128s eta=55s
+  [segformer_dtkd_FACT1] [epoch 7/100] batch 240/300 (80%) loss=86227.1695 elapsed=147s eta=37s
+  [segformer_dtkd_FACT1] [epoch 7/100] batch 270/300 (90%) loss=84896.1228 elapsed=165s eta=18s
+  [segformer_dtkd_FACT1] [epoch 7/100] batch 300/300 (100%) loss=86133.1094 elapsed=184s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 007/100] remain=93 epochs ep_eta=299.3min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 007/100] lr=0.000060  dt=183.8s
+  train loss=86133.1094  ce=0.2939 dice=0.5153  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[segformer_dtkd_FACT1] [curriculum] epoch 8: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 8/100] batch 30/300 (10%) loss=74743.1512 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 8/100] batch 60/300 (20%) loss=71327.1349 elapsed=38s eta=150s
+  [segformer_dtkd_FACT1] [epoch 8/100] batch 90/300 (30%) loss=67078.3655 elapsed=56s eta=130s
+  [segformer_dtkd_FACT1] [epoch 8/100] batch 120/300 (40%) loss=66099.6884 elapsed=74s eta=111s
+  [segformer_dtkd_FACT1] [epoch 8/100] batch 150/300 (50%) loss=66351.1488 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 8/100] batch 180/300 (60%) loss=64237.6031 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 8/100] batch 210/300 (70%) loss=63205.7336 elapsed=129s eta=55s
+  [segformer_dtkd_FACT1] [epoch 8/100] batch 240/300 (80%) loss=64596.0685 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 8/100] batch 270/300 (90%) loss=64736.8987 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 8/100] batch 300/300 (100%) loss=63625.7112 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 008/100] remain=92 epochs ep_eta=294.9min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 008/100] lr=0.000060  dt=185.9s
+  train loss=63625.7112  ce=0.2556 dice=0.4497  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[segformer_dtkd_FACT1] [curriculum] epoch 9: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 9/100] batch 30/300 (10%) loss=45817.8122 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 9/100] batch 60/300 (20%) loss=46688.1966 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 9/100] batch 90/300 (30%) loss=47726.9737 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 9/100] batch 120/300 (40%) loss=50955.8096 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 9/100] batch 150/300 (50%) loss=50895.0778 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 9/100] batch 180/300 (60%) loss=50952.2775 elapsed=113s eta=76s
+  [segformer_dtkd_FACT1] [epoch 9/100] batch 210/300 (70%) loss=50111.7892 elapsed=132s eta=57s
+  [segformer_dtkd_FACT1] [epoch 9/100] batch 240/300 (80%) loss=49736.4601 elapsed=151s eta=38s
+  [segformer_dtkd_FACT1] [epoch 9/100] batch 270/300 (90%) loss=49384.1937 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 9/100] batch 300/300 (100%) loss=48697.3941 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 009/100] remain=91 epochs ep_eta=291.4min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 009/100] lr=0.000060  dt=189.0s
+  train loss=48697.3941  ce=0.2133 dice=0.3814  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 10)
+[segformer_dtkd_FACT1] [curriculum] epoch 10: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 10/100] batch 30/300 (10%) loss=52887.0145 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 10/100] batch 60/300 (20%) loss=45722.0148 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 10/100] batch 90/300 (30%) loss=44184.7756 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 10/100] batch 120/300 (40%) loss=46168.8774 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 10/100] batch 150/300 (50%) loss=44891.5802 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 10/100] batch 180/300 (60%) loss=45060.1575 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 10/100] batch 210/300 (70%) loss=44183.2566 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 10/100] batch 240/300 (80%) loss=43156.1073 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 10/100] batch 270/300 (90%) loss=42960.6171 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 10/100] batch 300/300 (100%) loss=42178.3283 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 010/100] remain=90 epochs ep_eta=289.5min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 010/100] lr=0.000060  dt=199.6s
+  train loss=42178.3283  ce=0.1976 dice=0.3378  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2901
+  IoU   bg=0.9692  crack=0.5135  spalling=0.6744  | mIoU_fg=0.5939  pix_acc=0.9698
+  Dice  bg=0.9843  crack=0.6786  spalling=0.8055
+  BF1   crack=0.6586  spalling=0.5063  | BF1_fg_mean=0.5824
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.5939  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 11: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 11/100] batch 30/300 (10%) loss=31889.8205 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 11/100] batch 60/300 (20%) loss=35388.0999 elapsed=39s eta=154s
+  [segformer_dtkd_FACT1] [epoch 11/100] batch 90/300 (30%) loss=35002.8487 elapsed=58s eta=134s
+  [segformer_dtkd_FACT1] [epoch 11/100] batch 120/300 (40%) loss=34893.7727 elapsed=76s eta=115s
+  [segformer_dtkd_FACT1] [epoch 11/100] batch 150/300 (50%) loss=35357.4919 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 11/100] batch 180/300 (60%) loss=35560.9955 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 11/100] batch 210/300 (70%) loss=35323.6128 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 11/100] batch 240/300 (80%) loss=34988.1456 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 11/100] batch 270/300 (90%) loss=34776.0189 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 11/100] batch 300/300 (100%) loss=34472.1057 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 011/100] remain=89 epochs ep_eta=286.4min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 011/100] lr=0.000059  dt=189.9s
+  train loss=34472.1057  ce=0.1736 dice=0.3198  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[segformer_dtkd_FACT1] [curriculum] epoch 12: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 12/100] batch 30/300 (10%) loss=36865.0865 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 12/100] batch 60/300 (20%) loss=33513.2427 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 12/100] batch 90/300 (30%) loss=34181.6700 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 12/100] batch 120/300 (40%) loss=33361.9011 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 12/100] batch 150/300 (50%) loss=32166.4315 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 12/100] batch 180/300 (60%) loss=31107.0677 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 12/100] batch 210/300 (70%) loss=31337.2964 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 12/100] batch 240/300 (80%) loss=31178.3594 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 12/100] batch 270/300 (90%) loss=30966.1631 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 12/100] batch 300/300 (100%) loss=30930.3504 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 012/100] remain=88 epochs ep_eta=282.9min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 012/100] lr=0.000059  dt=189.5s
+  train loss=30930.3504  ce=0.1673 dice=0.2993  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[segformer_dtkd_FACT1] [curriculum] epoch 13: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 13/100] batch 30/300 (10%) loss=24979.5095 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 13/100] batch 60/300 (20%) loss=29707.3780 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 13/100] batch 90/300 (30%) loss=30045.6303 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 13/100] batch 120/300 (40%) loss=29844.9021 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 13/100] batch 150/300 (50%) loss=29742.4415 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 13/100] batch 180/300 (60%) loss=31026.5573 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 13/100] batch 210/300 (70%) loss=30565.1105 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 13/100] batch 240/300 (80%) loss=30182.9253 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 13/100] batch 270/300 (90%) loss=30620.2600 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 13/100] batch 300/300 (100%) loss=30530.8820 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 013/100] remain=87 epochs ep_eta=279.5min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 013/100] lr=0.000059  dt=189.9s
+  train loss=30530.8820  ce=0.1734 dice=0.2999  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[segformer_dtkd_FACT1] [curriculum] epoch 14: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 14/100] batch 30/300 (10%) loss=24937.3525 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 14/100] batch 60/300 (20%) loss=28127.3092 elapsed=39s eta=154s
+  [segformer_dtkd_FACT1] [epoch 14/100] batch 90/300 (30%) loss=27075.0674 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 14/100] batch 120/300 (40%) loss=26828.9088 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 14/100] batch 150/300 (50%) loss=26909.9323 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 14/100] batch 180/300 (60%) loss=26051.6405 elapsed=113s eta=76s
+  [segformer_dtkd_FACT1] [epoch 14/100] batch 210/300 (70%) loss=26391.6435 elapsed=132s eta=57s
+  [segformer_dtkd_FACT1] [epoch 14/100] batch 240/300 (80%) loss=26340.5882 elapsed=151s eta=38s
+  [segformer_dtkd_FACT1] [epoch 14/100] batch 270/300 (90%) loss=26462.7372 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 14/100] batch 300/300 (100%) loss=26238.6114 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 014/100] remain=86 epochs ep_eta=276.1min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 014/100] lr=0.000059  dt=189.4s
+  train loss=26238.6114  ce=0.1581 dice=0.2869  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 15)
+[segformer_dtkd_FACT1] [curriculum] epoch 15: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 15/100] batch 30/300 (10%) loss=26234.9388 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 15/100] batch 60/300 (20%) loss=24572.4751 elapsed=39s eta=154s
+  [segformer_dtkd_FACT1] [epoch 15/100] batch 90/300 (30%) loss=25424.2729 elapsed=58s eta=134s
+  [segformer_dtkd_FACT1] [epoch 15/100] batch 120/300 (40%) loss=25733.9229 elapsed=77s eta=115s
+  [segformer_dtkd_FACT1] [epoch 15/100] batch 150/300 (50%) loss=25678.7925 elapsed=96s eta=96s
+  [segformer_dtkd_FACT1] [epoch 15/100] batch 180/300 (60%) loss=25339.8987 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 15/100] batch 210/300 (70%) loss=24723.4372 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 15/100] batch 240/300 (80%) loss=24532.1260 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 15/100] batch 270/300 (90%) loss=24557.7129 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 15/100] batch 300/300 (100%) loss=24231.5311 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 015/100] remain=85 epochs ep_eta=273.7min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 015/100] lr=0.000058  dt=199.6s
+  train loss=24231.5311  ce=0.1497 dice=0.2755  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2370
+  IoU   bg=0.9724  crack=0.5410  spalling=0.8001  | mIoU_fg=0.6705  pix_acc=0.9731
+  Dice  bg=0.9860  crack=0.7021  spalling=0.8890
+  BF1   crack=0.6945  spalling=0.4838  | BF1_fg_mean=0.5891
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.6705  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 16: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 16/100] batch 30/300 (10%) loss=21388.0477 elapsed=19s eta=173s
+  [segformer_dtkd_FACT1] [epoch 16/100] batch 60/300 (20%) loss=22396.1679 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 16/100] batch 90/300 (30%) loss=25019.8232 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 16/100] batch 120/300 (40%) loss=23535.9912 elapsed=74s eta=112s
+  [segformer_dtkd_FACT1] [epoch 16/100] batch 150/300 (50%) loss=22936.8306 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 16/100] batch 180/300 (60%) loss=23145.5322 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 16/100] batch 210/300 (70%) loss=22709.7115 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 16/100] batch 240/300 (80%) loss=22748.1188 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 16/100] batch 270/300 (90%) loss=22543.7073 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 16/100] batch 300/300 (100%) loss=22663.7937 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 016/100] remain=84 epochs ep_eta=270.2min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 016/100] lr=0.000058  dt=185.7s
+  train loss=22663.7937  ce=0.1437 dice=0.2746  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[segformer_dtkd_FACT1] [curriculum] epoch 17: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 17/100] batch 30/300 (10%) loss=22331.3988 elapsed=19s eta=170s
+  [segformer_dtkd_FACT1] [epoch 17/100] batch 60/300 (20%) loss=21688.6228 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 17/100] batch 90/300 (30%) loss=20883.4178 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 17/100] batch 120/300 (40%) loss=20888.3796 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 17/100] batch 150/300 (50%) loss=20587.5912 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 17/100] batch 180/300 (60%) loss=20088.4393 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 17/100] batch 210/300 (70%) loss=20289.8073 elapsed=131s eta=56s
+  [segformer_dtkd_FACT1] [epoch 17/100] batch 240/300 (80%) loss=20265.3041 elapsed=150s eta=38s
+  [segformer_dtkd_FACT1] [epoch 17/100] batch 270/300 (90%) loss=20017.2502 elapsed=169s eta=19s
+  [segformer_dtkd_FACT1] [epoch 17/100] batch 300/300 (100%) loss=19994.6032 elapsed=188s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 017/100] remain=83 epochs ep_eta=266.7min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 017/100] lr=0.000058  dt=188.1s
+  train loss=19994.6032  ce=0.1364 dice=0.2608  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[segformer_dtkd_FACT1] [curriculum] epoch 18: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 18/100] batch 30/300 (10%) loss=18460.4076 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 18/100] batch 60/300 (20%) loss=17681.4014 elapsed=38s eta=152s
+  [segformer_dtkd_FACT1] [epoch 18/100] batch 90/300 (30%) loss=19963.0194 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 18/100] batch 120/300 (40%) loss=19139.2083 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 18/100] batch 150/300 (50%) loss=19572.9872 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 18/100] batch 180/300 (60%) loss=20220.4775 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 18/100] batch 210/300 (70%) loss=20463.3305 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 18/100] batch 240/300 (80%) loss=20873.3053 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 18/100] batch 270/300 (90%) loss=21005.9821 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 18/100] batch 300/300 (100%) loss=20957.4475 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 018/100] remain=82 epochs ep_eta=263.3min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 018/100] lr=0.000057  dt=189.7s
+  train loss=20957.4475  ce=0.1395 dice=0.2706  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[segformer_dtkd_FACT1] [curriculum] epoch 19: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 19/100] batch 30/300 (10%) loss=17721.0676 elapsed=20s eta=177s
+  [segformer_dtkd_FACT1] [epoch 19/100] batch 60/300 (20%) loss=19494.8960 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 19/100] batch 90/300 (30%) loss=20260.0084 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 19/100] batch 120/300 (40%) loss=20452.4309 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 19/100] batch 150/300 (50%) loss=20877.7626 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 19/100] batch 180/300 (60%) loss=20544.0611 elapsed=115s eta=76s
+  [segformer_dtkd_FACT1] [epoch 19/100] batch 210/300 (70%) loss=20235.5750 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 19/100] batch 240/300 (80%) loss=19988.6392 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 19/100] batch 270/300 (90%) loss=19879.9756 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 19/100] batch 300/300 (100%) loss=19769.1384 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 019/100] remain=81 epochs ep_eta=260.0min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 019/100] lr=0.000057  dt=190.2s
+  train loss=19769.1384  ce=0.1378 dice=0.2596  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 20)
+[segformer_dtkd_FACT1] [curriculum] epoch 20: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 20/100] batch 30/300 (10%) loss=21421.9652 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 20/100] batch 60/300 (20%) loss=20997.8895 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 20/100] batch 90/300 (30%) loss=20623.7093 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 20/100] batch 120/300 (40%) loss=20789.1591 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 20/100] batch 150/300 (50%) loss=20458.2007 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 20/100] batch 180/300 (60%) loss=20149.6402 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 20/100] batch 210/300 (70%) loss=19643.2419 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 20/100] batch 240/300 (80%) loss=19329.4324 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 20/100] batch 270/300 (90%) loss=19042.7730 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 20/100] batch 300/300 (100%) loss=18950.7903 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 020/100] remain=80 epochs ep_eta=257.4min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 020/100] lr=0.000056  dt=199.4s
+  train loss=18950.7903  ce=0.1344 dice=0.2612  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2370
+  IoU   bg=0.9754  crack=0.5558  spalling=0.8173  | mIoU_fg=0.6866  pix_acc=0.9759
+  Dice  bg=0.9875  crack=0.7145  spalling=0.8995
+  BF1   crack=0.7138  spalling=0.5217  | BF1_fg_mean=0.6177
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.6866  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 21: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 21/100] batch 30/300 (10%) loss=16169.8992 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 21/100] batch 60/300 (20%) loss=16420.0501 elapsed=37s eta=149s
+  [segformer_dtkd_FACT1] [epoch 21/100] batch 90/300 (30%) loss=16292.2468 elapsed=56s eta=130s
+  [segformer_dtkd_FACT1] [epoch 21/100] batch 120/300 (40%) loss=16144.0677 elapsed=74s eta=111s
+  [segformer_dtkd_FACT1] [epoch 21/100] batch 150/300 (50%) loss=16070.6336 elapsed=92s eta=92s
+  [segformer_dtkd_FACT1] [epoch 21/100] batch 180/300 (60%) loss=16111.8579 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 21/100] batch 210/300 (70%) loss=16112.0809 elapsed=129s eta=55s
+  [segformer_dtkd_FACT1] [epoch 21/100] batch 240/300 (80%) loss=16178.2242 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 21/100] batch 270/300 (90%) loss=16546.5223 elapsed=166s eta=18s
+  [segformer_dtkd_FACT1] [epoch 21/100] batch 300/300 (100%) loss=16454.4888 elapsed=184s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 021/100] remain=79 epochs ep_eta=253.9min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 021/100] lr=0.000056  dt=184.5s
+  train loss=16454.4888  ce=0.1236 dice=0.2426  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[segformer_dtkd_FACT1] [curriculum] epoch 22: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 22/100] batch 30/300 (10%) loss=14939.0220 elapsed=19s eta=169s
+  [segformer_dtkd_FACT1] [epoch 22/100] batch 60/300 (20%) loss=15591.6679 elapsed=37s eta=149s
+  [segformer_dtkd_FACT1] [epoch 22/100] batch 90/300 (30%) loss=17765.5878 elapsed=56s eta=130s
+  [segformer_dtkd_FACT1] [epoch 22/100] batch 120/300 (40%) loss=17306.1611 elapsed=74s eta=111s
+  [segformer_dtkd_FACT1] [epoch 22/100] batch 150/300 (50%) loss=16805.0583 elapsed=92s eta=92s
+  [segformer_dtkd_FACT1] [epoch 22/100] batch 180/300 (60%) loss=16574.9666 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 22/100] batch 210/300 (70%) loss=16498.7071 elapsed=129s eta=55s
+  [segformer_dtkd_FACT1] [epoch 22/100] batch 240/300 (80%) loss=16621.3209 elapsed=147s eta=37s
+  [segformer_dtkd_FACT1] [epoch 22/100] batch 270/300 (90%) loss=16889.6115 elapsed=166s eta=18s
+  [segformer_dtkd_FACT1] [epoch 22/100] batch 300/300 (100%) loss=17029.1891 elapsed=185s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 022/100] remain=78 epochs ep_eta=250.3min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 022/100] lr=0.000055  dt=184.8s
+  train loss=17029.1891  ce=0.1273 dice=0.2453  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[segformer_dtkd_FACT1] [curriculum] epoch 23: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 23/100] batch 30/300 (10%) loss=14549.5103 elapsed=19s eta=173s
+  [segformer_dtkd_FACT1] [epoch 23/100] batch 60/300 (20%) loss=14396.3819 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 23/100] batch 90/300 (30%) loss=15147.6365 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 23/100] batch 120/300 (40%) loss=15918.3162 elapsed=74s eta=112s
+  [segformer_dtkd_FACT1] [epoch 23/100] batch 150/300 (50%) loss=15640.3045 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 23/100] batch 180/300 (60%) loss=15521.8433 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 23/100] batch 210/300 (70%) loss=15593.8958 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 23/100] batch 240/300 (80%) loss=15619.3351 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 23/100] batch 270/300 (90%) loss=15634.8039 elapsed=166s eta=18s
+  [segformer_dtkd_FACT1] [epoch 23/100] batch 300/300 (100%) loss=15556.2689 elapsed=185s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 023/100] remain=77 epochs ep_eta=246.7min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 023/100] lr=0.000055  dt=184.9s
+  train loss=15556.2689  ce=0.1220 dice=0.2500  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[segformer_dtkd_FACT1] [curriculum] epoch 24: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 24/100] batch 30/300 (10%) loss=15406.9457 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 24/100] batch 60/300 (20%) loss=14392.5789 elapsed=37s eta=149s
+  [segformer_dtkd_FACT1] [epoch 24/100] batch 90/300 (30%) loss=14732.0225 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 24/100] batch 120/300 (40%) loss=17902.3057 elapsed=75s eta=113s
+  [segformer_dtkd_FACT1] [epoch 24/100] batch 150/300 (50%) loss=20966.4028 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 24/100] batch 180/300 (60%) loss=20902.6749 elapsed=113s eta=75s
+  [segformer_dtkd_FACT1] [epoch 24/100] batch 210/300 (70%) loss=20587.9020 elapsed=132s eta=57s
+  [segformer_dtkd_FACT1] [epoch 24/100] batch 240/300 (80%) loss=20250.4499 elapsed=151s eta=38s
+  [segformer_dtkd_FACT1] [epoch 24/100] batch 270/300 (90%) loss=19878.0019 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 24/100] batch 300/300 (100%) loss=19532.7088 elapsed=188s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 024/100] remain=76 epochs ep_eta=243.4min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 024/100] lr=0.000054  dt=188.7s
+  train loss=19532.7088  ce=0.1450 dice=0.2568  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 25)
+[segformer_dtkd_FACT1] [curriculum] epoch 25: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 25/100] batch 30/300 (10%) loss=13825.2218 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 25/100] batch 60/300 (20%) loss=15086.3264 elapsed=38s eta=152s
+  [segformer_dtkd_FACT1] [epoch 25/100] batch 90/300 (30%) loss=15312.5499 elapsed=57s eta=132s
+  [segformer_dtkd_FACT1] [epoch 25/100] batch 120/300 (40%) loss=18726.2156 elapsed=76s eta=113s
+  [segformer_dtkd_FACT1] [epoch 25/100] batch 150/300 (50%) loss=20402.1536 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 25/100] batch 180/300 (60%) loss=20314.7927 elapsed=113s eta=76s
+  [segformer_dtkd_FACT1] [epoch 25/100] batch 210/300 (70%) loss=20063.6171 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 25/100] batch 240/300 (80%) loss=19631.6489 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 25/100] batch 270/300 (90%) loss=19265.4933 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 25/100] batch 300/300 (100%) loss=18851.9659 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 025/100] remain=75 epochs ep_eta=240.6min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 025/100] lr=0.000054  dt=199.7s
+  train loss=18851.9659  ce=0.1427 dice=0.2611  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2153
+  IoU   bg=0.9750  crack=0.5613  spalling=0.8165  | mIoU_fg=0.6889  pix_acc=0.9758
+  Dice  bg=0.9874  crack=0.7190  spalling=0.8990
+  BF1   crack=0.7232  spalling=0.6105  | BF1_fg_mean=0.6669
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.6889  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 26: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 26/100] batch 30/300 (10%) loss=14790.8666 elapsed=19s eta=172s
+  [segformer_dtkd_FACT1] [epoch 26/100] batch 60/300 (20%) loss=15225.9426 elapsed=38s eta=150s
+  [segformer_dtkd_FACT1] [epoch 26/100] batch 90/300 (30%) loss=15415.2062 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 26/100] batch 120/300 (40%) loss=15470.0958 elapsed=75s eta=113s
+  [segformer_dtkd_FACT1] [epoch 26/100] batch 150/300 (50%) loss=15806.3959 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 26/100] batch 180/300 (60%) loss=18297.2645 elapsed=113s eta=75s
+  [segformer_dtkd_FACT1] [epoch 26/100] batch 210/300 (70%) loss=18909.8945 elapsed=132s eta=57s
+  [segformer_dtkd_FACT1] [epoch 26/100] batch 240/300 (80%) loss=18534.0860 elapsed=151s eta=38s
+  [segformer_dtkd_FACT1] [epoch 26/100] batch 270/300 (90%) loss=18137.5076 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 26/100] batch 300/300 (100%) loss=17994.9003 elapsed=188s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 026/100] remain=74 epochs ep_eta=237.4min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 026/100] lr=0.000053  dt=188.7s
+  train loss=17994.9003  ce=0.1371 dice=0.2580  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[segformer_dtkd_FACT1] [curriculum] epoch 27: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 27/100] batch 30/300 (10%) loss=16174.4546 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 27/100] batch 60/300 (20%) loss=15703.3032 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 27/100] batch 90/300 (30%) loss=15693.1953 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 27/100] batch 120/300 (40%) loss=16115.9440 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 27/100] batch 150/300 (50%) loss=16267.2886 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 27/100] batch 180/300 (60%) loss=15811.9266 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 27/100] batch 210/300 (70%) loss=15709.9291 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 27/100] batch 240/300 (80%) loss=15461.8824 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 27/100] batch 270/300 (90%) loss=15190.7826 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 27/100] batch 300/300 (100%) loss=16068.9282 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 027/100] remain=73 epochs ep_eta=234.2min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 027/100] lr=0.000052  dt=189.6s
+  train loss=16068.9282  ce=0.1299 dice=0.2440  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[segformer_dtkd_FACT1] [curriculum] epoch 28: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 28/100] batch 30/300 (10%) loss=17589.3077 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 28/100] batch 60/300 (20%) loss=17561.1050 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 28/100] batch 90/300 (30%) loss=16568.3210 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 28/100] batch 120/300 (40%) loss=16058.5142 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 28/100] batch 150/300 (50%) loss=15571.9894 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 28/100] batch 180/300 (60%) loss=15304.2523 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 28/100] batch 210/300 (70%) loss=15025.3541 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 28/100] batch 240/300 (80%) loss=14957.4816 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 28/100] batch 270/300 (90%) loss=14896.8364 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 28/100] batch 300/300 (100%) loss=14790.3731 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 028/100] remain=72 epochs ep_eta=230.9min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 028/100] lr=0.000052  dt=190.1s
+  train loss=14790.3731  ce=0.1216 dice=0.2442  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[segformer_dtkd_FACT1] [curriculum] epoch 29: stage=0 tiers=[0] pool={0: 400, 1: 0, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 29/100] batch 30/300 (10%) loss=15155.2274 elapsed=20s eta=177s
+  [segformer_dtkd_FACT1] [epoch 29/100] batch 60/300 (20%) loss=14967.6896 elapsed=39s eta=154s
+  [segformer_dtkd_FACT1] [epoch 29/100] batch 90/300 (30%) loss=15093.3000 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 29/100] batch 120/300 (40%) loss=14556.7084 elapsed=77s eta=115s
+  [segformer_dtkd_FACT1] [epoch 29/100] batch 150/300 (50%) loss=14346.0799 elapsed=96s eta=96s
+  [segformer_dtkd_FACT1] [epoch 29/100] batch 180/300 (60%) loss=14028.8727 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 29/100] batch 210/300 (70%) loss=13794.8387 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 29/100] batch 240/300 (80%) loss=13712.7125 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 29/100] batch 270/300 (90%) loss=13520.3008 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 29/100] batch 300/300 (100%) loss=13462.8815 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 029/100] remain=71 epochs ep_eta=227.7min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 029/100] lr=0.000051  dt=190.2s
+  train loss=13462.8815  ce=0.1143 dice=0.2390  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 30)
+[segformer_dtkd_FACT1] [curriculum] epoch 30: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 30/100] batch 30/300 (10%) loss=11789.2850 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 30/100] batch 60/300 (20%) loss=12591.1176 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 30/100] batch 90/300 (30%) loss=13375.4239 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 30/100] batch 120/300 (40%) loss=12796.8292 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 30/100] batch 150/300 (50%) loss=12910.4029 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 30/100] batch 180/300 (60%) loss=12745.9617 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 30/100] batch 210/300 (70%) loss=12682.7179 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 30/100] batch 240/300 (80%) loss=12763.3103 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 30/100] batch 270/300 (90%) loss=12955.3948 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 30/100] batch 300/300 (100%) loss=13048.1346 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 030/100] remain=70 epochs ep_eta=224.8min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 030/100] lr=0.000050  dt=200.3s
+  train loss=13048.1346  ce=0.1111 dice=0.2286  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2285
+  IoU   bg=0.9753  crack=0.5641  spalling=0.8149  | mIoU_fg=0.6895  pix_acc=0.9760
+  Dice  bg=0.9875  crack=0.7213  spalling=0.8980
+  BF1   crack=0.7339  spalling=0.6024  | BF1_fg_mean=0.6681
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.6895  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 31: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 31/100] batch 30/300 (10%) loss=11923.9165 elapsed=19s eta=170s
+  [segformer_dtkd_FACT1] [epoch 31/100] batch 60/300 (20%) loss=11762.5180 elapsed=38s eta=150s
+  [segformer_dtkd_FACT1] [epoch 31/100] batch 90/300 (30%) loss=12521.3727 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 31/100] batch 120/300 (40%) loss=12271.3058 elapsed=74s eta=112s
+  [segformer_dtkd_FACT1] [epoch 31/100] batch 150/300 (50%) loss=12709.8432 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 31/100] batch 180/300 (60%) loss=12486.1231 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 31/100] batch 210/300 (70%) loss=12437.6854 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 31/100] batch 240/300 (80%) loss=12425.6466 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 31/100] batch 270/300 (90%) loss=12513.8948 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 31/100] batch 300/300 (100%) loss=12570.2099 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 031/100] remain=69 epochs ep_eta=221.5min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 031/100] lr=0.000050  dt=186.0s
+  train loss=12570.2099  ce=0.1112 dice=0.2347  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[segformer_dtkd_FACT1] [curriculum] epoch 32: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 32/100] batch 30/300 (10%) loss=14156.2563 elapsed=19s eta=173s
+  [segformer_dtkd_FACT1] [epoch 32/100] batch 60/300 (20%) loss=13669.3706 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 32/100] batch 90/300 (30%) loss=13134.4194 elapsed=56s eta=132s
+  [segformer_dtkd_FACT1] [epoch 32/100] batch 120/300 (40%) loss=12854.0954 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 32/100] batch 150/300 (50%) loss=12927.1224 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 32/100] batch 180/300 (60%) loss=12828.1651 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 32/100] batch 210/300 (70%) loss=12549.2157 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 32/100] batch 240/300 (80%) loss=12601.6467 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 32/100] batch 270/300 (90%) loss=12634.5326 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 32/100] batch 300/300 (100%) loss=12620.2121 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 032/100] remain=68 epochs ep_eta=218.1min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 032/100] lr=0.000049  dt=186.3s
+  train loss=12620.2121  ce=0.1116 dice=0.2284  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[segformer_dtkd_FACT1] [curriculum] epoch 33: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 33/100] batch 30/300 (10%) loss=12029.5934 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 33/100] batch 60/300 (20%) loss=12169.9311 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 33/100] batch 90/300 (30%) loss=12231.5006 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 33/100] batch 120/300 (40%) loss=12035.7132 elapsed=76s eta=115s
+  [segformer_dtkd_FACT1] [epoch 33/100] batch 150/300 (50%) loss=12430.3379 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 33/100] batch 180/300 (60%) loss=12157.4742 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 33/100] batch 210/300 (70%) loss=12407.3015 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 33/100] batch 240/300 (80%) loss=12334.8686 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 33/100] batch 270/300 (90%) loss=12167.6286 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 33/100] batch 300/300 (100%) loss=12051.6405 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 033/100] remain=67 epochs ep_eta=214.9min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 033/100] lr=0.000048  dt=189.9s
+  train loss=12051.6405  ce=0.1089 dice=0.2316  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[segformer_dtkd_FACT1] [curriculum] epoch 34: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 34/100] batch 30/300 (10%) loss=10953.7499 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 34/100] batch 60/300 (20%) loss=11263.8945 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 34/100] batch 90/300 (30%) loss=11505.2376 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 34/100] batch 120/300 (40%) loss=11826.6259 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 34/100] batch 150/300 (50%) loss=11765.8844 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 34/100] batch 180/300 (60%) loss=11940.9221 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 34/100] batch 210/300 (70%) loss=12186.4324 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 34/100] batch 240/300 (80%) loss=12106.3552 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 34/100] batch 270/300 (90%) loss=11902.8228 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 34/100] batch 300/300 (100%) loss=11864.2078 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 034/100] remain=66 epochs ep_eta=211.7min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 034/100] lr=0.000047  dt=190.4s
+  train loss=11864.2078  ce=0.1086 dice=0.2281  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 35)
+[segformer_dtkd_FACT1] [curriculum] epoch 35: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 35/100] batch 30/300 (10%) loss=11014.9102 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 35/100] batch 60/300 (20%) loss=11351.9276 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 35/100] batch 90/300 (30%) loss=11122.3906 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 35/100] batch 120/300 (40%) loss=11093.6642 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 35/100] batch 150/300 (50%) loss=11230.5487 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 35/100] batch 180/300 (60%) loss=11298.9000 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 35/100] batch 210/300 (70%) loss=11245.7286 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 35/100] batch 240/300 (80%) loss=11210.3522 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 35/100] batch 270/300 (90%) loss=11419.2798 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 35/100] batch 300/300 (100%) loss=11445.6639 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 035/100] remain=65 epochs ep_eta=208.7min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 035/100] lr=0.000046  dt=200.5s
+  train loss=11445.6639  ce=0.1064 dice=0.2261  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2224
+  IoU   bg=0.9755  crack=0.5703  spalling=0.8124  | mIoU_fg=0.6913  pix_acc=0.9762
+  Dice  bg=0.9876  crack=0.7263  spalling=0.8965
+  BF1   crack=0.7321  spalling=0.6271  | BF1_fg_mean=0.6796
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.6913  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 36: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 36/100] batch 30/300 (10%) loss=11451.8244 elapsed=19s eta=173s
+  [segformer_dtkd_FACT1] [epoch 36/100] batch 60/300 (20%) loss=12341.3855 elapsed=38s eta=150s
+  [segformer_dtkd_FACT1] [epoch 36/100] batch 90/300 (30%) loss=12265.9953 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 36/100] batch 120/300 (40%) loss=12071.1349 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 36/100] batch 150/300 (50%) loss=11818.5762 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 36/100] batch 180/300 (60%) loss=11924.5863 elapsed=112s eta=74s
+  [segformer_dtkd_FACT1] [epoch 36/100] batch 210/300 (70%) loss=11987.5501 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 36/100] batch 240/300 (80%) loss=11873.2468 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 36/100] batch 270/300 (90%) loss=11778.2082 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 36/100] batch 300/300 (100%) loss=11699.4708 elapsed=185s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 036/100] remain=64 epochs ep_eta=205.4min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 036/100] lr=0.000046  dt=185.7s
+  train loss=11699.4708  ce=0.1075 dice=0.2271  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[segformer_dtkd_FACT1] [curriculum] epoch 37: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 37/100] batch 30/300 (10%) loss=15601.6418 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 37/100] batch 60/300 (20%) loss=13719.9893 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 37/100] batch 90/300 (30%) loss=12408.1078 elapsed=56s eta=132s
+  [segformer_dtkd_FACT1] [epoch 37/100] batch 120/300 (40%) loss=12127.5506 elapsed=75s eta=113s
+  [segformer_dtkd_FACT1] [epoch 37/100] batch 150/300 (50%) loss=11842.0646 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 37/100] batch 180/300 (60%) loss=11825.9654 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 37/100] batch 210/300 (70%) loss=11565.9346 elapsed=131s eta=56s
+  [segformer_dtkd_FACT1] [epoch 37/100] batch 240/300 (80%) loss=11448.9893 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 37/100] batch 270/300 (90%) loss=11423.5840 elapsed=168s eta=19s
+  [segformer_dtkd_FACT1] [epoch 37/100] batch 300/300 (100%) loss=11439.0870 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 037/100] remain=63 epochs ep_eta=202.1min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 037/100] lr=0.000045  dt=186.3s
+  train loss=11439.0870  ce=0.1079 dice=0.2259  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[segformer_dtkd_FACT1] [curriculum] epoch 38: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 38/100] batch 30/300 (10%) loss=11727.6096 elapsed=19s eta=173s
+  [segformer_dtkd_FACT1] [epoch 38/100] batch 60/300 (20%) loss=12334.4157 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 38/100] batch 90/300 (30%) loss=11821.7458 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 38/100] batch 120/300 (40%) loss=11412.3157 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 38/100] batch 150/300 (50%) loss=10992.0574 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 38/100] batch 180/300 (60%) loss=10839.3860 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 38/100] batch 210/300 (70%) loss=10651.9728 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 38/100] batch 240/300 (80%) loss=10568.4751 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 38/100] batch 270/300 (90%) loss=10588.8622 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 38/100] batch 300/300 (100%) loss=10603.9009 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 038/100] remain=62 epochs ep_eta=198.7min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 038/100] lr=0.000044  dt=185.7s
+  train loss=10603.9009  ce=0.1046 dice=0.2268  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[segformer_dtkd_FACT1] [curriculum] epoch 39: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 39/100] batch 30/300 (10%) loss=11236.1867 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 39/100] batch 60/300 (20%) loss=11349.4372 elapsed=38s eta=150s
+  [segformer_dtkd_FACT1] [epoch 39/100] batch 90/300 (30%) loss=11139.3228 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 39/100] batch 120/300 (40%) loss=11082.6484 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 39/100] batch 150/300 (50%) loss=10834.4985 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 39/100] batch 180/300 (60%) loss=10808.0897 elapsed=112s eta=74s
+  [segformer_dtkd_FACT1] [epoch 39/100] batch 210/300 (70%) loss=10860.1270 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 39/100] batch 240/300 (80%) loss=10755.9732 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 39/100] batch 270/300 (90%) loss=10776.3897 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 39/100] batch 300/300 (100%) loss=10786.3773 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 039/100] remain=61 epochs ep_eta=195.4min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 039/100] lr=0.000043  dt=186.0s
+  train loss=10786.3773  ce=0.1036 dice=0.2181  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 40)
+[segformer_dtkd_FACT1] [curriculum] epoch 40: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 40/100] batch 30/300 (10%) loss=10192.0740 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 40/100] batch 60/300 (20%) loss=9707.6978 elapsed=38s eta=152s
+  [segformer_dtkd_FACT1] [epoch 40/100] batch 90/300 (30%) loss=9997.7788 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 40/100] batch 120/300 (40%) loss=10059.1903 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 40/100] batch 150/300 (50%) loss=10002.8562 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 40/100] batch 180/300 (60%) loss=10233.8655 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 40/100] batch 210/300 (70%) loss=10615.7140 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 40/100] batch 240/300 (80%) loss=10703.4396 elapsed=151s eta=38s
+  [segformer_dtkd_FACT1] [epoch 40/100] batch 270/300 (90%) loss=10732.7036 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 40/100] batch 300/300 (100%) loss=10646.3655 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 040/100] remain=60 epochs ep_eta=192.4min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 040/100] lr=0.000042  dt=199.4s
+  train loss=10646.3655  ce=0.1038 dice=0.2205  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2183
+  IoU   bg=0.9757  crack=0.5716  spalling=0.8160  | mIoU_fg=0.6938  pix_acc=0.9763
+  Dice  bg=0.9877  crack=0.7274  spalling=0.8987
+  BF1   crack=0.7340  spalling=0.6259  | BF1_fg_mean=0.6799
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.6938  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 41: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 41/100] batch 30/300 (10%) loss=9353.6107 elapsed=19s eta=173s
+  [segformer_dtkd_FACT1] [epoch 41/100] batch 60/300 (20%) loss=10769.4857 elapsed=38s eta=150s
+  [segformer_dtkd_FACT1] [epoch 41/100] batch 90/300 (30%) loss=12294.5321 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 41/100] batch 120/300 (40%) loss=12599.7895 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 41/100] batch 150/300 (50%) loss=12423.4195 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 41/100] batch 180/300 (60%) loss=12488.8453 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 41/100] batch 210/300 (70%) loss=14188.9294 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 41/100] batch 240/300 (80%) loss=14164.5205 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 41/100] batch 270/300 (90%) loss=13945.4928 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 41/100] batch 300/300 (100%) loss=13691.4368 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 041/100] remain=59 epochs ep_eta=189.2min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 041/100] lr=0.000041  dt=186.2s
+  train loss=13691.4368  ce=0.1231 dice=0.2335  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[segformer_dtkd_FACT1] [curriculum] epoch 42: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 42/100] batch 30/300 (10%) loss=11213.7846 elapsed=19s eta=172s
+  [segformer_dtkd_FACT1] [epoch 42/100] batch 60/300 (20%) loss=11055.2049 elapsed=37s eta=150s
+  [segformer_dtkd_FACT1] [epoch 42/100] batch 90/300 (30%) loss=10718.1821 elapsed=56s eta=130s
+  [segformer_dtkd_FACT1] [epoch 42/100] batch 120/300 (40%) loss=10666.8450 elapsed=74s eta=112s
+  [segformer_dtkd_FACT1] [epoch 42/100] batch 150/300 (50%) loss=10746.0343 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 42/100] batch 180/300 (60%) loss=10786.4280 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 42/100] batch 210/300 (70%) loss=10682.7950 elapsed=131s eta=56s
+  [segformer_dtkd_FACT1] [epoch 42/100] batch 240/300 (80%) loss=10843.3951 elapsed=150s eta=37s
+  [segformer_dtkd_FACT1] [epoch 42/100] batch 270/300 (90%) loss=10875.7394 elapsed=169s eta=19s
+  [segformer_dtkd_FACT1] [epoch 42/100] batch 300/300 (100%) loss=10832.3480 elapsed=188s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 042/100] remain=58 epochs ep_eta=185.9min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 042/100] lr=0.000040  dt=188.0s
+  train loss=10832.3480  ce=0.1056 dice=0.2232  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[segformer_dtkd_FACT1] [curriculum] epoch 43: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 43/100] batch 30/300 (10%) loss=10813.7063 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 43/100] batch 60/300 (20%) loss=10740.8171 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 43/100] batch 90/300 (30%) loss=10783.3255 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 43/100] batch 120/300 (40%) loss=10666.1917 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 43/100] batch 150/300 (50%) loss=10521.8533 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 43/100] batch 180/300 (60%) loss=10588.7073 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 43/100] batch 210/300 (70%) loss=10519.2531 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 43/100] batch 240/300 (80%) loss=10460.1297 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 43/100] batch 270/300 (90%) loss=10371.0331 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 43/100] batch 300/300 (100%) loss=10311.2474 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 043/100] remain=57 epochs ep_eta=182.6min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 043/100] lr=0.000039  dt=189.7s
+  train loss=10311.2474  ce=0.1041 dice=0.2154  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[segformer_dtkd_FACT1] [curriculum] epoch 44: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 44/100] batch 30/300 (10%) loss=9561.0815 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 44/100] batch 60/300 (20%) loss=10222.2567 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 44/100] batch 90/300 (30%) loss=10250.3964 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 44/100] batch 120/300 (40%) loss=10076.4994 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 44/100] batch 150/300 (50%) loss=9978.7634 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 44/100] batch 180/300 (60%) loss=9930.4136 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 44/100] batch 210/300 (70%) loss=10130.4776 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 44/100] batch 240/300 (80%) loss=10227.1098 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 44/100] batch 270/300 (90%) loss=10336.4151 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 44/100] batch 300/300 (100%) loss=10334.0101 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 044/100] remain=56 epochs ep_eta=179.4min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 044/100] lr=0.000038  dt=190.0s
+  train loss=10334.0101  ce=0.1048 dice=0.2235  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 45)
+[segformer_dtkd_FACT1] [curriculum] epoch 45: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 45/100] batch 30/300 (10%) loss=10355.1760 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 45/100] batch 60/300 (20%) loss=10970.5464 elapsed=39s eta=155s
+  [segformer_dtkd_FACT1] [epoch 45/100] batch 90/300 (30%) loss=10668.8603 elapsed=58s eta=135s
+  [segformer_dtkd_FACT1] [epoch 45/100] batch 120/300 (40%) loss=10333.1262 elapsed=77s eta=115s
+  [segformer_dtkd_FACT1] [epoch 45/100] batch 150/300 (50%) loss=10272.3257 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 45/100] batch 180/300 (60%) loss=10483.5077 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 45/100] batch 210/300 (70%) loss=10321.1012 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 45/100] batch 240/300 (80%) loss=10291.5471 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 45/100] batch 270/300 (90%) loss=10148.2521 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 45/100] batch 300/300 (100%) loss=10138.7045 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 045/100] remain=55 epochs ep_eta=176.4min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 045/100] lr=0.000037  dt=199.9s
+  train loss=10138.7045  ce=0.1017 dice=0.2159  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2215
+  IoU   bg=0.9748  crack=0.5631  spalling=0.7941  | mIoU_fg=0.6786  pix_acc=0.9754
+  Dice  bg=0.9872  crack=0.7205  spalling=0.8852
+  BF1   crack=0.7273  spalling=0.6471  | BF1_fg_mean=0.6872
+[segformer_dtkd_FACT1] [curriculum] epoch 46: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 46/100] batch 30/300 (10%) loss=9907.0806 elapsed=19s eta=169s
+  [segformer_dtkd_FACT1] [epoch 46/100] batch 60/300 (20%) loss=9452.6922 elapsed=37s eta=149s
+  [segformer_dtkd_FACT1] [epoch 46/100] batch 90/300 (30%) loss=9186.8690 elapsed=55s eta=129s
+  [segformer_dtkd_FACT1] [epoch 46/100] batch 120/300 (40%) loss=9502.2966 elapsed=74s eta=111s
+  [segformer_dtkd_FACT1] [epoch 46/100] batch 150/300 (50%) loss=9515.1657 elapsed=92s eta=92s
+  [segformer_dtkd_FACT1] [epoch 46/100] batch 180/300 (60%) loss=9655.7549 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 46/100] batch 210/300 (70%) loss=9624.2621 elapsed=129s eta=55s
+  [segformer_dtkd_FACT1] [epoch 46/100] batch 240/300 (80%) loss=9633.0199 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 46/100] batch 270/300 (90%) loss=9541.0153 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 46/100] batch 300/300 (100%) loss=9748.3853 elapsed=185s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 046/100] remain=54 epochs ep_eta=173.1min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 046/100] lr=0.000036  dt=185.6s
+  train loss=9748.3853  ce=0.1000 dice=0.2134  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[segformer_dtkd_FACT1] [curriculum] epoch 47: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 47/100] batch 30/300 (10%) loss=9539.7085 elapsed=19s eta=172s
+  [segformer_dtkd_FACT1] [epoch 47/100] batch 60/300 (20%) loss=9870.5036 elapsed=38s eta=152s
+  [segformer_dtkd_FACT1] [epoch 47/100] batch 90/300 (30%) loss=10240.6037 elapsed=57s eta=132s
+  [segformer_dtkd_FACT1] [epoch 47/100] batch 120/300 (40%) loss=10281.0610 elapsed=75s eta=113s
+  [segformer_dtkd_FACT1] [epoch 47/100] batch 150/300 (50%) loss=10621.0692 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 47/100] batch 180/300 (60%) loss=10436.8933 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 47/100] batch 210/300 (70%) loss=10257.3990 elapsed=131s eta=56s
+  [segformer_dtkd_FACT1] [epoch 47/100] batch 240/300 (80%) loss=10102.8312 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 47/100] batch 270/300 (90%) loss=9934.9159 elapsed=168s eta=19s
+  [segformer_dtkd_FACT1] [epoch 47/100] batch 300/300 (100%) loss=10070.9990 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 047/100] remain=53 epochs ep_eta=169.8min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 047/100] lr=0.000035  dt=186.5s
+  train loss=10070.9990  ce=0.1007 dice=0.2159  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[segformer_dtkd_FACT1] [curriculum] epoch 48: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 48/100] batch 30/300 (10%) loss=9863.0446 elapsed=19s eta=173s
+  [segformer_dtkd_FACT1] [epoch 48/100] batch 60/300 (20%) loss=9352.9688 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 48/100] batch 90/300 (30%) loss=9144.1833 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 48/100] batch 120/300 (40%) loss=9267.9689 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 48/100] batch 150/300 (50%) loss=9358.9757 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 48/100] batch 180/300 (60%) loss=9387.1179 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 48/100] batch 210/300 (70%) loss=9350.3845 elapsed=131s eta=56s
+  [segformer_dtkd_FACT1] [epoch 48/100] batch 240/300 (80%) loss=9328.1765 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 48/100] batch 270/300 (90%) loss=9350.3116 elapsed=168s eta=19s
+  [segformer_dtkd_FACT1] [epoch 48/100] batch 300/300 (100%) loss=9344.1634 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 048/100] remain=52 epochs ep_eta=166.5min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 048/100] lr=0.000034  dt=186.4s
+  train loss=9344.1634  ce=0.1001 dice=0.2214  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[segformer_dtkd_FACT1] [curriculum] epoch 49: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 49/100] batch 30/300 (10%) loss=9057.2942 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 49/100] batch 60/300 (20%) loss=9884.3694 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 49/100] batch 90/300 (30%) loss=9626.0888 elapsed=56s eta=132s
+  [segformer_dtkd_FACT1] [epoch 49/100] batch 120/300 (40%) loss=9640.5538 elapsed=75s eta=113s
+  [segformer_dtkd_FACT1] [epoch 49/100] batch 150/300 (50%) loss=9646.2423 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 49/100] batch 180/300 (60%) loss=9447.2744 elapsed=113s eta=75s
+  [segformer_dtkd_FACT1] [epoch 49/100] batch 210/300 (70%) loss=9488.6698 elapsed=132s eta=57s
+  [segformer_dtkd_FACT1] [epoch 49/100] batch 240/300 (80%) loss=9357.4993 elapsed=151s eta=38s
+  [segformer_dtkd_FACT1] [epoch 49/100] batch 270/300 (90%) loss=9282.9914 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 49/100] batch 300/300 (100%) loss=9286.2397 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 049/100] remain=51 epochs ep_eta=163.3min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 049/100] lr=0.000033  dt=188.9s
+  train loss=9286.2397  ce=0.0989 dice=0.2186  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 50)
+[segformer_dtkd_FACT1] [curriculum] epoch 50: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 50/100] batch 30/300 (10%) loss=8687.2227 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 50/100] batch 60/300 (20%) loss=9335.0625 elapsed=39s eta=154s
+  [segformer_dtkd_FACT1] [epoch 50/100] batch 90/300 (30%) loss=9215.4866 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 50/100] batch 120/300 (40%) loss=8986.0586 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 50/100] batch 150/300 (50%) loss=9170.6984 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 50/100] batch 180/300 (60%) loss=9387.3720 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 50/100] batch 210/300 (70%) loss=9248.4559 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 50/100] batch 240/300 (80%) loss=9203.4845 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 50/100] batch 270/300 (90%) loss=9207.0852 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 50/100] batch 300/300 (100%) loss=9240.7731 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 050/100] remain=50 epochs ep_eta=160.3min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 050/100] lr=0.000032  dt=199.9s
+  train loss=9240.7731  ce=0.0990 dice=0.2140  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2156
+  IoU   bg=0.9749  crack=0.5696  spalling=0.7992  | mIoU_fg=0.6844  pix_acc=0.9756
+  Dice  bg=0.9873  crack=0.7258  spalling=0.8884
+  BF1   crack=0.7287  spalling=0.6366  | BF1_fg_mean=0.6827
+[segformer_dtkd_FACT1] [curriculum] epoch 51: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 51/100] batch 30/300 (10%) loss=9351.4616 elapsed=19s eta=172s
+  [segformer_dtkd_FACT1] [epoch 51/100] batch 60/300 (20%) loss=8900.1955 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 51/100] batch 90/300 (30%) loss=8688.3796 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 51/100] batch 120/300 (40%) loss=8992.8274 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 51/100] batch 150/300 (50%) loss=9155.1682 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 51/100] batch 180/300 (60%) loss=9288.4634 elapsed=112s eta=74s
+  [segformer_dtkd_FACT1] [epoch 51/100] batch 210/300 (70%) loss=9108.8142 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 51/100] batch 240/300 (80%) loss=9111.2069 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 51/100] batch 270/300 (90%) loss=9097.5340 elapsed=168s eta=19s
+  [segformer_dtkd_FACT1] [epoch 51/100] batch 300/300 (100%) loss=9052.6197 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 051/100] remain=49 epochs ep_eta=157.0min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 051/100] lr=0.000031  dt=186.6s
+  train loss=9052.6197  ce=0.0990 dice=0.2100  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[segformer_dtkd_FACT1] [curriculum] epoch 52: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 52/100] batch 30/300 (10%) loss=9131.9790 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 52/100] batch 60/300 (20%) loss=8854.8101 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 52/100] batch 90/300 (30%) loss=8948.5939 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 52/100] batch 120/300 (40%) loss=10463.5318 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 52/100] batch 150/300 (50%) loss=10631.0979 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 52/100] batch 180/300 (60%) loss=10503.1771 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 52/100] batch 210/300 (70%) loss=10653.2459 elapsed=132s eta=57s
+  [segformer_dtkd_FACT1] [epoch 52/100] batch 240/300 (80%) loss=10638.9341 elapsed=151s eta=38s
+  [segformer_dtkd_FACT1] [epoch 52/100] batch 270/300 (90%) loss=10530.3730 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 52/100] batch 300/300 (100%) loss=10456.3251 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 052/100] remain=48 epochs ep_eta=153.8min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 052/100] lr=0.000030  dt=189.7s
+  train loss=10456.3251  ce=0.1039 dice=0.2211  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[segformer_dtkd_FACT1] [curriculum] epoch 53: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 53/100] batch 30/300 (10%) loss=10758.6206 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 53/100] batch 60/300 (20%) loss=10315.3003 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 53/100] batch 90/300 (30%) loss=10173.9864 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 53/100] batch 120/300 (40%) loss=9965.3584 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 53/100] batch 150/300 (50%) loss=10068.0950 elapsed=96s eta=96s
+  [segformer_dtkd_FACT1] [epoch 53/100] batch 180/300 (60%) loss=9853.5196 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 53/100] batch 210/300 (70%) loss=9713.3814 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 53/100] batch 240/300 (80%) loss=9600.3578 elapsed=153s eta=38s
+  [segformer_dtkd_FACT1] [epoch 53/100] batch 270/300 (90%) loss=9560.7087 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 53/100] batch 300/300 (100%) loss=9585.5505 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 053/100] remain=47 epochs ep_eta=150.6min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 053/100] lr=0.000030  dt=190.4s
+  train loss=9585.5505  ce=0.1006 dice=0.2261  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[segformer_dtkd_FACT1] [curriculum] epoch 54: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 54/100] batch 30/300 (10%) loss=8718.0122 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 54/100] batch 60/300 (20%) loss=8361.6519 elapsed=39s eta=155s
+  [segformer_dtkd_FACT1] [epoch 54/100] batch 90/300 (30%) loss=8891.6755 elapsed=58s eta=135s
+  [segformer_dtkd_FACT1] [epoch 54/100] batch 120/300 (40%) loss=8840.1807 elapsed=77s eta=115s
+  [segformer_dtkd_FACT1] [epoch 54/100] batch 150/300 (50%) loss=8646.8934 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 54/100] batch 180/300 (60%) loss=8615.2668 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 54/100] batch 210/300 (70%) loss=8888.4166 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 54/100] batch 240/300 (80%) loss=8895.7076 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 54/100] batch 270/300 (90%) loss=8838.7847 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 54/100] batch 300/300 (100%) loss=8984.9220 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 054/100] remain=46 epochs ep_eta=147.3min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 054/100] lr=0.000029  dt=189.8s
+  train loss=8984.9220  ce=0.0980 dice=0.2135  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 55)
+[segformer_dtkd_FACT1] [curriculum] epoch 55: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 55/100] batch 30/300 (10%) loss=8022.0443 elapsed=20s eta=177s
+  [segformer_dtkd_FACT1] [epoch 55/100] batch 60/300 (20%) loss=8930.6872 elapsed=39s eta=155s
+  [segformer_dtkd_FACT1] [epoch 55/100] batch 90/300 (30%) loss=8935.7638 elapsed=58s eta=135s
+  [segformer_dtkd_FACT1] [epoch 55/100] batch 120/300 (40%) loss=9098.3191 elapsed=77s eta=115s
+  [segformer_dtkd_FACT1] [epoch 55/100] batch 150/300 (50%) loss=9018.1689 elapsed=96s eta=96s
+  [segformer_dtkd_FACT1] [epoch 55/100] batch 180/300 (60%) loss=8911.6507 elapsed=115s eta=76s
+  [segformer_dtkd_FACT1] [epoch 55/100] batch 210/300 (70%) loss=8738.9376 elapsed=134s eta=57s
+  [segformer_dtkd_FACT1] [epoch 55/100] batch 240/300 (80%) loss=8713.2746 elapsed=153s eta=38s
+  [segformer_dtkd_FACT1] [epoch 55/100] batch 270/300 (90%) loss=8677.4601 elapsed=172s eta=19s
+  [segformer_dtkd_FACT1] [epoch 55/100] batch 300/300 (100%) loss=8680.1282 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 055/100] remain=45 epochs ep_eta=144.3min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 055/100] lr=0.000028  dt=200.6s
+  train loss=8680.1282  ce=0.0969 dice=0.2090  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2174
+  IoU   bg=0.9756  crack=0.5743  spalling=0.7979  | mIoU_fg=0.6861  pix_acc=0.9763
+  Dice  bg=0.9877  crack=0.7296  spalling=0.8876
+  BF1   crack=0.7387  spalling=0.6682  | BF1_fg_mean=0.7034
+[segformer_dtkd_FACT1] [curriculum] epoch 56: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 56/100] batch 30/300 (10%) loss=8913.5988 elapsed=19s eta=170s
+  [segformer_dtkd_FACT1] [epoch 56/100] batch 60/300 (20%) loss=8539.3811 elapsed=37s eta=150s
+  [segformer_dtkd_FACT1] [epoch 56/100] batch 90/300 (30%) loss=8433.3796 elapsed=56s eta=130s
+  [segformer_dtkd_FACT1] [epoch 56/100] batch 120/300 (40%) loss=8422.9658 elapsed=74s eta=112s
+  [segformer_dtkd_FACT1] [epoch 56/100] batch 150/300 (50%) loss=8673.9079 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 56/100] batch 180/300 (60%) loss=8563.9835 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 56/100] batch 210/300 (70%) loss=8594.8150 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 56/100] batch 240/300 (80%) loss=8863.5473 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 56/100] batch 270/300 (90%) loss=9060.0473 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 56/100] batch 300/300 (100%) loss=8947.4596 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 056/100] remain=44 epochs ep_eta=141.0min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 056/100] lr=0.000027  dt=185.9s
+  train loss=8947.4596  ce=0.0978 dice=0.2123  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[segformer_dtkd_FACT1] [curriculum] epoch 57: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 57/100] batch 30/300 (10%) loss=8770.8163 elapsed=20s eta=177s
+  [segformer_dtkd_FACT1] [epoch 57/100] batch 60/300 (20%) loss=8782.1941 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 57/100] batch 90/300 (30%) loss=8673.0171 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 57/100] batch 120/300 (40%) loss=8822.6251 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 57/100] batch 150/300 (50%) loss=8700.3374 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 57/100] batch 180/300 (60%) loss=8955.8004 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 57/100] batch 210/300 (70%) loss=8911.8163 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 57/100] batch 240/300 (80%) loss=8780.4723 elapsed=151s eta=38s
+  [segformer_dtkd_FACT1] [epoch 57/100] batch 270/300 (90%) loss=8654.8833 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 57/100] batch 300/300 (100%) loss=8729.0227 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 057/100] remain=43 epochs ep_eta=137.8min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 057/100] lr=0.000026  dt=189.1s
+  train loss=8729.0227  ce=0.0966 dice=0.2061  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[segformer_dtkd_FACT1] [curriculum] epoch 58: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 58/100] batch 30/300 (10%) loss=7770.0569 elapsed=19s eta=172s
+  [segformer_dtkd_FACT1] [epoch 58/100] batch 60/300 (20%) loss=8384.8962 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 58/100] batch 90/300 (30%) loss=8290.8892 elapsed=58s eta=134s
+  [segformer_dtkd_FACT1] [epoch 58/100] batch 120/300 (40%) loss=8435.6076 elapsed=77s eta=115s
+  [segformer_dtkd_FACT1] [epoch 58/100] batch 150/300 (50%) loss=8649.5619 elapsed=96s eta=96s
+  [segformer_dtkd_FACT1] [epoch 58/100] batch 180/300 (60%) loss=8519.4038 elapsed=115s eta=76s
+  [segformer_dtkd_FACT1] [epoch 58/100] batch 210/300 (70%) loss=8399.7864 elapsed=134s eta=57s
+  [segformer_dtkd_FACT1] [epoch 58/100] batch 240/300 (80%) loss=8309.5012 elapsed=153s eta=38s
+  [segformer_dtkd_FACT1] [epoch 58/100] batch 270/300 (90%) loss=8260.4291 elapsed=172s eta=19s
+  [segformer_dtkd_FACT1] [epoch 58/100] batch 300/300 (100%) loss=8283.9935 elapsed=191s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 058/100] remain=42 epochs ep_eta=134.6min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 058/100] lr=0.000025  dt=191.4s
+  train loss=8283.9935  ce=0.0967 dice=0.2123  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[segformer_dtkd_FACT1] [curriculum] epoch 59: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 59/100] batch 30/300 (10%) loss=8089.0816 elapsed=20s eta=177s
+  [segformer_dtkd_FACT1] [epoch 59/100] batch 60/300 (20%) loss=8428.1033 elapsed=39s eta=154s
+  [segformer_dtkd_FACT1] [epoch 59/100] batch 90/300 (30%) loss=8286.8072 elapsed=58s eta=134s
+  [segformer_dtkd_FACT1] [epoch 59/100] batch 120/300 (40%) loss=8409.6162 elapsed=77s eta=115s
+  [segformer_dtkd_FACT1] [epoch 59/100] batch 150/300 (50%) loss=8290.5085 elapsed=96s eta=96s
+  [segformer_dtkd_FACT1] [epoch 59/100] batch 180/300 (60%) loss=8335.6919 elapsed=115s eta=77s
+  [segformer_dtkd_FACT1] [epoch 59/100] batch 210/300 (70%) loss=8362.9202 elapsed=134s eta=58s
+  [segformer_dtkd_FACT1] [epoch 59/100] batch 240/300 (80%) loss=8652.6235 elapsed=154s eta=38s
+  [segformer_dtkd_FACT1] [epoch 59/100] batch 270/300 (90%) loss=8716.8256 elapsed=173s eta=19s
+  [segformer_dtkd_FACT1] [epoch 59/100] batch 300/300 (100%) loss=8763.4550 elapsed=192s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 059/100] remain=41 epochs ep_eta=131.4min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 059/100] lr=0.000024  dt=191.8s
+  train loss=8763.4550  ce=0.0981 dice=0.2103  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 60)
+[segformer_dtkd_FACT1] [curriculum] epoch 60: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 60/100] batch 30/300 (10%) loss=8010.9867 elapsed=20s eta=177s
+  [segformer_dtkd_FACT1] [epoch 60/100] batch 60/300 (20%) loss=8539.9172 elapsed=39s eta=155s
+  [segformer_dtkd_FACT1] [epoch 60/100] batch 90/300 (30%) loss=8518.2377 elapsed=58s eta=135s
+  [segformer_dtkd_FACT1] [epoch 60/100] batch 120/300 (40%) loss=8469.7673 elapsed=77s eta=115s
+  [segformer_dtkd_FACT1] [epoch 60/100] batch 150/300 (50%) loss=8483.1936 elapsed=96s eta=96s
+  [segformer_dtkd_FACT1] [epoch 60/100] batch 180/300 (60%) loss=8374.0066 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 60/100] batch 210/300 (70%) loss=8429.9408 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 60/100] batch 240/300 (80%) loss=8622.7707 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 60/100] batch 270/300 (90%) loss=8597.0700 elapsed=172s eta=19s
+  [segformer_dtkd_FACT1] [epoch 60/100] batch 300/300 (100%) loss=8558.0068 elapsed=191s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 060/100] remain=40 epochs ep_eta=128.3min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 060/100] lr=0.000023  dt=201.2s
+  train loss=8558.0068  ce=0.0969 dice=0.2150  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2122
+  IoU   bg=0.9763  crack=0.5720  spalling=0.8160  | mIoU_fg=0.6940  pix_acc=0.9769
+  Dice  bg=0.9880  crack=0.7277  spalling=0.8987
+  BF1   crack=0.7390  spalling=0.6389  | BF1_fg_mean=0.6889
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.6940  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 61: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 61/100] batch 30/300 (10%) loss=7627.1354 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 61/100] batch 60/300 (20%) loss=7685.9891 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 61/100] batch 90/300 (30%) loss=7859.2226 elapsed=56s eta=132s
+  [segformer_dtkd_FACT1] [epoch 61/100] batch 120/300 (40%) loss=7826.9361 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 61/100] batch 150/300 (50%) loss=7932.6501 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 61/100] batch 180/300 (60%) loss=7950.6424 elapsed=112s eta=74s
+  [segformer_dtkd_FACT1] [epoch 61/100] batch 210/300 (70%) loss=8025.4259 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 61/100] batch 240/300 (80%) loss=7946.7578 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 61/100] batch 270/300 (90%) loss=7970.4805 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 61/100] batch 300/300 (100%) loss=8066.7580 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 061/100] remain=39 epochs ep_eta=125.1min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 061/100] lr=0.000022  dt=186.2s
+  train loss=8066.7580  ce=0.0954 dice=0.2090  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[segformer_dtkd_FACT1] [curriculum] epoch 62: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 62/100] batch 30/300 (10%) loss=9643.2658 elapsed=19s eta=173s
+  [segformer_dtkd_FACT1] [epoch 62/100] batch 60/300 (20%) loss=8802.9246 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 62/100] batch 90/300 (30%) loss=8677.4923 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 62/100] batch 120/300 (40%) loss=8517.6338 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 62/100] batch 150/300 (50%) loss=8446.3857 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 62/100] batch 180/300 (60%) loss=8501.5616 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 62/100] batch 210/300 (70%) loss=8327.4751 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 62/100] batch 240/300 (80%) loss=8333.0039 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 62/100] batch 270/300 (90%) loss=8343.6827 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 62/100] batch 300/300 (100%) loss=8283.5238 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 062/100] remain=38 epochs ep_eta=121.8min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 062/100] lr=0.000021  dt=186.1s
+  train loss=8283.5238  ce=0.0961 dice=0.2056  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[segformer_dtkd_FACT1] [curriculum] epoch 63: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 63/100] batch 30/300 (10%) loss=8050.2232 elapsed=19s eta=169s
+  [segformer_dtkd_FACT1] [epoch 63/100] batch 60/300 (20%) loss=7754.3055 elapsed=37s eta=149s
+  [segformer_dtkd_FACT1] [epoch 63/100] batch 90/300 (30%) loss=7877.2591 elapsed=56s eta=130s
+  [segformer_dtkd_FACT1] [epoch 63/100] batch 120/300 (40%) loss=7969.3448 elapsed=74s eta=112s
+  [segformer_dtkd_FACT1] [epoch 63/100] batch 150/300 (50%) loss=8029.1909 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 63/100] batch 180/300 (60%) loss=7992.8288 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 63/100] batch 210/300 (70%) loss=8068.3810 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 63/100] batch 240/300 (80%) loss=8026.8733 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 63/100] batch 270/300 (90%) loss=8042.0318 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 63/100] batch 300/300 (100%) loss=7973.3687 elapsed=185s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 063/100] remain=37 epochs ep_eta=118.6min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 063/100] lr=0.000020  dt=185.4s
+  train loss=7973.3687  ce=0.0952 dice=0.2103  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[segformer_dtkd_FACT1] [curriculum] epoch 64: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 64/100] batch 30/300 (10%) loss=7158.7298 elapsed=19s eta=173s
+  [segformer_dtkd_FACT1] [epoch 64/100] batch 60/300 (20%) loss=7442.9528 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 64/100] batch 90/300 (30%) loss=7730.4369 elapsed=57s eta=132s
+  [segformer_dtkd_FACT1] [epoch 64/100] batch 120/300 (40%) loss=7649.8723 elapsed=75s eta=113s
+  [segformer_dtkd_FACT1] [epoch 64/100] batch 150/300 (50%) loss=7683.2367 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 64/100] batch 180/300 (60%) loss=7811.4449 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 64/100] batch 210/300 (70%) loss=7928.0965 elapsed=131s eta=56s
+  [segformer_dtkd_FACT1] [epoch 64/100] batch 240/300 (80%) loss=7957.1405 elapsed=150s eta=38s
+  [segformer_dtkd_FACT1] [epoch 64/100] batch 270/300 (90%) loss=7959.0610 elapsed=169s eta=19s
+  [segformer_dtkd_FACT1] [epoch 64/100] batch 300/300 (100%) loss=7952.6428 elapsed=188s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 064/100] remain=36 epochs ep_eta=115.3min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 064/100] lr=0.000019  dt=188.0s
+  train loss=7952.6428  ce=0.0951 dice=0.2094  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 65)
+[segformer_dtkd_FACT1] [curriculum] epoch 65: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 65/100] batch 30/300 (10%) loss=7942.5290 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 65/100] batch 60/300 (20%) loss=7541.7102 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 65/100] batch 90/300 (30%) loss=7351.5973 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 65/100] batch 120/300 (40%) loss=7513.7352 elapsed=76s eta=115s
+  [segformer_dtkd_FACT1] [epoch 65/100] batch 150/300 (50%) loss=7585.8060 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 65/100] batch 180/300 (60%) loss=7745.6655 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 65/100] batch 210/300 (70%) loss=7719.7960 elapsed=134s eta=57s
+  [segformer_dtkd_FACT1] [epoch 65/100] batch 240/300 (80%) loss=7798.3228 elapsed=153s eta=38s
+  [segformer_dtkd_FACT1] [epoch 65/100] batch 270/300 (90%) loss=7760.0858 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 65/100] batch 300/300 (100%) loss=7918.2250 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 065/100] remain=35 epochs ep_eta=112.2min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 065/100] lr=0.000018  dt=200.1s
+  train loss=7918.2250  ce=0.0944 dice=0.2077  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2109
+  IoU   bg=0.9761  crack=0.5687  spalling=0.8378  | mIoU_fg=0.7033  pix_acc=0.9768
+  Dice  bg=0.9879  crack=0.7251  spalling=0.9117
+  BF1   crack=0.7366  spalling=0.6822  | BF1_fg_mean=0.7094
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.7033  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 66: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 66/100] batch 30/300 (10%) loss=7592.5492 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 66/100] batch 60/300 (20%) loss=7542.7169 elapsed=37s eta=149s
+  [segformer_dtkd_FACT1] [epoch 66/100] batch 90/300 (30%) loss=7840.1080 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 66/100] batch 120/300 (40%) loss=7788.3893 elapsed=74s eta=112s
+  [segformer_dtkd_FACT1] [epoch 66/100] batch 150/300 (50%) loss=7667.5384 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 66/100] batch 180/300 (60%) loss=7735.4624 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 66/100] batch 210/300 (70%) loss=7625.9190 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 66/100] batch 240/300 (80%) loss=7671.3210 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 66/100] batch 270/300 (90%) loss=7774.2948 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 66/100] batch 300/300 (100%) loss=7747.7077 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 066/100] remain=34 epochs ep_eta=109.0min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 066/100] lr=0.000017  dt=186.5s
+  train loss=7747.7077  ce=0.0947 dice=0.2086  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[segformer_dtkd_FACT1] [curriculum] epoch 67: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 67/100] batch 30/300 (10%) loss=7608.8846 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 67/100] batch 60/300 (20%) loss=8215.8357 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 67/100] batch 90/300 (30%) loss=8263.7438 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 67/100] batch 120/300 (40%) loss=7879.7828 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 67/100] batch 150/300 (50%) loss=7726.7785 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 67/100] batch 180/300 (60%) loss=7776.1842 elapsed=113s eta=76s
+  [segformer_dtkd_FACT1] [epoch 67/100] batch 210/300 (70%) loss=7772.8505 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 67/100] batch 240/300 (80%) loss=7826.7561 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 67/100] batch 270/300 (90%) loss=7820.8396 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 67/100] batch 300/300 (100%) loss=7815.3653 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 067/100] remain=33 epochs ep_eta=105.8min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 067/100] lr=0.000016  dt=189.8s
+  train loss=7815.3653  ce=0.0947 dice=0.2085  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[segformer_dtkd_FACT1] [curriculum] epoch 68: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 68/100] batch 30/300 (10%) loss=7866.7174 elapsed=20s eta=178s
+  [segformer_dtkd_FACT1] [epoch 68/100] batch 60/300 (20%) loss=8050.3132 elapsed=39s eta=154s
+  [segformer_dtkd_FACT1] [epoch 68/100] batch 90/300 (30%) loss=8066.6606 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 68/100] batch 120/300 (40%) loss=7943.6465 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 68/100] batch 150/300 (50%) loss=7760.3175 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 68/100] batch 180/300 (60%) loss=7785.7158 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 68/100] batch 210/300 (70%) loss=7732.3264 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 68/100] batch 240/300 (80%) loss=7802.6744 elapsed=151s eta=38s
+  [segformer_dtkd_FACT1] [epoch 68/100] batch 270/300 (90%) loss=7708.4752 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 68/100] batch 300/300 (100%) loss=7664.5972 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 068/100] remain=32 epochs ep_eta=102.6min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 068/100] lr=0.000015  dt=189.5s
+  train loss=7664.5972  ce=0.0949 dice=0.2050  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[segformer_dtkd_FACT1] [curriculum] epoch 69: stage=1 tiers=[0, 1] pool={0: 400, 1: 400, 2: 0}
+  [segformer_dtkd_FACT1] [epoch 69/100] batch 30/300 (10%) loss=7776.1128 elapsed=20s eta=177s
+  [segformer_dtkd_FACT1] [epoch 69/100] batch 60/300 (20%) loss=7436.3381 elapsed=39s eta=154s
+  [segformer_dtkd_FACT1] [epoch 69/100] batch 90/300 (30%) loss=7426.4980 elapsed=58s eta=134s
+  [segformer_dtkd_FACT1] [epoch 69/100] batch 120/300 (40%) loss=7481.9105 elapsed=76s eta=115s
+  [segformer_dtkd_FACT1] [epoch 69/100] batch 150/300 (50%) loss=7451.5450 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 69/100] batch 180/300 (60%) loss=7481.5608 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 69/100] batch 210/300 (70%) loss=7530.8800 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 69/100] batch 240/300 (80%) loss=7529.3373 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 69/100] batch 270/300 (90%) loss=7574.4275 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 69/100] batch 300/300 (100%) loss=7558.1948 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 069/100] remain=31 epochs ep_eta=99.3min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 069/100] lr=0.000014  dt=190.3s
+  train loss=7558.1948  ce=0.0951 dice=0.2049  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 70)
+[segformer_dtkd_FACT1] [curriculum] epoch 70: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 70/100] batch 30/300 (10%) loss=8135.9648 elapsed=19s eta=173s
+  [segformer_dtkd_FACT1] [epoch 70/100] batch 60/300 (20%) loss=7899.3295 elapsed=38s eta=152s
+  [segformer_dtkd_FACT1] [epoch 70/100] batch 90/300 (30%) loss=7814.2011 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 70/100] batch 120/300 (40%) loss=7803.4566 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 70/100] batch 150/300 (50%) loss=7828.2019 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 70/100] batch 180/300 (60%) loss=7770.1746 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 70/100] batch 210/300 (70%) loss=7747.1646 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 70/100] batch 240/300 (80%) loss=7745.8255 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 70/100] batch 270/300 (90%) loss=7700.9823 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 70/100] batch 300/300 (100%) loss=7672.9111 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 070/100] remain=30 epochs ep_eta=96.2min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 070/100] lr=0.000014  dt=200.4s
+  train loss=7672.9111  ce=0.0940 dice=0.2070  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2101
+  IoU   bg=0.9763  crack=0.5724  spalling=0.8186  | mIoU_fg=0.6955  pix_acc=0.9769
+  Dice  bg=0.9880  crack=0.7281  spalling=0.9002
+  BF1   crack=0.7420  spalling=0.6786  | BF1_fg_mean=0.7103
+[segformer_dtkd_FACT1] [curriculum] epoch 71: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 71/100] batch 30/300 (10%) loss=6664.1361 elapsed=19s eta=172s
+  [segformer_dtkd_FACT1] [epoch 71/100] batch 60/300 (20%) loss=6776.1972 elapsed=38s eta=150s
+  [segformer_dtkd_FACT1] [epoch 71/100] batch 90/300 (30%) loss=6842.7707 elapsed=56s eta=130s
+  [segformer_dtkd_FACT1] [epoch 71/100] batch 120/300 (40%) loss=7052.4238 elapsed=74s eta=112s
+  [segformer_dtkd_FACT1] [epoch 71/100] batch 150/300 (50%) loss=7142.4869 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 71/100] batch 180/300 (60%) loss=7342.1243 elapsed=112s eta=74s
+  [segformer_dtkd_FACT1] [epoch 71/100] batch 210/300 (70%) loss=7475.3160 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 71/100] batch 240/300 (80%) loss=7422.6680 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 71/100] batch 270/300 (90%) loss=7451.4817 elapsed=168s eta=19s
+  [segformer_dtkd_FACT1] [epoch 71/100] batch 300/300 (100%) loss=7444.9005 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 071/100] remain=29 epochs ep_eta=93.0min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 071/100] lr=0.000013  dt=186.6s
+  train loss=7444.9005  ce=0.0941 dice=0.2098  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[segformer_dtkd_FACT1] [curriculum] epoch 72: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 72/100] batch 30/300 (10%) loss=7093.5169 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 72/100] batch 60/300 (20%) loss=7079.7755 elapsed=38s eta=150s
+  [segformer_dtkd_FACT1] [epoch 72/100] batch 90/300 (30%) loss=7163.7489 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 72/100] batch 120/300 (40%) loss=7288.7254 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 72/100] batch 150/300 (50%) loss=7413.3076 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 72/100] batch 180/300 (60%) loss=7374.6065 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 72/100] batch 210/300 (70%) loss=7370.9032 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 72/100] batch 240/300 (80%) loss=7397.3763 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 72/100] batch 270/300 (90%) loss=7385.0661 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 72/100] batch 300/300 (100%) loss=7282.9654 elapsed=185s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 072/100] remain=28 epochs ep_eta=89.7min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 072/100] lr=0.000012  dt=185.6s
+  train loss=7282.9654  ce=0.0936 dice=0.2049  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[segformer_dtkd_FACT1] [curriculum] epoch 73: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 73/100] batch 30/300 (10%) loss=7110.7716 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 73/100] batch 60/300 (20%) loss=7093.7171 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 73/100] batch 90/300 (30%) loss=6928.5998 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 73/100] batch 120/300 (40%) loss=6956.2371 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 73/100] batch 150/300 (50%) loss=7087.5526 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 73/100] batch 180/300 (60%) loss=7210.7527 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 73/100] batch 210/300 (70%) loss=7306.2908 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 73/100] batch 240/300 (80%) loss=7350.8253 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 73/100] batch 270/300 (90%) loss=7313.5163 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 73/100] batch 300/300 (100%) loss=7288.9344 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 073/100] remain=27 epochs ep_eta=86.5min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 073/100] lr=0.000011  dt=190.0s
+  train loss=7288.9344  ce=0.0936 dice=0.2082  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[segformer_dtkd_FACT1] [curriculum] epoch 74: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 74/100] batch 30/300 (10%) loss=7071.0274 elapsed=19s eta=173s
+  [segformer_dtkd_FACT1] [epoch 74/100] batch 60/300 (20%) loss=7349.9172 elapsed=38s eta=152s
+  [segformer_dtkd_FACT1] [epoch 74/100] batch 90/300 (30%) loss=7299.1179 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 74/100] batch 120/300 (40%) loss=7563.1617 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 74/100] batch 150/300 (50%) loss=7450.3522 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 74/100] batch 180/300 (60%) loss=7440.8384 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 74/100] batch 210/300 (70%) loss=7397.2266 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 74/100] batch 240/300 (80%) loss=7424.7325 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 74/100] batch 270/300 (90%) loss=7441.7034 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 74/100] batch 300/300 (100%) loss=7432.9673 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 074/100] remain=26 epochs ep_eta=83.3min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 074/100] lr=0.000010  dt=189.7s
+  train loss=7432.9673  ce=0.0945 dice=0.2055  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 75)
+[segformer_dtkd_FACT1] [curriculum] epoch 75: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 75/100] batch 30/300 (10%) loss=7357.4457 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 75/100] batch 60/300 (20%) loss=7378.4474 elapsed=39s eta=154s
+  [segformer_dtkd_FACT1] [epoch 75/100] batch 90/300 (30%) loss=7284.8392 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 75/100] batch 120/300 (40%) loss=7141.3713 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 75/100] batch 150/300 (50%) loss=7310.2197 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 75/100] batch 180/300 (60%) loss=7298.2380 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 75/100] batch 210/300 (70%) loss=7300.0122 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 75/100] batch 240/300 (80%) loss=7362.3281 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 75/100] batch 270/300 (90%) loss=7416.0807 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 75/100] batch 300/300 (100%) loss=7373.1817 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 075/100] remain=25 epochs ep_eta=80.2min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 075/100] lr=0.000010  dt=199.5s
+  train loss=7373.1817  ce=0.0929 dice=0.2074  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2084
+  IoU   bg=0.9766  crack=0.5751  spalling=0.8349  | mIoU_fg=0.7050  pix_acc=0.9772
+  Dice  bg=0.9881  crack=0.7303  spalling=0.9100
+  BF1   crack=0.7424  spalling=0.6738  | BF1_fg_mean=0.7081
+  [segformer_dtkd_FACT1] [best] mIoU_fg=0.7050  saved -> best.pt
+[segformer_dtkd_FACT1] [curriculum] epoch 76: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 76/100] batch 30/300 (10%) loss=6457.7113 elapsed=19s eta=172s
+  [segformer_dtkd_FACT1] [epoch 76/100] batch 60/300 (20%) loss=6785.0219 elapsed=38s eta=150s
+  [segformer_dtkd_FACT1] [epoch 76/100] batch 90/300 (30%) loss=6924.2690 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 76/100] batch 120/300 (40%) loss=7118.0261 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 76/100] batch 150/300 (50%) loss=7108.1739 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 76/100] batch 180/300 (60%) loss=7065.1443 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 76/100] batch 210/300 (70%) loss=7134.3962 elapsed=131s eta=56s
+  [segformer_dtkd_FACT1] [epoch 76/100] batch 240/300 (80%) loss=7087.1505 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 76/100] batch 270/300 (90%) loss=7055.1731 elapsed=168s eta=19s
+  [segformer_dtkd_FACT1] [epoch 76/100] batch 300/300 (100%) loss=7026.0392 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 076/100] remain=24 epochs ep_eta=76.9min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 076/100] lr=0.000009  dt=186.3s
+  train loss=7026.0392  ce=0.0926 dice=0.2060  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[segformer_dtkd_FACT1] [curriculum] epoch 77: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 77/100] batch 30/300 (10%) loss=7410.2287 elapsed=19s eta=172s
+  [segformer_dtkd_FACT1] [epoch 77/100] batch 60/300 (20%) loss=7214.7641 elapsed=38s eta=152s
+  [segformer_dtkd_FACT1] [epoch 77/100] batch 90/300 (30%) loss=7303.7458 elapsed=57s eta=132s
+  [segformer_dtkd_FACT1] [epoch 77/100] batch 120/300 (40%) loss=7095.6803 elapsed=75s eta=113s
+  [segformer_dtkd_FACT1] [epoch 77/100] batch 150/300 (50%) loss=7110.7353 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 77/100] batch 180/300 (60%) loss=6990.2954 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 77/100] batch 210/300 (70%) loss=6977.5259 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 77/100] batch 240/300 (80%) loss=7042.5257 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 77/100] batch 270/300 (90%) loss=7065.9152 elapsed=168s eta=19s
+  [segformer_dtkd_FACT1] [epoch 77/100] batch 300/300 (100%) loss=7085.8906 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 077/100] remain=23 epochs ep_eta=73.7min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 077/100] lr=0.000008  dt=186.4s
+  train loss=7085.8906  ce=0.0925 dice=0.2034  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[segformer_dtkd_FACT1] [curriculum] epoch 78: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 78/100] batch 30/300 (10%) loss=7386.3250 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 78/100] batch 60/300 (20%) loss=7414.8566 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 78/100] batch 90/300 (30%) loss=7259.8242 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 78/100] batch 120/300 (40%) loss=7156.4045 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 78/100] batch 150/300 (50%) loss=7050.0826 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 78/100] batch 180/300 (60%) loss=7113.0502 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 78/100] batch 210/300 (70%) loss=7102.9756 elapsed=131s eta=56s
+  [segformer_dtkd_FACT1] [epoch 78/100] batch 240/300 (80%) loss=7104.1503 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 78/100] batch 270/300 (90%) loss=7133.6441 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 78/100] batch 300/300 (100%) loss=7123.0387 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 078/100] remain=22 epochs ep_eta=70.5min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 078/100] lr=0.000008  dt=185.9s
+  train loss=7123.0387  ce=0.0919 dice=0.2035  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[segformer_dtkd_FACT1] [curriculum] epoch 79: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 79/100] batch 30/300 (10%) loss=7779.9158 elapsed=19s eta=172s
+  [segformer_dtkd_FACT1] [epoch 79/100] batch 60/300 (20%) loss=7316.8463 elapsed=38s eta=152s
+  [segformer_dtkd_FACT1] [epoch 79/100] batch 90/300 (30%) loss=7277.5516 elapsed=56s eta=132s
+  [segformer_dtkd_FACT1] [epoch 79/100] batch 120/300 (40%) loss=7287.0713 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 79/100] batch 150/300 (50%) loss=7278.3172 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 79/100] batch 180/300 (60%) loss=7286.8917 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 79/100] batch 210/300 (70%) loss=7197.2983 elapsed=131s eta=56s
+  [segformer_dtkd_FACT1] [epoch 79/100] batch 240/300 (80%) loss=7186.4582 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 79/100] batch 270/300 (90%) loss=7148.1151 elapsed=168s eta=19s
+  [segformer_dtkd_FACT1] [epoch 79/100] batch 300/300 (100%) loss=7140.2606 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 079/100] remain=21 epochs ep_eta=67.3min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 079/100] lr=0.000007  dt=186.7s
+  train loss=7140.2606  ce=0.0933 dice=0.2103  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 80)
+[segformer_dtkd_FACT1] [curriculum] epoch 80: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 80/100] batch 30/300 (10%) loss=6526.0208 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 80/100] batch 60/300 (20%) loss=6780.0061 elapsed=37s eta=150s
+  [segformer_dtkd_FACT1] [epoch 80/100] batch 90/300 (30%) loss=7096.2323 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 80/100] batch 120/300 (40%) loss=7115.7960 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 80/100] batch 150/300 (50%) loss=7034.5209 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 80/100] batch 180/300 (60%) loss=7072.2331 elapsed=112s eta=74s
+  [segformer_dtkd_FACT1] [epoch 80/100] batch 210/300 (70%) loss=7021.3302 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 80/100] batch 240/300 (80%) loss=7011.0978 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 80/100] batch 270/300 (90%) loss=6970.8152 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 80/100] batch 300/300 (100%) loss=6954.6042 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 080/100] remain=20 epochs ep_eta=64.1min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 080/100] lr=0.000006  dt=195.6s
+  train loss=6954.6042  ce=0.0926 dice=0.2102  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2088
+  IoU   bg=0.9765  crack=0.5745  spalling=0.8251  | mIoU_fg=0.6998  pix_acc=0.9771
+  Dice  bg=0.9881  crack=0.7298  spalling=0.9042
+  BF1   crack=0.7438  spalling=0.6909  | BF1_fg_mean=0.7174
+[segformer_dtkd_FACT1] [curriculum] epoch 81: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 81/100] batch 30/300 (10%) loss=6752.1370 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 81/100] batch 60/300 (20%) loss=7136.4557 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 81/100] batch 90/300 (30%) loss=7191.5178 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 81/100] batch 120/300 (40%) loss=7186.4984 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 81/100] batch 150/300 (50%) loss=7049.4784 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 81/100] batch 180/300 (60%) loss=7059.0810 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 81/100] batch 210/300 (70%) loss=7051.9326 elapsed=131s eta=56s
+  [segformer_dtkd_FACT1] [epoch 81/100] batch 240/300 (80%) loss=7161.9920 elapsed=149s eta=37s
+  [segformer_dtkd_FACT1] [epoch 81/100] batch 270/300 (90%) loss=7163.9675 elapsed=168s eta=19s
+  [segformer_dtkd_FACT1] [epoch 81/100] batch 300/300 (100%) loss=7109.9513 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 081/100] remain=19 epochs ep_eta=60.9min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 081/100] lr=0.000006  dt=186.4s
+  train loss=7109.9513  ce=0.0932 dice=0.2032  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[segformer_dtkd_FACT1] [curriculum] epoch 82: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 82/100] batch 30/300 (10%) loss=6818.6034 elapsed=19s eta=172s
+  [segformer_dtkd_FACT1] [epoch 82/100] batch 60/300 (20%) loss=6931.0549 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 82/100] batch 90/300 (30%) loss=6935.1903 elapsed=57s eta=132s
+  [segformer_dtkd_FACT1] [epoch 82/100] batch 120/300 (40%) loss=6849.5552 elapsed=76s eta=113s
+  [segformer_dtkd_FACT1] [epoch 82/100] batch 150/300 (50%) loss=6818.3997 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 82/100] batch 180/300 (60%) loss=6947.6530 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 82/100] batch 210/300 (70%) loss=7003.5468 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 82/100] batch 240/300 (80%) loss=6910.9358 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 82/100] batch 270/300 (90%) loss=6956.6542 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 82/100] batch 300/300 (100%) loss=6937.0597 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 082/100] remain=18 epochs ep_eta=57.7min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 082/100] lr=0.000005  dt=189.5s
+  train loss=6937.0597  ce=0.0923 dice=0.2098  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[segformer_dtkd_FACT1] [curriculum] epoch 83: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 83/100] batch 30/300 (10%) loss=6715.7321 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 83/100] batch 60/300 (20%) loss=6869.9843 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 83/100] batch 90/300 (30%) loss=6920.1776 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 83/100] batch 120/300 (40%) loss=6786.7373 elapsed=76s eta=115s
+  [segformer_dtkd_FACT1] [epoch 83/100] batch 150/300 (50%) loss=6805.2050 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 83/100] batch 180/300 (60%) loss=7000.0252 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 83/100] batch 210/300 (70%) loss=7058.6460 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 83/100] batch 240/300 (80%) loss=6990.4615 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 83/100] batch 270/300 (90%) loss=6963.7195 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 83/100] batch 300/300 (100%) loss=6890.7690 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 083/100] remain=17 epochs ep_eta=54.4min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 083/100] lr=0.000005  dt=189.7s
+  train loss=6890.7690  ce=0.0919 dice=0.2078  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[segformer_dtkd_FACT1] [curriculum] epoch 84: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 84/100] batch 30/300 (10%) loss=7028.2233 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 84/100] batch 60/300 (20%) loss=6725.7426 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 84/100] batch 90/300 (30%) loss=6847.9531 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 84/100] batch 120/300 (40%) loss=6785.2978 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 84/100] batch 150/300 (50%) loss=6898.4012 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 84/100] batch 180/300 (60%) loss=6964.0644 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 84/100] batch 210/300 (70%) loss=6936.1893 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 84/100] batch 240/300 (80%) loss=6924.6316 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 84/100] batch 270/300 (90%) loss=6899.8231 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 84/100] batch 300/300 (100%) loss=6846.3755 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 084/100] remain=16 epochs ep_eta=51.2min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 084/100] lr=0.000004  dt=189.9s
+  train loss=6846.3755  ce=0.0919 dice=0.2027  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 85)
+[segformer_dtkd_FACT1] [curriculum] epoch 85: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 85/100] batch 30/300 (10%) loss=6898.5459 elapsed=20s eta=177s
+  [segformer_dtkd_FACT1] [epoch 85/100] batch 60/300 (20%) loss=6914.2361 elapsed=39s eta=155s
+  [segformer_dtkd_FACT1] [epoch 85/100] batch 90/300 (30%) loss=6757.0770 elapsed=58s eta=134s
+  [segformer_dtkd_FACT1] [epoch 85/100] batch 120/300 (40%) loss=6765.4442 elapsed=76s eta=115s
+  [segformer_dtkd_FACT1] [epoch 85/100] batch 150/300 (50%) loss=6911.2310 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 85/100] batch 180/300 (60%) loss=6926.7218 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 85/100] batch 210/300 (70%) loss=6900.1407 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 85/100] batch 240/300 (80%) loss=6852.8417 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 85/100] batch 270/300 (90%) loss=6804.3214 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 85/100] batch 300/300 (100%) loss=6763.4616 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 085/100] remain=15 epochs ep_eta=48.1min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 085/100] lr=0.000004  dt=200.1s
+  train loss=6763.4616  ce=0.0914 dice=0.2035  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2093
+  IoU   bg=0.9762  crack=0.5736  spalling=0.8274  | mIoU_fg=0.7005  pix_acc=0.9768
+  Dice  bg=0.9880  crack=0.7290  spalling=0.9055
+  BF1   crack=0.7428  spalling=0.6826  | BF1_fg_mean=0.7127
+[segformer_dtkd_FACT1] [curriculum] epoch 86: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 86/100] batch 30/300 (10%) loss=6775.4295 elapsed=19s eta=170s
+  [segformer_dtkd_FACT1] [epoch 86/100] batch 60/300 (20%) loss=6746.3080 elapsed=37s eta=149s
+  [segformer_dtkd_FACT1] [epoch 86/100] batch 90/300 (30%) loss=6765.9543 elapsed=56s eta=130s
+  [segformer_dtkd_FACT1] [epoch 86/100] batch 120/300 (40%) loss=6960.8518 elapsed=74s eta=111s
+  [segformer_dtkd_FACT1] [epoch 86/100] batch 150/300 (50%) loss=6812.5308 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 86/100] batch 180/300 (60%) loss=6806.3146 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 86/100] batch 210/300 (70%) loss=6948.5762 elapsed=129s eta=55s
+  [segformer_dtkd_FACT1] [epoch 86/100] batch 240/300 (80%) loss=6874.0286 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 86/100] batch 270/300 (90%) loss=6816.9366 elapsed=166s eta=18s
+  [segformer_dtkd_FACT1] [epoch 86/100] batch 300/300 (100%) loss=6925.0064 elapsed=185s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 086/100] remain=14 epochs ep_eta=44.8min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 086/100] lr=0.000003  dt=185.0s
+  train loss=6925.0064  ce=0.0913 dice=0.2047  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[segformer_dtkd_FACT1] [curriculum] epoch 87: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 87/100] batch 30/300 (10%) loss=7027.8328 elapsed=19s eta=172s
+  [segformer_dtkd_FACT1] [epoch 87/100] batch 60/300 (20%) loss=6971.3650 elapsed=37s eta=149s
+  [segformer_dtkd_FACT1] [epoch 87/100] batch 90/300 (30%) loss=7419.6035 elapsed=56s eta=130s
+  [segformer_dtkd_FACT1] [epoch 87/100] batch 120/300 (40%) loss=7280.4728 elapsed=74s eta=111s
+  [segformer_dtkd_FACT1] [epoch 87/100] batch 150/300 (50%) loss=7054.6001 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 87/100] batch 180/300 (60%) loss=7084.3825 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 87/100] batch 210/300 (70%) loss=7067.1388 elapsed=130s eta=56s
+  [segformer_dtkd_FACT1] [epoch 87/100] batch 240/300 (80%) loss=7050.1210 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 87/100] batch 270/300 (90%) loss=6982.3671 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 87/100] batch 300/300 (100%) loss=6965.8767 elapsed=185s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 087/100] remain=13 epochs ep_eta=41.6min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 087/100] lr=0.000003  dt=185.2s
+  train loss=6965.8767  ce=0.0921 dice=0.1999  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[segformer_dtkd_FACT1] [curriculum] epoch 88: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 88/100] batch 30/300 (10%) loss=7329.5455 elapsed=19s eta=171s
+  [segformer_dtkd_FACT1] [epoch 88/100] batch 60/300 (20%) loss=7266.3716 elapsed=38s eta=151s
+  [segformer_dtkd_FACT1] [epoch 88/100] batch 90/300 (30%) loss=7059.3086 elapsed=56s eta=131s
+  [segformer_dtkd_FACT1] [epoch 88/100] batch 120/300 (40%) loss=6942.2149 elapsed=74s eta=111s
+  [segformer_dtkd_FACT1] [epoch 88/100] batch 150/300 (50%) loss=7080.5421 elapsed=93s eta=93s
+  [segformer_dtkd_FACT1] [epoch 88/100] batch 180/300 (60%) loss=7031.3360 elapsed=111s eta=74s
+  [segformer_dtkd_FACT1] [epoch 88/100] batch 210/300 (70%) loss=6971.1963 elapsed=129s eta=55s
+  [segformer_dtkd_FACT1] [epoch 88/100] batch 240/300 (80%) loss=6948.6359 elapsed=148s eta=37s
+  [segformer_dtkd_FACT1] [epoch 88/100] batch 270/300 (90%) loss=6864.1307 elapsed=167s eta=19s
+  [segformer_dtkd_FACT1] [epoch 88/100] batch 300/300 (100%) loss=6845.1968 elapsed=186s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 088/100] remain=12 epochs ep_eta=38.4min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 088/100] lr=0.000002  dt=185.8s
+  train loss=6845.1968  ce=0.0916 dice=0.2036  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[segformer_dtkd_FACT1] [curriculum] epoch 89: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 89/100] batch 30/300 (10%) loss=7791.3606 elapsed=20s eta=176s
+  [segformer_dtkd_FACT1] [epoch 89/100] batch 60/300 (20%) loss=7555.8777 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 89/100] batch 90/300 (30%) loss=7218.0229 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 89/100] batch 120/300 (40%) loss=7078.5547 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 89/100] batch 150/300 (50%) loss=6923.9747 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 89/100] batch 180/300 (60%) loss=7119.1879 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 89/100] batch 210/300 (70%) loss=7169.8942 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 89/100] batch 240/300 (80%) loss=7204.1578 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 89/100] batch 270/300 (90%) loss=7178.8786 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 89/100] batch 300/300 (100%) loss=7098.6310 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 089/100] remain=11 epochs ep_eta=35.2min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 089/100] lr=0.000002  dt=189.7s
+  train loss=7098.6310  ce=0.0919 dice=0.2034  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   skipped (next val at epoch 90)
+[segformer_dtkd_FACT1] [curriculum] epoch 90: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 90/100] batch 30/300 (10%) loss=6961.7779 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 90/100] batch 60/300 (20%) loss=6964.7225 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 90/100] batch 90/300 (30%) loss=6832.3755 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 90/100] batch 120/300 (40%) loss=6848.9345 elapsed=76s eta=115s
+  [segformer_dtkd_FACT1] [epoch 90/100] batch 150/300 (50%) loss=6722.9331 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 90/100] batch 180/300 (60%) loss=6911.3632 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 90/100] batch 210/300 (70%) loss=6893.0310 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 90/100] batch 240/300 (80%) loss=6881.5969 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 90/100] batch 270/300 (90%) loss=6910.3302 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 90/100] batch 300/300 (100%) loss=6945.8707 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 090/100] remain=10 epochs ep_eta=32.0min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 090/100] lr=0.000002  dt=199.9s
+  train loss=6945.8707  ce=0.0916 dice=0.2058  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2083
+  IoU   bg=0.9762  crack=0.5740  spalling=0.8298  | mIoU_fg=0.7019  pix_acc=0.9769
+  Dice  bg=0.9880  crack=0.7294  spalling=0.9070
+  BF1   crack=0.7428  spalling=0.6758  | BF1_fg_mean=0.7093
+[segformer_dtkd_FACT1] [curriculum] epoch 91: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 91/100] batch 30/300 (10%) loss=6968.4006 elapsed=19s eta=170s
+  [segformer_dtkd_FACT1] [epoch 91/100] batch 60/300 (20%) loss=6686.1088 elapsed=37s eta=149s
+  [segformer_dtkd_FACT1] [epoch 91/100] batch 90/300 (30%) loss=6538.5849 elapsed=56s eta=130s
+  [segformer_dtkd_FACT1] [epoch 91/100] batch 120/300 (40%) loss=6627.7273 elapsed=75s eta=112s
+  [segformer_dtkd_FACT1] [epoch 91/100] batch 150/300 (50%) loss=6652.8976 elapsed=94s eta=94s
+  [segformer_dtkd_FACT1] [epoch 91/100] batch 180/300 (60%) loss=6684.6735 elapsed=112s eta=75s
+  [segformer_dtkd_FACT1] [epoch 91/100] batch 210/300 (70%) loss=6673.7020 elapsed=131s eta=56s
+  [segformer_dtkd_FACT1] [epoch 91/100] batch 240/300 (80%) loss=6691.4834 elapsed=150s eta=38s
+  [segformer_dtkd_FACT1] [epoch 91/100] batch 270/300 (90%) loss=6706.1018 elapsed=169s eta=19s
+  [segformer_dtkd_FACT1] [epoch 91/100] batch 300/300 (100%) loss=6690.5421 elapsed=188s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 091/100] remain=9 epochs ep_eta=28.8min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 091/100] lr=0.000001  dt=198.5s
+  train loss=6690.5421  ce=0.0917 dice=0.2069  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2090
+  IoU   bg=0.9763  crack=0.5742  spalling=0.8271  | mIoU_fg=0.7006  pix_acc=0.9769
+  Dice  bg=0.9880  crack=0.7295  spalling=0.9054
+  BF1   crack=0.7426  spalling=0.6817  | BF1_fg_mean=0.7121
+[segformer_dtkd_FACT1] [curriculum] epoch 92: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 92/100] batch 30/300 (10%) loss=6267.3334 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 92/100] batch 60/300 (20%) loss=6201.4764 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 92/100] batch 90/300 (30%) loss=6454.8805 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 92/100] batch 120/300 (40%) loss=6578.2764 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 92/100] batch 150/300 (50%) loss=6694.5569 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 92/100] batch 180/300 (60%) loss=6783.5435 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 92/100] batch 210/300 (70%) loss=6712.4276 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 92/100] batch 240/300 (80%) loss=6745.3793 elapsed=151s eta=38s
+  [segformer_dtkd_FACT1] [epoch 92/100] batch 270/300 (90%) loss=6804.7227 elapsed=170s eta=19s
+  [segformer_dtkd_FACT1] [epoch 92/100] batch 300/300 (100%) loss=6763.3380 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 092/100] remain=8 epochs ep_eta=25.6min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 092/100] lr=0.000001  dt=199.4s
+  train loss=6763.3380  ce=0.0914 dice=0.2020  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2084
+  IoU   bg=0.9765  crack=0.5757  spalling=0.8310  | mIoU_fg=0.7034  pix_acc=0.9772
+  Dice  bg=0.9881  crack=0.7308  spalling=0.9077
+  BF1   crack=0.7444  spalling=0.6822  | BF1_fg_mean=0.7133
+[segformer_dtkd_FACT1] [curriculum] epoch 93: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 93/100] batch 30/300 (10%) loss=6278.6797 elapsed=20s eta=177s
+  [segformer_dtkd_FACT1] [epoch 93/100] batch 60/300 (20%) loss=6676.8192 elapsed=39s eta=156s
+  [segformer_dtkd_FACT1] [epoch 93/100] batch 90/300 (30%) loss=6607.0455 elapsed=58s eta=135s
+  [segformer_dtkd_FACT1] [epoch 93/100] batch 120/300 (40%) loss=6667.6559 elapsed=76s eta=115s
+  [segformer_dtkd_FACT1] [epoch 93/100] batch 150/300 (50%) loss=6724.3341 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 93/100] batch 180/300 (60%) loss=6681.1303 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 93/100] batch 210/300 (70%) loss=6711.2872 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 93/100] batch 240/300 (80%) loss=6676.3362 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 93/100] batch 270/300 (90%) loss=6621.3044 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 93/100] batch 300/300 (100%) loss=6675.6280 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 093/100] remain=7 epochs ep_eta=22.5min (avg 192s/ep)
+[segformer_dtkd_FACT1] [epoch 093/100] lr=0.000001  dt=200.3s
+  train loss=6675.6280  ce=0.0913 dice=0.2023  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2086
+  IoU   bg=0.9762  crack=0.5736  spalling=0.8284  | mIoU_fg=0.7010  pix_acc=0.9769
+  Dice  bg=0.9880  crack=0.7291  spalling=0.9062
+  BF1   crack=0.7426  spalling=0.6849  | BF1_fg_mean=0.7138
+[segformer_dtkd_FACT1] [curriculum] epoch 94: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 94/100] batch 30/300 (10%) loss=6438.4781 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 94/100] batch 60/300 (20%) loss=6749.4566 elapsed=38s eta=152s
+  [segformer_dtkd_FACT1] [epoch 94/100] batch 90/300 (30%) loss=6510.8753 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 94/100] batch 120/300 (40%) loss=6718.7382 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 94/100] batch 150/300 (50%) loss=6649.6521 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 94/100] batch 180/300 (60%) loss=6661.4032 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 94/100] batch 210/300 (70%) loss=6773.2654 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 94/100] batch 240/300 (80%) loss=6874.5217 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 94/100] batch 270/300 (90%) loss=6861.2173 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 94/100] batch 300/300 (100%) loss=6921.7987 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 094/100] remain=6 epochs ep_eta=19.3min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 094/100] lr=0.000001  dt=199.8s
+  train loss=6921.7987  ce=0.0920 dice=0.2045  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2084
+  IoU   bg=0.9763  crack=0.5745  spalling=0.8275  | mIoU_fg=0.7010  pix_acc=0.9770
+  Dice  bg=0.9880  crack=0.7298  spalling=0.9056
+  BF1   crack=0.7446  spalling=0.6832  | BF1_fg_mean=0.7139
+[segformer_dtkd_FACT1] [curriculum] epoch 95: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 95/100] batch 30/300 (10%) loss=6612.0021 elapsed=20s eta=177s
+  [segformer_dtkd_FACT1] [epoch 95/100] batch 60/300 (20%) loss=6640.1584 elapsed=39s eta=155s
+  [segformer_dtkd_FACT1] [epoch 95/100] batch 90/300 (30%) loss=6593.5299 elapsed=58s eta=135s
+  [segformer_dtkd_FACT1] [epoch 95/100] batch 120/300 (40%) loss=6584.5486 elapsed=77s eta=115s
+  [segformer_dtkd_FACT1] [epoch 95/100] batch 150/300 (50%) loss=6719.9883 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 95/100] batch 180/300 (60%) loss=6801.0491 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 95/100] batch 210/300 (70%) loss=6790.7690 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 95/100] batch 240/300 (80%) loss=6751.1685 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 95/100] batch 270/300 (90%) loss=6794.4974 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 95/100] batch 300/300 (100%) loss=6922.6585 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 095/100] remain=5 epochs ep_eta=16.1min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 095/100] lr=0.000000  dt=200.1s
+  train loss=6922.6585  ce=0.0929 dice=0.2050  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2075
+  IoU   bg=0.9762  crack=0.5739  spalling=0.8279  | mIoU_fg=0.7009  pix_acc=0.9768
+  Dice  bg=0.9879  crack=0.7293  spalling=0.9058
+  BF1   crack=0.7440  spalling=0.6840  | BF1_fg_mean=0.7140
+[segformer_dtkd_FACT1] [curriculum] epoch 96: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 96/100] batch 30/300 (10%) loss=6381.9256 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 96/100] batch 60/300 (20%) loss=6519.0865 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 96/100] batch 90/300 (30%) loss=6565.9128 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 96/100] batch 120/300 (40%) loss=6621.0855 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 96/100] batch 150/300 (50%) loss=6591.7307 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 96/100] batch 180/300 (60%) loss=6647.7406 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 96/100] batch 210/300 (70%) loss=6700.4166 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 96/100] batch 240/300 (80%) loss=6776.2090 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 96/100] batch 270/300 (90%) loss=6757.9981 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 96/100] batch 300/300 (100%) loss=6901.4408 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 096/100] remain=4 epochs ep_eta=12.9min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 096/100] lr=0.000000  dt=200.0s
+  train loss=6901.4408  ce=0.0922 dice=0.2095  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2077
+  IoU   bg=0.9762  crack=0.5739  spalling=0.8275  | mIoU_fg=0.7007  pix_acc=0.9768
+  Dice  bg=0.9880  crack=0.7293  spalling=0.9056
+  BF1   crack=0.7435  spalling=0.6833  | BF1_fg_mean=0.7134
+[segformer_dtkd_FACT1] [curriculum] epoch 97: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 97/100] batch 30/300 (10%) loss=6795.3589 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 97/100] batch 60/300 (20%) loss=7259.5919 elapsed=39s eta=155s
+  [segformer_dtkd_FACT1] [epoch 97/100] batch 90/300 (30%) loss=7197.9951 elapsed=58s eta=135s
+  [segformer_dtkd_FACT1] [epoch 97/100] batch 120/300 (40%) loss=7063.9444 elapsed=77s eta=115s
+  [segformer_dtkd_FACT1] [epoch 97/100] batch 150/300 (50%) loss=6974.4513 elapsed=96s eta=96s
+  [segformer_dtkd_FACT1] [epoch 97/100] batch 180/300 (60%) loss=6972.5857 elapsed=115s eta=76s
+  [segformer_dtkd_FACT1] [epoch 97/100] batch 210/300 (70%) loss=6986.9080 elapsed=134s eta=57s
+  [segformer_dtkd_FACT1] [epoch 97/100] batch 240/300 (80%) loss=6889.3984 elapsed=153s eta=38s
+  [segformer_dtkd_FACT1] [epoch 97/100] batch 270/300 (90%) loss=6856.0675 elapsed=172s eta=19s
+  [segformer_dtkd_FACT1] [epoch 97/100] batch 300/300 (100%) loss=6812.2027 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 097/100] remain=3 epochs ep_eta=9.6min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 097/100] lr=0.000000  dt=200.7s
+  train loss=6812.2027  ce=0.0913 dice=0.2050  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2082
+  IoU   bg=0.9764  crack=0.5746  spalling=0.8272  | mIoU_fg=0.7009  pix_acc=0.9770
+  Dice  bg=0.9880  crack=0.7298  spalling=0.9054
+  BF1   crack=0.7447  spalling=0.6819  | BF1_fg_mean=0.7133
+[segformer_dtkd_FACT1] [curriculum] epoch 98: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 98/100] batch 30/300 (10%) loss=7875.2657 elapsed=19s eta=175s
+  [segformer_dtkd_FACT1] [epoch 98/100] batch 60/300 (20%) loss=7384.2785 elapsed=38s eta=153s
+  [segformer_dtkd_FACT1] [epoch 98/100] batch 90/300 (30%) loss=6917.8546 elapsed=57s eta=134s
+  [segformer_dtkd_FACT1] [epoch 98/100] batch 120/300 (40%) loss=6856.0383 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 98/100] batch 150/300 (50%) loss=6759.0017 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 98/100] batch 180/300 (60%) loss=6706.5874 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 98/100] batch 210/300 (70%) loss=6778.6563 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 98/100] batch 240/300 (80%) loss=6739.0094 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 98/100] batch 270/300 (90%) loss=6671.5430 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 98/100] batch 300/300 (100%) loss=6654.1240 elapsed=189s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 098/100] remain=2 epochs ep_eta=6.4min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 098/100] lr=0.000000  dt=199.9s
+  train loss=6654.1240  ce=0.0914 dice=0.2032  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2078
+  IoU   bg=0.9761  crack=0.5733  spalling=0.8272  | mIoU_fg=0.7003  pix_acc=0.9768
+  Dice  bg=0.9879  crack=0.7288  spalling=0.9055
+  BF1   crack=0.7427  spalling=0.6831  | BF1_fg_mean=0.7129
+[segformer_dtkd_FACT1] [curriculum] epoch 99: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 99/100] batch 30/300 (10%) loss=7170.1912 elapsed=19s eta=174s
+  [segformer_dtkd_FACT1] [epoch 99/100] batch 60/300 (20%) loss=6667.5578 elapsed=38s eta=152s
+  [segformer_dtkd_FACT1] [epoch 99/100] batch 90/300 (30%) loss=6564.5790 elapsed=57s eta=133s
+  [segformer_dtkd_FACT1] [epoch 99/100] batch 120/300 (40%) loss=6734.1510 elapsed=76s eta=114s
+  [segformer_dtkd_FACT1] [epoch 99/100] batch 150/300 (50%) loss=6775.0792 elapsed=95s eta=95s
+  [segformer_dtkd_FACT1] [epoch 99/100] batch 180/300 (60%) loss=6770.5251 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 99/100] batch 210/300 (70%) loss=6784.3635 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 99/100] batch 240/300 (80%) loss=6724.3119 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 99/100] batch 270/300 (90%) loss=6764.6673 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 99/100] batch 300/300 (100%) loss=6732.6307 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 099/100] remain=1 epochs ep_eta=3.2min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 099/100] lr=0.000000  dt=199.9s
+  train loss=6732.6307  ce=0.0915 dice=0.2059  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2078
+  IoU   bg=0.9761  crack=0.5733  spalling=0.8281  | mIoU_fg=0.7007  pix_acc=0.9768
+  Dice  bg=0.9879  crack=0.7288  spalling=0.9060
+  BF1   crack=0.7421  spalling=0.6842  | BF1_fg_mean=0.7131
+[segformer_dtkd_FACT1] [curriculum] epoch 100: stage=2 tiers=[0, 1, 2] pool={0: 400, 1: 400, 2: 400}
+  [segformer_dtkd_FACT1] [epoch 100/100] batch 30/300 (10%) loss=7252.0721 elapsed=20s eta=178s
+  [segformer_dtkd_FACT1] [epoch 100/100] batch 60/300 (20%) loss=6874.0689 elapsed=38s eta=154s
+  [segformer_dtkd_FACT1] [epoch 100/100] batch 90/300 (30%) loss=6788.3154 elapsed=58s eta=134s
+  [segformer_dtkd_FACT1] [epoch 100/100] batch 120/300 (40%) loss=6630.4009 elapsed=76s eta=115s
+  [segformer_dtkd_FACT1] [epoch 100/100] batch 150/300 (50%) loss=6713.3258 elapsed=96s eta=96s
+  [segformer_dtkd_FACT1] [epoch 100/100] batch 180/300 (60%) loss=6798.5418 elapsed=114s eta=76s
+  [segformer_dtkd_FACT1] [epoch 100/100] batch 210/300 (70%) loss=6788.1411 elapsed=133s eta=57s
+  [segformer_dtkd_FACT1] [epoch 100/100] batch 240/300 (80%) loss=6940.3139 elapsed=152s eta=38s
+  [segformer_dtkd_FACT1] [epoch 100/100] batch 270/300 (90%) loss=6872.7637 elapsed=171s eta=19s
+  [segformer_dtkd_FACT1] [epoch 100/100] batch 300/300 (100%) loss=6863.0826 elapsed=190s eta=0s
+[segformer_dtkd_FACT1] [sampler] sampled: {0: 400, 1: 400, 2: 400} total=1200 spalling_ratio=24.33%
+[segformer_dtkd_FACT1] [sampler] unique: {0: 400, 1: 400, 2: 400} unique_total=1200 dup_ratio=1.00x
+[segformer_dtkd_FACT1] [epoch 100/100] remain=0 epochs ep_eta=0.0min (avg 193s/ep)
+[segformer_dtkd_FACT1] [epoch 100/100] lr=0.000000  dt=200.4s
+  train loss=6863.0826  ce=0.0913 dice=0.2016  tversky=0.0000 bd=0.0000  cldice=0.0000 snake=0.0000
+  val   loss=0.2078
+  IoU   bg=0.9760  crack=0.5725  spalling=0.8293  | mIoU_fg=0.7009  pix_acc=0.9766
+  Dice  bg=0.9879  crack=0.7282  spalling=0.9067
+  BF1   crack=0.7399  spalling=0.6884  | BF1_fg_mean=0.7142
+
+[train] final test eval using best checkpoint
+IoU   bg=0.9753  crack=0.5745  spalling=0.8181  | mIoU_fg=0.6963  pix_acc=0.9762
+Dice  bg=0.9875  crack=0.7298  spalling=0.9000
+BF1   crack=0.7452  spalling=0.6284  | BF1_fg_mean=0.6868
+clDice crack=0.8316
+[train] wrote /workspace/dam-segmentation-baselines/full_method/runs/segformer_dtkd_FACT1/test_report.txt
+[train] wrote /workspace/dam-segmentation-baselines/full_method/runs/segformer_dtkd_FACT1/curves.png
