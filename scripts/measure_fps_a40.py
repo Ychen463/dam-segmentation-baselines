@@ -4,6 +4,10 @@ Usage on RunPod:
     cd /workspace/dam-segmentation-baselines
     python scripts/measure_fps_a40.py
 """
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 import torch
 import time
 from full_method import config as C
