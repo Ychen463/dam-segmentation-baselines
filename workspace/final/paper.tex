@@ -65,7 +65,7 @@ Automated semantic segmentation of these defects from high-resolution imagery th
 
 Recent deep-learning methods have advanced pixel-level defect segmentation considerably.
 Encoder--decoder architectures such as U-Net \citep{ronneberger2015unet} and hierarchical transformers like SegFormer \citep{xie2021segformer} achieve competitive Intersection-over-Union (IoU) on benchmark crack datasets \citep{zou2019deepcrack,liu2019deepcrack}.
-However, IoU and related region-overlap metrics are insensitive to topological errors: a prediction that fragments a continuous crack into disconnected segments may still score favourably on IoU while misrepresenting the structural extent of the defect \citep{pantoja2024cracktopology}.
+However, IoU and related region-overlap metrics are insensitive to topological errors: a prediction that fragments a continuous crack into disconnected segments may still score favourably on IoU while misrepresenting the structural extent of the defect \citep{pantoja2022topoloss}.
 For structural safety assessment, the \emph{connectivity} of a predicted crack is as important as its pixel coverage---a fragmented prediction can lead an engineer to underestimate propagation length and thus misjudge residual capacity.
 
 Topology-preserving losses such as clDice \citep{shit2021cldice} and persistent-homology penalties \citep{hu2019topology,clough2020topological} partially address this gap, yet they either incur prohibitive GPU memory for high-resolution dam images or operate on binary masks without multi-class support.
@@ -693,7 +693,7 @@ DSConv & 70.4 (b) & \textbf{72.3} (c) & +1.9 \\
 \caption*{\textit{Part B: DTKD Controls}}
 \begin{tabular}{lcccccc}
 \toprule
-Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text{fg}}$ & clDice$_{\text{fg}}$ & ConnR$_{\text{fg}}$ \\
+Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text{fg}}$ & clDice$_{\text{fg}}$ & CompR$_{\text{fg}}$ \\
 \midrule
 (c) DTKD (heterogeneous) & \textbf{72.3} & \textbf{58.5} & \textbf{86.2} & \textbf{70.6} & \textbf{86.4} & 83.0 \\
 Teacher ensemble ceiling & 70.7 & 57.5 & 83.8 & 69.0 & 83.7 & 81.5 \\
@@ -746,7 +746,7 @@ Per-image IoU scores are annotated above each prediction. On these selected samp
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.95\textwidth]{figures/fig3_qualitative.png}
-    \caption{Qualitative comparison on test samples across difficulty tiers. Left to right: input, ground truth, SegFormer-B2, DSConv+SRL (Teacher~1), TopoDistill. Per-image crack (Cr) and spalling (Sp) IoU scores are shown above each prediction. Red: crack, green: spalling. Samples were selected from images containing both crack and spalling (one Easy, one Medium, two Hard), sorted by descending combined defect pixel count (i.e., images with larger defect regions were preferred for visibility). This selection biases toward larger, more visible defects; hairline cracks and failure cases are not represented. Performance differences vary by sample; per-image IoU scores provide case-level comparison.}
+    \caption{Qualitative comparison on test samples across difficulty tiers. Left to right: input, ground truth, SegFormer-B2, DSConv+SRL (Teacher~1), TopoDistill. Per-image crack (Cr) and spalling (Sp) IoU scores are shown above each prediction. Red: crack, green: spalling. \textbf{Selection:} images containing both crack and spalling, sorted by descending defect pixel count. This biases toward larger, more visible defects; hairline cracks, false-positive-heavy cases, and failure cases are not represented. A complete gallery including median-performance samples, failure cases, and crack--spalling coexistence errors will be provided in the supplementary material.}
     \label{fig:qualitative}
 \end{figure*}
 
@@ -791,12 +791,12 @@ This decomposition is \emph{not} a clean ablation:
 The DSConv-equipped architecture is \emph{associated with} better cross-domain transfer, but individual component contributions cannot be isolated.
 TTA does not improve cross-dataset performance (18.7\%$\to$18.6\%).
 
-Fig.~\ref{fig:cross_dataset} shows representative S2DS predictions. SegFormer-B2 and Mask2Former produce largely incorrect segmentations, while DSConv+SRL and TopoDistill localise defect regions despite the domain shift, consistent with the quantitative results above.
+Fig.~\ref{fig:cross_dataset} shows representative S2DS predictions. SegFormer-B2 and Mask2Former produce largely incorrect segmentations. DSConv+SRL and TopoDistill localise defect regions despite the domain shift but exhibit visible over-prediction, particularly at region boundaries---consistent with the limited mIoU$_{\text{fg}}$ (${\leq}$18.7\%) reported above.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/fig_cross_dataset.png}
-    \caption{Cross-dataset qualitative results on S2DS (zero-shot). Left to right: input, ground truth, SegFormer-B2, Mask2Former, DSConv+SRL, TopoDistill. Red: crack, green: spalling. Images selected from S2DS test set by largest defect pixel count among images containing crack or spalling, preferring images with both classes. This selection biases toward larger defects; failure cases are not shown.}
+    \caption{Cross-dataset qualitative results on S2DS (zero-shot). Left to right: input, ground truth, SegFormer-B2, Mask2Former, DSConv+SRL, TopoDistill. Red: crack, green: spalling. \textbf{Selection:} largest defect pixel count among images with crack or spalling. Note visible over-prediction by DSConv+SRL and TopoDistill at region boundaries. Failure cases and false-positive-heavy examples will be provided in the supplementary material.}
     \label{fig:cross_dataset}
 \end{figure}
 
@@ -883,7 +883,7 @@ Crack IoU remains challenging (${\sim}$59\%) due to extreme class imbalance.
 clDice$_{\text{cr}}$ is unchanged by DSConv (81.8$\to$81.8), and the CompR$_{\text{cr}}$ gain (+2.8) is comparable to the standard Conv control (+2.5). DSConv's measurable contributions are boundary quality (BF1$_{\text{fg}}$ +2.0), spalling skeleton coverage (clDice$_{\text{sp}}$ +6.0), and cross-seed stability (std 1.47$\to$0.70). The spalling benefit is unexpected since the branch targets only the crack channel; we hypothesise indirect improvement via shared encoder gradient flow. Note that clDice was designed for tubular structures; for area-type spalling, the skeleton is less semantically meaningful, so the clDice$_{\text{sp}}$ improvement reflects region shape coverage rather than centreline preservation.
 
 \paragraph{Topology evaluation limitations}
-clDice and CompR have complementary blind spots: clDice is insensitive to component-level topology, while CompR does not penalise fragmentation or merging (Section~\ref{sec:metrics}). True connectivity metrics such as the Crack Topology Score \citep{pantoja2024cracktopology} or component F1 were not computed. The CompR threshold (50\%) is a single operating point, and multi-seed per-class breakdowns were not reported, limiting verification of the crack-specific null result across seeds.
+clDice and CompR have complementary blind spots: clDice is insensitive to component-level topology, while CompR does not penalise fragmentation or merging (Section~\ref{sec:metrics}). True connectivity metrics such as the Crack Topology Score \citep{joo2026cts} or component F1 were not computed. The CompR threshold (50\%) is a single operating point, and multi-seed per-class breakdowns were not reported, limiting verification of the crack-specific null result across seeds.
 
 % ===========================================================================
 \section{Conclusion}
@@ -1040,7 +1040,7 @@ Pan, Z., Zhang, X., Jiang, Y., Li, N., Mei, C., Su, H., Cai, Y., 2025.
 \newblock Automated detection system of metro tunnel lining crack using dynamic snake convolution.
 \newblock Comput.-Aided Civ.\ Infrastruct.\ Eng.\ 40, e70065.
 
-\bibitem[Pantoja-Rosero et~al.(2022)]{pantoja2024cracktopology}
+\bibitem[Pantoja-Rosero et~al.(2022)]{pantoja2022topoloss}
 Pantoja-Rosero, B.G., Oner, D., Kozi\'{n}ski, M., Achanta, R., Fua, P., P\'{e}rez-Cruz, F., Beyer, K., 2022.
 \newblock TOPO-Loss for continuity-preserving crack detection using deep learning.
 \newblock Construction and Building Materials 344, 128264.
@@ -1061,7 +1061,7 @@ Salehi, S.S.M., Erdogmus, D., Gholipour, A., 2017.
 \newblock In: MLMI Workshop, MICCAI. Springer, LNCS~10541. pp.~379--387.
 
 \bibitem[Shit et~al.(2021)]{shit2021cldice}
-Shit, S., Paetzold, J.C., Sekuboyina, A., Ezhov, I., Unber, A., Zhylka, A., Pluim, J.P.W., Bauer, U., Menze, B.H., 2021.
+Shit, S., Paetzold, J.C., Sekuboyina, A., Ezhov, I., Unger, A., Zhylka, A., Pluim, J.P.W., Bauer, U., Menze, B.H., 2021.
 \newblock clDice -- A novel topology-preserving loss function for tubular structure segmentation.
 \newblock In: CVPR. pp.~16560--16569.
 
