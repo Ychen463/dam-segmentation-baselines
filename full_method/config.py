@@ -2876,6 +2876,69 @@ ABLATION_PRESETS = {
                           "use_boundary_loss": False, "use_tversky_loss": False,
                           "use_cldice_loss": False, "use_srl_loss": False,
                           "use_soft_boundary_schedule": False},
+
+    # =========================================================================
+    # Matched-checkpoint reruns: T1-only, duplicated-T1, heterogeneous DTKD
+    # All three use the SAME T1 checkpoint (runs/dscformer_srl_G1/best.pt),
+    # same seed (42), same α=0.5, τ=4.0, same training settings.
+    # This ensures checkpoint-matched comparability for teacher diversity claims.
+    # =========================================================================
+
+    # RERUN_T1ONLY: T1-only KD (t2_weight=0), matched checkpoint
+    "RERUN_T1ONLY": {"name": "rerun_t1only",
+                     "model_type": "dscformer",
+                     "use_kd": True, "use_dual_kd": True,
+                     "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+                     "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+                     "kd_teacher2_model_type": "sam_lora",
+                     "kd_alpha": 0.5, "kd_temperature": 4.0,
+                     "kd_t1_weight": 1.0, "kd_t2_weight": 0.0,
+                     "kd_class_weights": False,
+                     "no_curriculum": True,
+                     "use_soft_curriculum": False, "use_softmax_sampling": False,
+                     "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                     "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                     "use_boundary_loss": False, "use_tversky_loss": False,
+                     "use_cldice_loss": False, "use_srl_loss": False,
+                     "use_soft_boundary_schedule": False},
+
+    # RERUN_DUP_T1: Duplicated T1 (same checkpoint for both teachers)
+    "RERUN_DUP_T1": {"name": "rerun_dup_t1",
+                     "model_type": "dscformer",
+                     "use_kd": True, "use_dual_kd": True,
+                     "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+                     "kd_teacher2_checkpoint": "runs/dscformer_srl_G1/best.pt",
+                     "kd_teacher2_model_type": "dscformer",
+                     "kd_alpha": 0.5, "kd_temperature": 4.0,
+                     "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+                     "kd_class_weights": False,
+                     "no_curriculum": True,
+                     "use_soft_curriculum": False, "use_softmax_sampling": False,
+                     "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                     "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                     "use_boundary_loss": False, "use_tversky_loss": False,
+                     "use_cldice_loss": False, "use_srl_loss": False,
+                     "use_soft_boundary_schedule": False},
+
+    # RERUN_HETERO: Heterogeneous T1+T2 DTKD (equal weights, no class-cond)
+    #   NOTE: uses equal weights (not class-conditional) to match controls exactly.
+    #   The only variable across the three reruns is teacher identity.
+    "RERUN_HETERO": {"name": "rerun_hetero",
+                     "model_type": "dscformer",
+                     "use_kd": True, "use_dual_kd": True,
+                     "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+                     "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+                     "kd_teacher2_model_type": "sam_lora",
+                     "kd_alpha": 0.5, "kd_temperature": 4.0,
+                     "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+                     "kd_class_weights": False,
+                     "no_curriculum": True,
+                     "use_soft_curriculum": False, "use_softmax_sampling": False,
+                     "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                     "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                     "use_boundary_loss": False, "use_tversky_loss": False,
+                     "use_cldice_loss": False, "use_srl_loss": False,
+                     "use_soft_boundary_schedule": False},
 }
 
 
