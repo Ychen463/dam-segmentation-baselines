@@ -383,7 +383,7 @@ We report complementary metrics capturing different aspects of segmentation qual
 \subsection{Computational cost}
 
 Table~\ref{tab:cost} summarises model complexity and reference inference speed. FPS values are measured at each model's native training resolution (shown in the table), so they are \emph{not directly comparable} across models---U-Net's 519 FPS at $320{\times}320$ is not comparable to SegFormer's 124 FPS at $512{\times}512$, and SAM-LoRA's 9.0 FPS reflects its $1024{\times}1024$ input. A fair speed comparison would require all models to be benchmarked at a uniform resolution, which we did not perform.
-SegFormer-DSConv adds 1.32M parameters over SegFormer-B2 (the CrackSnakeBranch; see Section~\ref{sec:dsconv}), with a FPS reduction from 124 to 96 at $512{\times}512$.
+SegFormer-DSConv adds 1.32M parameters over SegFormer-B2 (the CrackSnakeBranch; see Section~\ref{sec:dsconv}), with a FPS reduction from 55 to 51 at $512{\times}512$.
 DTKD incurs \emph{no additional inference cost}: the two teachers are only used during training, and the student has identical architecture to SegFormer-DSConv.
 Foundation model baselines carry $>$90M parameters due to their ViT-B encoders, though only ${\sim}$5--6M are trainable via LoRA.
 
@@ -397,13 +397,13 @@ Model & Backbone & Params (M) & Train (M) & Res. & FPS \\
 \midrule
 U-Net & ResNet-34 & 24.4 & 24.4 & 320 & 519 \\
 DeepLabV3+ & ResNet-50 & 26.7 & 26.7 & 512 & 333 \\
-SegFormer-B2 & MiT-B2 & 27.3 & 27.3 & 512 & 124 \\
+SegFormer-B2 & MiT-B2 & 27.4 & 27.4 & 512 & 55 \\
 Mask2Former & Swin-S & 68.7 & 68.7 & 512 & 39 \\
 SAM-LoRA$^\dagger$ & ViT-B & 93.7 & 5.0 & 1024 & 9.0 \\
 DINOv2-LoRA$^\dagger$ & ViT-B/14 & 92.7 & 6.1 & 518 & 68 \\
 \midrule
-SegFormer-DSConv & MiT-B2 & 28.7 & 28.7 & 512 & 96 \\
-TopoDistill (DSConv+DTKD) & MiT-B2 & 28.7 & 28.7 & 512 & 96 \\
+SegFormer-DSConv & MiT-B2 & 28.7 & 28.7 & 512 & 51 \\
+TopoDistill (DSConv+DTKD) & MiT-B2 & 28.7 & 28.7 & 512 & 51 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -842,7 +842,7 @@ Under the evaluated LoRA configurations, directly fine-tuning SAM or DINOv2 unde
 The persistent tradeoff across all loss-based strategies (Section~\ref{sec:strategy}) arises from shared geometric boundaries between defect types. Pixel-level loss modification alone cannot resolve the crack precision bottleneck without collateral damage to spalling, suggesting that sampling-based, architectural, or post-processing approaches (e.g., class-specific CRF refinement) are more promising.
 
 \paragraph{Practical implications}
-The student has identical inference cost to SegFormer-DSConv (96 FPS, 28.7M parameters), with teachers used only during training. DTKD improves all difficulty tiers, with the largest gain on Easy (+3.4 mIoU$_{\text{fg}}$).
+The student has identical inference cost to SegFormer-DSConv (51 FPS, 28.7M parameters), with teachers used only during training. DTKD improves all difficulty tiers, with the largest gain on Easy (+3.4 mIoU$_{\text{fg}}$).
 
 \paragraph{Failure modes and limitations}
 The model underperforms on (i)~thin hairline cracks (${<}$2 pixels wide) and (ii)~co-occurring crack--spalling regions where it over-predicts one class at the expense of the other.
@@ -890,7 +890,7 @@ clDice and CompR have complementary blind spots: clDice is insensitive to compon
 \label{sec:conclusion}
 
 We presented TopoDistill, a segmentation framework for concrete dam defects that combines Dynamic Snake Convolution with dual-teacher knowledge distillation (DTKD).
-On DamSegment, TopoDistill achieves 72.3\% mIoU$_{\text{fg}}$ at 96 FPS with only 1.32M parameter overhead and no additional inference cost from distillation.
+On DamSegment, TopoDistill achieves 72.3\% mIoU$_{\text{fg}}$ at 51 FPS with only 1.32M parameter overhead and no additional inference cost from distillation.
 DSConv improves boundary quality (BF1$_{\text{fg}}$ +2.0) and cross-seed stability (std 1.47$\to$0.70); DTKD adds +1.9 mIoU$_{\text{fg}}$, requiring architecturally diverse teachers (factorial analysis and controls in Section~\ref{sec:ablation}).
 In zero-shot cross-dataset transfer, DSConv-equipped models substantially outperform vanilla baselines.
 Limitations discussed in Section~\ref{sec:discussion} include the absence of crack-specific topology metrics, single-run SRL ablations, confounds in the cross-dataset decomposition, and the exploratory nature of the cluster-split analysis.
