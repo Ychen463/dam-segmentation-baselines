@@ -1077,7 +1077,7 @@ def main() -> None:
                 else resume_path.resolve()
         print(f"[train] resuming from {resume_path}")
         state = torch.load(resume_path, map_location=device, weights_only=False)
-        model.load_state_dict(state["model"])
+        model.load_state_dict(state["model"], strict=False)
         if "optimizer" in state:
             optimizer.load_state_dict(state["optimizer"])
         if "scheduler" in state:
@@ -1096,7 +1096,7 @@ def main() -> None:
         start_epoch = int(state.get("epoch", 0)) + 1
         best_miou = float(state.get("best_miou_fg", state.get("mIoU_fg", -1.0) or -1.0))
         if ema_model is not None and "ema_model" in state:
-            ema_model.load_state_dict(state["ema_model"])
+            ema_model.load_state_dict(state["ema_model"], strict=False)
             print(f"[train] restored EMA model from checkpoint")
         print(f"[train] resumed at epoch={start_epoch} best_miou_fg={best_miou:.4f}")
 
@@ -1140,7 +1140,7 @@ def main() -> None:
         print(f"[KD] loading teacher 1 from {teacher_path}")
         t_state = torch.load(teacher_path, map_location=device, weights_only=False)
         teacher_model = DSCformerDam(cfg.pretrained, cfg=cfg).to(device)
-        teacher_model.load_state_dict(t_state["model"])
+        teacher_model.load_state_dict(t_state["model"], strict=False)
         teacher_model.eval()
         for p in teacher_model.parameters():
             p.requires_grad_(False)
@@ -1175,7 +1175,7 @@ def main() -> None:
                 ).to(device)
             else:
                 teacher2_model = DSCformerDam(cfg.pretrained, cfg=cfg).to(device)
-            teacher2_model.load_state_dict(t2_state["model"])
+            teacher2_model.load_state_dict(t2_state["model"], strict=False)
             teacher2_model.eval()
             for p in teacher2_model.parameters():
                 p.requires_grad_(False)
@@ -1452,7 +1452,7 @@ def main() -> None:
         print("[train] WARNING: best.pt missing; using current model")
     else:
         state = torch.load(best_pt, map_location=device, weights_only=False)
-        model.load_state_dict(state["model"])
+        model.load_state_dict(state["model"], strict=False)
 
     # Use SegMetricsFull for final test (adds clDice + connectivity)
     try:
@@ -1468,7 +1468,7 @@ def main() -> None:
 
     # EMA test eval (if EMA was used and checkpoint has separate EMA weights)
     if ema_model is not None and best_pt.exists() and "ema_model" in state:
-        ema_model.load_state_dict(state["ema_model"])
+        ema_model.load_state_dict(state["ema_model"], strict=False)
         test_m_ema = evaluate(ema_model, test_loader, criterion, device,
                               test_eval_metrics, curriculum_scheduler,
                               total_epochs, use_amp=use_amp)

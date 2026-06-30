@@ -67,7 +67,7 @@ class RunCfg:
     use_dynamic_difficulty: bool = True       # dynamic scoring + softmax sampling
     use_class_sampling_bonus: bool = False    # spalling_bonus + late_hard_crack_bonus
     use_class_loss_schedule: bool = False     # scheduled crack_weight / boundary_weight
-    use_boundary_loss: bool = True            # boundary BCE loss
+    use_boundary_loss: bool = False            # boundary head removed; kept for compat
     use_tversky_loss: bool = False            # crack Tversky loss (off by default)
 
     # Soft curriculum (Change 1): smooth tier mixing instead of hard stage gates

@@ -144,7 +144,7 @@ class FullMethodLogitsWrapper(nn.Module):
         self.target_size = target_size
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        out = self.model(x)  # dict with seg_logits, boundary_logits
+        out = self.model(x)  # dict with seg_logits (+ boundary_logits placeholder)
         logits = out["seg_logits"]  # (B, C, H/4, W/4)
         return F.interpolate(
             logits, size=(self.target_size, self.target_size),
@@ -209,9 +209,9 @@ def load_model(name: str, device: str = "cpu") -> nn.Module:
         state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
         # Prefer EMA weights if available (typically better generalization)
         if "ema_model" in state:
-            model.load_state_dict(state["ema_model"])
+            model.load_state_dict(state["ema_model"], strict=False)
         else:
-            model.load_state_dict(state["model"])
+            model.load_state_dict(state["model"], strict=False)
 
     if entry.inference_wrapper is not None:
         model = entry.inference_wrapper(model, entry.img_size)

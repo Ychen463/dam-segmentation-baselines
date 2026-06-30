@@ -13,7 +13,7 @@ from . import config as C
 
 
 class SegFormerWithBoundary(nn.Module):
-    """SegFormer with an auxiliary crack boundary prediction head."""
+    """SegFormer with auxiliary outputs (boundary head removed)."""
 
     def __init__(self, pretrained: str, num_classes: int = C.NUM_CLASSES):
         super().__init__()
@@ -27,31 +27,14 @@ class SegFormerWithBoundary(nn.Module):
             label2id={"background": 0, "crack": 1, "spalling": 2},
         )
 
-        # Auto-infer decoder feature dimension from HF config
-        feat_dim = self.hf_model.config.decoder_hidden_size  # B2 = 768
-
-        self.boundary_head = nn.Sequential(
-            nn.Conv2d(feat_dim, feat_dim // 2, 3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(feat_dim // 2, 1, 1),
-        )
-
-        self._fuse_feat = None
-        self._register_hooks()
-
-    def _register_hooks(self):
-        def hook_fn(module, input, output):
-            self._fuse_feat = output
-        self.hf_model.decode_head.linear_fuse.register_forward_hook(hook_fn)
-
     def forward(self, pixel_values: torch.Tensor) -> dict:
-        self._fuse_feat = None  # Clear stale feature from previous batch
-
         outputs = self.hf_model(pixel_values)
         seg_logits = outputs.logits  # (B, C, H/4, W/4)
 
-        assert self._fuse_feat is not None, "linear_fuse hook did not fire"
-        boundary_logits = self.boundary_head(self._fuse_feat)  # (B, 1, H/4, W/4)
+        # Dummy boundary_logits for backward compatibility with loss/train code
+        boundary_logits = torch.zeros(
+            seg_logits.shape[0], 1, seg_logits.shape[2], seg_logits.shape[3],
+            device=seg_logits.device, dtype=seg_logits.dtype)
 
         return {
             "seg_logits": seg_logits,
@@ -366,9 +349,8 @@ class SkeletonPredictionHead(nn.Module):
 
 
 class DSCformerDam(nn.Module):
-    """SegFormer-B2 + Dynamic Snake Convolution crack branch + boundary head.
+    """SegFormer-B2 + Dynamic Snake Convolution crack branch.
 
-    Identical to SegFormerWithBoundary at initialization (zero-init snake branch).
     The snake branch gradually learns to enhance the crack channel.
 
     When cfg.use_skeleton_head=True, adds a SkeletonPredictionHead for
@@ -389,12 +371,6 @@ class DSCformerDam(nn.Module):
         )
 
         feat_dim = self.hf_model.config.decoder_hidden_size  # B2 = 768
-
-        self.boundary_head = nn.Sequential(
-            nn.Conv2d(feat_dim, feat_dim // 2, 3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(feat_dim // 2, 1, 1),
-        )
 
         # Snake branch for crack enhancement
         hidden = cfg.snake_channels if cfg is not None else 64
@@ -460,7 +436,11 @@ class DSCformerDam(nn.Module):
         seg_logits = outputs.logits  # (B, C, H/4, W/4)
 
         assert self._fuse_feat is not None, "linear_fuse hook did not fire"
-        boundary_logits = self.boundary_head(self._fuse_feat)  # (B, 1, H/4, W/4)
+
+        # Dummy boundary_logits for backward compatibility with loss/train code
+        boundary_logits = torch.zeros(
+            seg_logits.shape[0], 1, seg_logits.shape[2], seg_logits.shape[3],
+            device=seg_logits.device, dtype=seg_logits.dtype)
 
         # Extract encoder hidden states and reshape from (B, N, C) → (B, C, H, W)
         hidden_states = outputs.hidden_states  # tuple of (B, N_i, C_i)
