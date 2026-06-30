@@ -327,7 +327,7 @@ All models are trained on a single NVIDIA A40 GPU using PyTorch.
 Table~\ref{tab:training_config} summarises training configurations for all models.
 All models use AdamW optimiser with weight decay $10^{-4}$ and cosine annealing LR schedule (with 5-epoch linear warmup where noted).
 The segmentation loss is 0.5\,CE + 0.5\,Dice for all models except Mask2Former (which uses its native set-prediction loss).
-Data augmentation consists of random horizontal and vertical flips ($p{=}0.5$ each); images are normalised with ImageNet statistics.
+Data augmentation consists of random horizontal and vertical flips ($p{=}0.5$ each) and random brightness/contrast ($p{=}0.3$); images are normalised with ImageNet statistics.
 The DSConv branch uses $d{=}64$, $K{=}9$.
 
 \begin{table}[t]
