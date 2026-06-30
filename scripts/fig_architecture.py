@@ -211,7 +211,7 @@ def main():
     t2_x, t2_y = 6.0, 5.8
     draw_box(ax, t2_x, t2_y, 2.4, 1.2, "Teacher 2\nSAM-LoRA\n(frozen)",
              C_T2, fontsize=10, alpha=0.30, fontweight="bold")
-    ax.text(t2_x, 5.0, "Strong on spalling connectivity", fontsize=8.5,
+    ax.text(t2_x, 5.0, "Strong on spalling CompR", fontsize=8.5,
             ha="center", color=C_T2, fontstyle="italic",
             family="sans-serif", alpha=0.7)
 
@@ -223,13 +223,10 @@ def main():
     ax.text(ens_x, 4.5, "Teacher Ensemble", fontsize=11,
             fontweight="bold", ha="center", color=C_ENS, family="sans-serif")
 
-    # Weight boxes inside
-    w_labels = [("bg\n$w_2{=}0.5$", ens_x - 1.2),
-                ("cr\n$w_2{=}0.6$", ens_x),
-                ("sp\n$w_2{=}0.3$", ens_x + 1.2)]
-    for label, wx in w_labels:
-        draw_box(ax, wx, ens_y, 0.95, 0.6, label, C_ENS,
-                 fontsize=8.5, alpha=0.45)
+    # Equal-weight ensemble (recommended configuration)
+    ax.text(ens_x, ens_y, "$w_1{=}w_2{=}0.5$\n(logit avg.)",
+            fontsize=9, ha="center", va="center", color=C_ENS,
+            family="sans-serif", alpha=0.8)
 
     # T1, T2 → Ensemble
     draw_arrow(ax, t1_x, t1_y - 0.6, ens_x - 1.0, ens_y + 0.5,
