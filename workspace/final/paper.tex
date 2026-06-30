@@ -158,7 +158,7 @@ Fig.~\ref{fig:architecture} illustrates the TopoDistill framework. Our approach 
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.92\textwidth]{figures/fig_architecture.png}
-    \caption{Overview of the TopoDistill framework. (a)~A SegFormer-B2 encoder with a parallel CrackSnake branch (DSConv) produces 3-class segmentation logits; the DSConv output additively enhances only the crack channel. (b)~Dual-teacher knowledge distillation (DTKD): Teacher~1 (DSConv+SRL, strong on pixel accuracy) and Teacher~2 (SAM-LoRA+SRL, strong on spalling connectivity) are combined via an ensemble (equal-weight recommended; per-class variant used in reported experiments---see Section~\ref{sec:dtkd}). A pixel-level agreement map $a(i)$, derived from teacher disagreement, optionally modulates the KD loss so the student learns strongly where teachers agree and falls back on ground-truth supervision at ambiguous pixels.}
+    \caption{Overview of the TopoDistill framework. (a)~A SegFormer-B2 encoder with a parallel CrackSnake branch (DSConv) produces 3-class segmentation logits; the DSConv output additively enhances only the crack channel. (b)~Dual-teacher knowledge distillation (DTKD): Teacher~1 (DSConv+SRL, strong on pixel accuracy) and Teacher~2 (SAM-LoRA+SRL, strong on spalling connectivity) are combined via an ensemble (equal-weight recommended; per-class variant used in reported experiments---see Section~\ref{sec:dtkd}). The dashed path shows an optional agreement-aware variant (explored in Section~\ref{sec:ablation}) that modulates the KD loss by pixel-level teacher agreement; this is \emph{not} part of the default pipeline (row~c).}
     \label{fig:architecture}
 \end{figure*}
 
@@ -288,7 +288,7 @@ We empirically validate that teacher disagreement correlates with sample difficu
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/fig_agreement_map.png}
-    \caption{Teacher disagreement visualisation on Hard-tier test samples containing both crack and spalling (randomly selected with seed 42). Columns: input, ground truth, Teacher~1 (DSConv+SRL) prediction, Teacher~2 (SAM-LoRA+SRL) prediction, pixel-level KL divergence heatmap (bright = high disagreement), student (DTKD) prediction. On these samples, disagreement tends to concentrate at crack boundaries and thin structures. Red: crack, green: spalling.}
+    \caption{Teacher disagreement visualisation on Hard-tier test samples containing both crack and spalling (randomly selected with seed 42). Columns: input, ground truth, Teacher~1 (DSConv+SRL) prediction, Teacher~2 (SAM-LoRA+SRL) prediction, pixel-level KL divergence heatmap (bright = high disagreement), student (DTKD) prediction. On these samples, disagreement tends to concentrate at crack boundaries and thin structures. Note: only Hard-tier samples are shown; the Easy/Hard disagreement comparison cited in the text (Section~\ref{sec:ablation}) is based on aggregate statistics, not these visualisations. Colourbar ranges are per-row (not unified), so absolute magnitudes should not be compared across rows. Red: crack, green: spalling.}
     \label{fig:agreement}
 \end{figure}
 
@@ -742,7 +742,7 @@ Per-image IoU scores are annotated above each prediction. On these selected samp
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.95\textwidth]{figures/fig3_qualitative.png}
-    \caption{Qualitative comparison on test samples across difficulty tiers. Left to right: input, ground truth, SegFormer-B2, DSConv+SRL (Teacher~1), TopoDistill. Per-image crack (Cr) and spalling (Sp) IoU scores are shown above each prediction. Red: crack, green: spalling. Samples were selected to include one image per tier containing both crack and spalling, sorted by descending combined defect pixel count (i.e., images with larger defect regions were preferred for visibility). Performance differences vary by sample; per-image IoU scores provide case-level comparison.}
+    \caption{Qualitative comparison on test samples across difficulty tiers. Left to right: input, ground truth, SegFormer-B2, DSConv+SRL (Teacher~1), TopoDistill. Per-image crack (Cr) and spalling (Sp) IoU scores are shown above each prediction. Red: crack, green: spalling. Samples were selected from images containing both crack and spalling (one Easy, one Medium, two Hard), sorted by descending combined defect pixel count (i.e., images with larger defect regions were preferred for visibility). This selection biases toward larger, more visible defects; hairline cracks and failure cases are not represented. Performance differences vary by sample; per-image IoU scores provide case-level comparison.}
     \label{fig:qualitative}
 \end{figure*}
 
@@ -794,7 +794,7 @@ Fig.~\ref{fig:cross_dataset} shows representative S2DS predictions. SegFormer-B2
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/fig_cross_dataset.png}
-    \caption{Cross-dataset qualitative results on S2DS (zero-shot). Left to right: input, ground truth, SegFormer-B2, Mask2Former, DSConv+SRL, TopoDistill. Red: crack, green: spalling. Images selected from S2DS test set by largest defect pixel count among images containing crack or spalling, preferring images with both classes.}
+    \caption{Cross-dataset qualitative results on S2DS (zero-shot). Left to right: input, ground truth, SegFormer-B2, Mask2Former, DSConv+SRL, TopoDistill. Red: crack, green: spalling. Images selected from S2DS test set by largest defect pixel count among images containing crack or spalling, preferring images with both classes. This selection biases toward larger defects; failure cases are not shown.}
     \label{fig:cross_dataset}
 \end{figure}
 
