@@ -1,0 +1,113 @@
+{
+  "params": {
+    "SegFormer_B2_M": 27.35,
+    "DSConv_M": 28.67,
+    "overhead_M": 1.32
+  },
+  "fps": {
+    "SegFormer_B2": 54.8,
+    "DSConv": 50.9
+  },
+  "checkpoints": [
+    {
+      "name": "TopoDistill row(c)",
+      "params_M": 28.67,
+      "mIoU_fg": 0.7068,
+      "IoU_cr": 0.5726,
+      "IoU_sp": 0.8409,
+      "BF1_fg": 0.6733,
+      "clDice_fg": 0.8493,
+      "ConnR_fg": 0.8203
+    },
+    {
+      "name": "DSConv-only row(b)",
+      "params_M": 28.67,
+      "mIoU_fg": 0.7155,
+      "IoU_cr": 0.578,
+      "IoU_sp": 0.8531,
+      "BF1_fg": 0.7205,
+      "clDice_fg": 0.8662,
+      "ConnR_fg": 0.8296
+    },
+    {
+      "name": "Teacher1 (DSConv+SRL)",
+      "params_M": 28.67,
+      "mIoU_fg": 0.6834,
+      "IoU_cr": 0.5554,
+      "IoU_sp": 0.8115,
+      "BF1_fg": 0.6712,
+      "clDice_fg": 0.8368,
+      "ConnR_fg": 0.7923
+    },
+    {
+      "name": "DSConv seed42",
+      "params_M": 28.67,
+      "mIoU_fg": 0.7155,
+      "IoU_cr": 0.578,
+      "IoU_sp": 0.8531,
+      "BF1_fg": 0.7205,
+      "clDice_fg": 0.8662,
+      "ConnR_fg": 0.8296
+    },
+    {
+      "name": "DSConv seed123",
+      "params_M": 28.67,
+      "mIoU_fg": 0.7022,
+      "IoU_cr": 0.5674,
+      "IoU_sp": 0.8371,
+      "BF1_fg": 0.6966,
+      "clDice_fg": 0.8576,
+      "ConnR_fg": 0.7812
+    },
+    {
+      "name": "DSConv seed2024",
+      "params_M": 28.67,
+      "mIoU_fg": 0.7051,
+      "IoU_cr": 0.5685,
+      "IoU_sp": 0.8418,
+      "BF1_fg": 0.715,
+      "clDice_fg": 0.8545,
+      "ConnR_fg": 0.8006
+    },
+    {
+      "name": "CTRL: dup teacher",
+      "params_M": 28.67,
+      "mIoU_fg": 0.6752,
+      "IoU_cr": 0.5607,
+      "IoU_sp": 0.7896,
+      "BF1_fg": 0.6424,
+      "clDice_fg": 0.8163,
+      "ConnR_fg": 0.8077
+    },
+    {
+      "name": "CTRL: same-arch",
+      "params_M": 28.67,
+      "mIoU_fg": 0.7039,
+      "IoU_cr": 0.5729,
+      "IoU_sp": 0.835,
+      "BF1_fg": 0.6782,
+      "clDice_fg": 0.8393,
+      "ConnR_fg": 0.843
+    },
+    {
+      "name": "CTRL: label smooth",
+      "params_M": 28.67,
+      "mIoU_fg": 0.6867,
+      "IoU_cr": 0.5539,
+      "IoU_sp": 0.8194,
+      "BF1_fg": 0.6132,
+      "clDice_fg": 0.8454,
+      "ConnR_fg": 0.8057
+    },
+    {
+      "name": "FACT1: SegFormer+DTKD",
+      "params_M": 28.67,
+      "mIoU_fg": 0.6964,
+      "IoU_cr": 0.5745,
+      "IoU_sp": 0.8182,
+      "BF1_fg": 0.6868,
+      "clDice_fg": 0.8552,
+      "ConnR_fg": 0.8122
+    }
+  ]
+}
