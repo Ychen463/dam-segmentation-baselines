@@ -1,0 +1,38 @@
+[
+  {
+    "name": "DSConv-only (no KD)",
+    "mIoU_fg": 0.7155,
+    "IoU_cr": 0.578,
+    "IoU_sp": 0.8531,
+    "BF1_fg": 0.7205,
+    "clDice_fg": 0.8662,
+    "CompR_fg": 0.8296
+  },
+  {
+    "name": "RERUN: T1-only KD",
+    "mIoU_fg": 0.6819,
+    "IoU_cr": 0.5539,
+    "IoU_sp": 0.8099,
+    "BF1_fg": 0.6441,
+    "clDice_fg": 0.8167,
+    "CompR_fg": 0.8089
+  },
+  {
+    "name": "RERUN: Duplicated T1",
+    "mIoU_fg": 0.6802,
+    "IoU_cr": 0.5597,
+    "IoU_sp": 0.8006,
+    "BF1_fg": 0.6491,
+    "clDice_fg": 0.811,
+    "CompR_fg": 0.8083
+  },
+  {
+    "name": "RERUN: Heterogeneous T1+T2",
+    "mIoU_fg": 0.7051,
+    "IoU_cr": 0.5694,
+    "IoU_sp": 0.8408,
+    "BF1_fg": 0.6736,
+    "clDice_fg": 0.8412,
+    "CompR_fg": 0.8009
+  }
+]
