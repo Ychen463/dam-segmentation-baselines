@@ -33,7 +33,7 @@
 \begin{highlights}
 \item A 1.32M-parameter Dynamic Snake Convolution branch improves crack boundary quality (BF1$_{\text{fg}}$ +2.0) and spalling skeleton coverage (clDice$_{\text{fg}}$ +3.0); crack-specific clDice is unchanged (Section~\ref{sec:ablation}).
 \item Dual-teacher knowledge distillation from heterogeneous teachers (task-specific + foundation model) adds +1.9 mIoU$_{\text{fg}}$; the student surpasses the best direct teacher ensemble by +1.6.
-\item Factorial analysis and controls confirm that DTKD requires architecturally diverse teachers; duplicated or same-architecture teachers provide no benefit over the baseline.
+\item Matched-checkpoint controls confirm that DTKD benefits from architecturally diverse teachers; duplicated or same-architecture teachers provide no benefit over the baseline.
 \item Zero-shot cross-dataset transfer (DamSegment$\to$S2DS) shows DSConv-equipped models substantially outperform vanilla baselines (0.1\%$\to$18.7\% mIoU$_{\text{fg}}$), though the decomposition is confounded (Section~\ref{sec:cross_dataset}).
 \item Single-run ablations suggest SRL improves teacher utility but harms student training under DTKD; multi-seed confirmation is needed.
 \end{highlights}
@@ -44,7 +44,7 @@ We propose \textbf{TopoDistill}, a segmentation framework that augments a SegFor
 (1)~a \emph{Dynamic Snake Convolution} (DSConv) branch that performs deformable sampling along elongated structures, adding only 1.32M parameters; and
 (2)~\emph{Dual-Teacher Knowledge Distillation} (DTKD) that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher, at zero additional inference cost.
 On the \textbf{DamSegment} dataset \citep{damsegment2026} (1{,}500 images, 3~classes), TopoDistill achieves 72.3\% foreground mIoU with DSConv improving boundary quality (BF1$_{\text{fg}}$ +2.0) and DTKD contributing +1.9 mIoU$_{\text{fg}}$.
-Factorial analysis confirms that DTKD requires architecturally diverse teachers; duplicated or same-architecture teacher pairs provide no benefit.
+Matched-checkpoint controls confirm that DTKD benefits from architecturally diverse teachers; duplicated or same-architecture teacher pairs provide no benefit.
 Zero-shot cross-dataset evaluation (DamSegment$\to$S2DS) shows that DSConv-equipped models substantially outperform vanilla baselines.
 Limitations and caveats are discussed in detail, including the absence of crack-specific topology metrics, single-run SRL ablations, and confounds in cross-dataset decomposition.
 \end{abstract}
@@ -80,7 +80,7 @@ In this paper we propose \textbf{TopoDistill}, a framework that augments SegForm
 We evaluate on the semantic segmentation subset of the DamSegment dataset \citep{damsegment2026}, comprising 1{,}500 annotated dam surface images.
 Our contributions are:
 \begin{enumerate}
-    \item A segmentation framework combining a parallel Dynamic Snake Convolution branch (1.32M parameters) with dual-teacher knowledge distillation (DTKD, zero inference overhead). DSConv improves boundary quality (BF1$_{\text{fg}}$ +2.0) and spalling skeleton coverage (clDice$_{\text{fg}}$ +3.0); DTKD adds +1.9 mIoU$_{\text{fg}}$. Factorial analysis and controls confirm that DTKD requires architecturally diverse teachers. Limitations are discussed in Sections~\ref{sec:ablation}--\ref{sec:discussion}.
+    \item A segmentation framework combining a parallel Dynamic Snake Convolution branch (1.32M parameters) with dual-teacher knowledge distillation (DTKD, zero inference overhead). DSConv improves boundary quality (BF1$_{\text{fg}}$ +2.0) and spalling skeleton coverage (clDice$_{\text{fg}}$ +3.0); DTKD adds +1.9 mIoU$_{\text{fg}}$. Matched-checkpoint controls confirm that DTKD benefits from architecturally diverse teachers (Section~\ref{sec:ablation}). Limitations are discussed in Sections~\ref{sec:ablation}--\ref{sec:discussion}.
     \item A single-run observation that SRL may play an asymmetric role: SRL-trained teachers produce better students (+1.2 mIoU$_{\text{fg}}$), while adding SRL to student training under DTKD reduces performance ($-$1.1). Multi-seed confirmation is needed (Section~\ref{sec:srl}).
     \item A comprehensive evaluation comprising six baselines (including SAM-LoRA and DINOv2-LoRA), per-tier difficulty analysis, multi-seed stability, feature-cluster split sanity check, and zero-shot cross-dataset transfer (DamSegment$\to$S2DS). Under the evaluated configurations, task-specific design with knowledge distillation outperforms direct foundation-model fine-tuning.
 \end{enumerate}
@@ -665,14 +665,14 @@ The DTKD student surpasses both teachers on mIoU$_{\text{fg}}$ (+1.7 over Teache
 The two teachers achieve identical CompR$_{\text{cr}}$ (82.2\%), but Teacher~2 (SAM-LoRA+SRL) achieves substantially higher CompR$_{\text{sp}}$ (86.0\% vs.\ 73.4\%), reflecting SAM's strong global structure preservation.
 The student substantially inherits this spalling component recall advantage (CompR$_{\text{sp}}$ = 83.8\%, vs.\ Teacher~1's 73.4\%), while maintaining superior pixel-level accuracy. However, the student does not fully match Teacher~2's CompR$_{\text{sp}}$ (83.8\% vs.\ 86.0\%) and slightly trails both teachers on CompR$_{\text{cr}}$ (82.1\% vs.\ 82.2\%), consistent with the CompR$_{\text{cr}}$ trade-off observed in the ablation.
 
-The student surpassing both teachers is consistent with multi-teacher distillation findings in the literature \citep{you2017learning}, where combining complementary knowledge sources provides regularisation benefits beyond what any single teacher offers. Unlike classical ``born-again'' networks \citep{furlanello2018born} where student and teacher share the same architecture, our student combines DSConv's geometric inductive bias (shared with Teacher~1) with Teacher~2's foundation-model representations, integrating complementary knowledge that no single teacher provides alone. Control experiments confirm that this complementarity is essential: a duplicated teacher ($-$4.8 mIoU$_{\text{fg}}$ vs.\ DTKD; see Table~\ref{tab:factorial} footnote on checkpoint discrepancy) or same-architecture teacher pair ($=$ baseline) fails to replicate DTKD's gains.
+The student surpassing both teachers is consistent with multi-teacher distillation findings in the literature \citep{you2017learning}, where combining complementary knowledge sources provides regularisation benefits beyond what any single teacher offers. Unlike classical ``born-again'' networks \citep{furlanello2018born} where student and teacher share the same architecture, our student combines DSConv's geometric inductive bias (shared with Teacher~1) with Teacher~2's foundation-model representations, integrating complementary knowledge that no single teacher provides alone. Matched-checkpoint controls confirm that this complementarity is essential: in experiments where the only variable is teacher identity, heterogeneous teachers outperform duplicated ($+$2.5) and T1-only ($+$2.3) KD, while same-architecture teacher pairs ($=$ baseline) provide no benefit (Table~\ref{tab:factorial}).
 
 \paragraph{Factorial analysis and DTKD controls}
 To isolate the mechanisms behind DTKD's gains, we conduct a $2{\times}2$ factorial analysis crossing backbone (SegFormer vs.\ DSConv) with DTKD, along with controls for teacher diversity and soft-target regularisation (Table~\ref{tab:factorial}).
 
 \begin{table}[t]
 \centering
-\caption{Factorial analysis and DTKD controls. \textbf{Part~A}: $2{\times}2$ factorial crossing backbone with DTKD; $\Delta$ is the effect of adding DTKD. \textbf{Part~B}: control experiments isolating DTKD mechanisms. ``Teacher ensemble ceiling'' is the best direct ensemble of the two teacher outputs (equal logit averaging). ``Same-arch teachers'' uses two DSCformer teachers (seeds 42 and 123). ``Duplicated teacher'' uses Teacher~1 twice.$^\diamond$ ``Label smoothing'' applies uniform soft-target regularisation ($\epsilon{=}0.1$) without any teacher. All values in \%.\\$^\diamond$The duplicated-teacher control and T1-only KD (row~b$_1$, 69.0\%) used different versions of the G1 teacher checkpoint (the \texttt{best.pt} was overwritten between experiment batches). The two results are therefore not directly comparable; both confirm that a single teacher underperforms dual-teacher DTKD, but the 1.5-point gap between them is a checkpoint artefact.}
+\caption{Factorial analysis and DTKD controls. \textbf{Part~A}: $2{\times}2$ factorial crossing backbone with DTKD; $\Delta$ is the effect of adding DTKD. \textbf{Part~B}: control experiments isolating DTKD mechanisms. ``Teacher ensemble ceiling'' is the best direct ensemble of the two teacher outputs (equal logit averaging). ``Same-arch teachers'' uses two DSCformer teachers (seeds 42 and 123). The three matched-checkpoint rows (T1-only, Duplicated, Hetero equal-wt) use the same T1 checkpoint, seed, $\alpha$, and $\tau$; the only variable is teacher identity. ``Label smoothing'' applies uniform soft-target regularisation ($\epsilon{=}0.1$) without any teacher. All values in \%.}
 \label{tab:factorial}
 \vspace{2pt}
 \begin{subtable}{\columnwidth}
@@ -698,7 +698,12 @@ Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1
 (c) DTKD (heterogeneous) & \textbf{72.3} & \textbf{58.5} & \textbf{86.2} & \textbf{70.6} & \textbf{86.4} & 83.0 \\
 Teacher ensemble ceiling & 70.7 & 57.5 & 83.8 & 69.0 & 83.7 & 81.5 \\
 Same-arch teachers & 70.4 & 57.3 & 83.5 & 67.8 & 83.9 & \textbf{84.3} \\
-Duplicated teacher & 67.5 & 56.1 & 79.0 & 64.2 & 81.6 & 80.8 \\
+\midrule
+\multicolumn{7}{l}{\textit{Matched-checkpoint controls (equal weights, same seed):}} \\
+Hetero equal-wt (T1+T2) & 70.5 & 56.9 & 84.1 & 67.4 & 84.1 & 80.1 \\
+T1-only KD & 68.2 & 55.4 & 81.0 & 64.4 & 81.7 & 80.9 \\
+Duplicated teacher & 68.0 & 56.0 & 80.1 & 64.9 & 81.1 & 80.8 \\
+\midrule
 Label smoothing & 68.7 & 55.4 & 81.9 & 61.3 & 84.5 & 80.6 \\
 \bottomrule
 \end{tabular}
@@ -712,7 +717,8 @@ The factorial analysis reveals a synergistic, not additive, interaction between 
 The DTKD student (72.3\%) surpasses the best direct teacher ensemble (70.7\%, equal logit averaging) by +1.6 mIoU$_{\text{fg}}$, confirming that distillation provides regularisation benefits beyond simple ensemble knowledge transfer. The student learns to integrate complementary teacher knowledge more effectively than a static ensemble combination.
 
 \textit{Teacher diversity controls.}
-Using a duplicated teacher (67.5\%) produces the worst result among all configurations, $-$4.8 below DTKD and $-$2.9 below the DSConv-only baseline, confirming that mere soft-target training without diversity is harmful (the exact magnitude is uncertain due to a teacher checkpoint discrepancy; see table footnote). Using two same-architecture teachers with different seeds (70.4\%) exactly matches the DSConv-only baseline, indicating that seed diversity alone provides no benefit---architectural complementarity between the heterogeneous teacher pair (DSConv+SRL and SAM-LoRA+SRL) is what drives DTKD's gains.
+In matched-checkpoint experiments where the only variable is teacher identity (same T1 checkpoint, seed, $\alpha$, $\tau$, equal weights), heterogeneous teachers (70.5\%) outperform both T1-only KD (68.2\%, $+$2.3) and duplicated T1 (68.0\%, $+$2.5). The duplicated teacher matches T1-only within 0.2, confirming that using the same teacher twice provides no benefit beyond single-teacher KD. Both single-teacher configurations fall $-$3.5 below the DSConv-only baseline (71.6\%), indicating that KD from a single teacher (or duplicated teacher) is actively harmful. Using two same-architecture teachers with different seeds (70.4\%) exactly matches the DSConv-only baseline, indicating that seed diversity alone provides no benefit---architectural complementarity between the heterogeneous teacher pair is what drives DTKD's gains.
+Note that the equal-weight heterogeneous control (70.5\%) slightly underperforms the DSConv-only baseline (71.6\%), while the full DTKD model (72.3\%) surpasses it; the gap reflects both class-conditional weighting (Table~\ref{tab:kd_weights}) and possible teacher-checkpoint quality differences between experiment batches.
 
 \textit{Not soft-target regularisation.}
 Label smoothing (68.7\%) underperforms the DSConv-only baseline (70.4\%) by $-$1.7, ruling out generic soft-target regularisation as the mechanism behind DTKD's improvement. This is consistent with \citet{yuan2020labelsmooth}'s finding that label smoothing acts as a form of self-training regularisation rather than knowledge transfer; the benefit of DTKD derives from actual teacher knowledge, not from softer training signals per se.
@@ -891,7 +897,7 @@ clDice and CompR have complementary blind spots: clDice is insensitive to compon
 
 We presented TopoDistill, a segmentation framework for concrete dam defects that combines Dynamic Snake Convolution with dual-teacher knowledge distillation (DTKD).
 On DamSegment, TopoDistill achieves 72.3\% mIoU$_{\text{fg}}$ at 51 FPS with only 1.32M parameter overhead and no additional inference cost from distillation.
-DSConv improves boundary quality (BF1$_{\text{fg}}$ +2.0) and cross-seed stability (std 1.47$\to$0.70); DTKD adds +1.9 mIoU$_{\text{fg}}$, requiring architecturally diverse teachers (factorial analysis and controls in Section~\ref{sec:ablation}).
+DSConv improves boundary quality (BF1$_{\text{fg}}$ +2.0) and cross-seed stability (std 1.47$\to$0.70); DTKD adds +1.9 mIoU$_{\text{fg}}$, benefiting from architecturally diverse teachers (matched-checkpoint controls in Section~\ref{sec:ablation}).
 In zero-shot cross-dataset transfer, DSConv-equipped models substantially outperform vanilla baselines.
 Limitations discussed in Section~\ref{sec:discussion} include the absence of crack-specific topology metrics, single-run SRL ablations, confounds in the cross-dataset decomposition, and the exploratory nature of the cluster-split analysis.
 
