@@ -705,6 +705,19 @@ ABLATION_PRESETS = {
             "use_srl_loss": True, "cldice_weight": 0.05,
             "cldice_start_epoch": 60, "cldice_iters": 7,
             "use_soft_boundary_schedule": False},
+    # MS0: Multi-Scale DSConv (kernel 5/9/15), NO SRL — fair comparison with DSConv-only
+    "MS0": {"name": "dscformer_multiscale_MS0",
+            "model_type": "dscformer",
+            "use_multiscale_snake": True,
+            "snake_kernel_sizes": (5, 9, 15),
+            "snake_channels": 64,
+            "no_curriculum": True,
+            "use_soft_curriculum": False, "use_softmax_sampling": False,
+            "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+            "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+            "use_boundary_loss": False, "use_tversky_loss": False,
+            "use_cldice_loss": False, "use_srl_loss": False,
+            "use_soft_boundary_schedule": False},
 
     # Set PL: Progressive Loss + SDWL experiments
     # PL1: DSCformer + SDWL only (no SRL) — test SDWL in isolation
