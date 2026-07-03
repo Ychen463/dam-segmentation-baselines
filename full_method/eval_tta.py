@@ -103,7 +103,13 @@ def load_model(run_dir: Path, device: str, ablation: str | None = None,
     else:
         model = SegFormerWithBoundary(cfg.pretrained, C.NUM_CLASSES)
 
-    model.load_state_dict(state["model"])
+    missing, unexpected = model.load_state_dict(state["model"], strict=False)
+    # Filter out known legacy keys (boundary_head was removed)
+    unexpected = [k for k in unexpected if "boundary_head" not in k]
+    if unexpected:
+        print(f"[eval] WARNING: unexpected keys: {unexpected[:5]}")
+    if missing:
+        print(f"[eval] WARNING: missing keys: {missing[:5]}")
     model.to(device).eval()
 
     best_epoch = state.get("epoch", "?")
