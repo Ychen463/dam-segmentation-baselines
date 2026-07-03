@@ -1,0 +1,74 @@
+[
+  {
+    "name": "ch=64, k=9  (G0 baseline)",
+    "snake_channels": 64,
+    "snake_kernel_size": 9,
+    "params_M": 28.67,
+    "mIoU_fg": 0.7155,
+    "IoU_cr": 0.578,
+    "IoU_sp": 0.8531,
+    "BF1_fg": 0.7205,
+    "clDice_fg": 0.8662,
+    "CompR_fg": 0.8296
+  },
+  {
+    "name": "ch=32, k=9  (SC0)",
+    "snake_channels": 32,
+    "snake_kernel_size": 9,
+    "params_M": 27.69,
+    "mIoU_fg": 0.7013,
+    "IoU_cr": 0.5593,
+    "IoU_sp": 0.8433,
+    "BF1_fg": 0.6952,
+    "clDice_fg": 0.8527,
+    "CompR_fg": 0.8371
+  },
+  {
+    "name": "ch=64, k=7  (SC1)",
+    "snake_channels": 64,
+    "snake_kernel_size": 7,
+    "params_M": 28.16,
+    "mIoU_fg": 0.7021,
+    "IoU_cr": 0.5733,
+    "IoU_sp": 0.831,
+    "BF1_fg": 0.6991,
+    "clDice_fg": 0.8411,
+    "CompR_fg": 0.7651
+  },
+  {
+    "name": "ch=64, k=13 (SC2)",
+    "snake_channels": 64,
+    "snake_kernel_size": 13,
+    "params_M": 30.09,
+    "mIoU_fg": 0.7086,
+    "IoU_cr": 0.5716,
+    "IoU_sp": 0.8456,
+    "BF1_fg": 0.7225,
+    "clDice_fg": 0.8701,
+    "CompR_fg": 0.8045
+  },
+  {
+    "name": "ch=32, k=7  (SC3)",
+    "snake_channels": 32,
+    "snake_kernel_size": 7,
+    "params_M": 27.56,
+    "mIoU_fg": 0.7089,
+    "IoU_cr": 0.5744,
+    "IoU_sp": 0.8433,
+    "BF1_fg": 0.7243,
+    "clDice_fg": 0.8788,
+    "CompR_fg": 0.7887
+  },
+  {
+    "name": "ch=32, k=13 (SC4)",
+    "snake_channels": 32,
+    "snake_kernel_size": 13,
+    "params_M": 28.05,
+    "mIoU_fg": 0.7125,
+    "IoU_cr": 0.575,
+    "IoU_sp": 0.8501,
+    "BF1_fg": 0.7135,
+    "clDice_fg": 0.8551,
+    "CompR_fg": 0.8021
+  }
+]
