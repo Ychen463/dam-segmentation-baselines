@@ -764,7 +764,7 @@ Table~\ref{tab:ensemble} reports representative combinations.
 
 \begin{table}[t]
 \centering
-\caption{Inference-time ensemble analysis. Logit averaging of trained models (no retraining). ``G0'' = DSCformerDam, ``SAM2'' = SAM-LoRA, ``G0-s$i$'' = G0 trained with different random seed. TTA uses scales $\{0.75, 1.0, 1.25\}$ with horizontal flip. All values in \%.}
+\caption{Inference-time ensemble analysis. Logit averaging of trained models (no retraining). ``G0'' = DSCformerDam (seed 42), ``SAM2'' = SAM-LoRA, ``G0-s$i$'' = G0 trained with different random seed. TTA uses scales $\{0.75, 1.0, 1.25\}$ with horizontal flip. G0 single (71.5\%) differs from Table~\ref{tab:ablation} row~b (70.4\%) because this evaluation uses a unified metrics pipeline; relative gains within this table are internally consistent. All values in \%.}
 \label{tab:ensemble}
 \begin{tabular}{lcccccc}
 \toprule
@@ -783,8 +783,8 @@ G0 + G1 + SAM2 + G0-s123 + TTA & 4 & \textbf{72.5} & \textbf{59.8} & \textbf{77.
 \end{table}
 
 Three observations emerge.
-First, cross-architecture ensemble (G0~+~SAM2) yields larger gains than same-architecture multi-seed ensemble (G0~+~G0-s2024): +0.56 vs.\ +0.10 mIoU$_{\text{fg}}$ over the single model. This confirms that DSCformerDam and SAM-LoRA produce structurally different error patterns, providing direct empirical justification for selecting SAM as Teacher~2 in our DTKD framework.
-Second, the best ensemble (72.4\% without TTA, 72.5\% with TTA) represents the practical ceiling for model combination on this dataset; TopoDistill's DTKD achieves 72.3\% with a single model at inference, recovering 94\% of the oracle ensemble gain at no inference overhead.
+First, cross-architecture ensemble (G0~+~SAM2) yields larger gains than same-architecture multi-seed ensemble (G0~+~G0-s2024): +0.56 vs.\ +0.10 mIoU$_{\text{fg}}$ over the single model---a 5$\times$ difference. This confirms that DSCformerDam and SAM-LoRA produce structurally different error patterns, providing direct empirical justification for selecting SAM as Teacher~2 in our DTKD framework.
+Second, the best oracle ensemble achieves +0.9 mIoU$_{\text{fg}}$ over G0 alone (72.4\% vs.\ 71.5\%). TopoDistill's DTKD achieves a comparable +1.9 over the DSConv-only baseline (72.3\% vs.\ 70.4\%, Table~\ref{tab:ablation}) with a \emph{single model} at inference, demonstrating that knowledge distillation can transfer cross-architecture complementarity without the multi-model inference cost.
 Third, BF1$_{\text{cr}}$ and clDice$_{\text{cr}}$ benefit most from cross-architecture fusion (+1.7 and +1.9 over single G0), indicating that the complementary knowledge SAM contributes is primarily boundary precision and topology---consistent with SAM's design emphasis on mask boundary quality.
 
 \subsection{Cross-dataset evaluation}
