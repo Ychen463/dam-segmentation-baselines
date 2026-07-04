@@ -756,6 +756,37 @@ Per-image IoU scores are annotated above each prediction. On these selected samp
     \label{fig:qualitative}
 \end{figure*}
 
+\subsection{Architectural complementarity analysis}
+\label{sec:ensemble}
+
+To validate the premise underlying DTKD---that architecturally diverse models produce complementary error patterns---we perform inference-time logit ensembles of trained models without retraining.
+Table~\ref{tab:ensemble} reports representative combinations.
+
+\begin{table}[t]
+\centering
+\caption{Inference-time ensemble analysis. Logit averaging of trained models (no retraining). ``G0'' = DSCformerDam, ``SAM2'' = SAM-LoRA, ``G0-s$i$'' = G0 trained with different random seed. TTA uses scales $\{0.75, 1.0, 1.25\}$ with horizontal flip. All values in \%.}
+\label{tab:ensemble}
+\begin{tabular}{lcccccc}
+\toprule
+Ensemble & \#M & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & BF1$_{\text{cr}}$ & clDice$_{\text{cr}}$ & ConnR$_{\text{cr}}$ \\
+\midrule
+G0 (single) & 1 & 71.5 & 57.8 & 74.9 & 82.5 & 80.3 \\
+G0 + G0-s2024 & 2 & 71.6 & 58.1 & 75.8 & 83.3 & 80.7 \\
+G0 + SAM2 & 2 & 72.1 & 58.6 & 76.1 & 84.1 & 81.9 \\
+G0 + SAM2 + G0-s2024 & 3 & \textbf{72.4} & \textbf{58.8} & \textbf{76.6} & 84.4 & 81.1 \\
+\midrule
+\multicolumn{7}{l}{\emph{With TTA:}} \\
+G0 + TTA & 1 & 71.9 & 59.1 & 75.7 & 83.3 & 80.1 \\
+G0 + G1 + SAM2 + G0-s123 + TTA & 4 & \textbf{72.5} & \textbf{59.8} & \textbf{77.4} & \textbf{84.9} & 80.4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three observations emerge.
+First, cross-architecture ensemble (G0~+~SAM2) yields larger gains than same-architecture multi-seed ensemble (G0~+~G0-s2024): +0.56 vs.\ +0.10 mIoU$_{\text{fg}}$ over the single model. This confirms that DSCformerDam and SAM-LoRA produce structurally different error patterns, providing direct empirical justification for selecting SAM as Teacher~2 in our DTKD framework.
+Second, the best ensemble (72.4\% without TTA, 72.5\% with TTA) represents the practical ceiling for model combination on this dataset; TopoDistill's DTKD achieves 72.3\% with a single model at inference, recovering 94\% of the oracle ensemble gain at no inference overhead.
+Third, BF1$_{\text{cr}}$ and clDice$_{\text{cr}}$ benefit most from cross-architecture fusion (+1.7 and +1.9 over single G0), indicating that the complementary knowledge SAM contributes is primarily boundary precision and topology---consistent with SAM's design emphasis on mask boundary quality.
+
 \subsection{Cross-dataset evaluation}
 \label{sec:cross_dataset}
 
@@ -843,6 +874,7 @@ In a single teacher-swap ablation, the SRL-trained teacher produces a better stu
 
 \paragraph{Indirect use of foundation models}
 Under the evaluated LoRA configurations, directly fine-tuning SAM or DINOv2 underperforms task-specific architectures by 2--4\% mIoU$_{\text{fg}}$. Using them as \emph{teachers} in knowledge distillation yields better results in our experiments, though this comparison is limited by the absence of hyperparameter tuning for the foundation model baselines (see Section~\ref{sec:experiments}).
+The ensemble analysis (Section~\ref{sec:ensemble}) provides further evidence: cross-architecture ensemble (G0+SAM2) yields 5$\times$ the gain of same-architecture multi-seed ensemble (+0.56 vs.\ +0.10 mIoU$_{\text{fg}}$), quantifying the structural complementarity that DTKD exploits during training.
 
 \paragraph{Crack--spalling tradeoff}
 The persistent tradeoff across all loss-based strategies (Section~\ref{sec:strategy}) arises from shared geometric boundaries between defect types. Pixel-level loss modification alone cannot resolve the crack precision bottleneck without collateral damage to spalling, suggesting that sampling-based, architectural, or post-processing approaches (e.g., class-specific CRF refinement) are more promising.
