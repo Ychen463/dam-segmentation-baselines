@@ -2955,6 +2955,18 @@ ABLATION_PRESETS = {
     # This ensures checkpoint-matched comparability for teacher diversity claims.
     # =========================================================================
 
+    # RERUN_NOKD: No-KD baseline (same settings, no distillation)
+    "RERUN_NOKD": {"name": "rerun_nokd",
+                   "model_type": "dscformer",
+                   "use_kd": False, "use_dual_kd": False,
+                   "no_curriculum": True,
+                   "use_soft_curriculum": False, "use_softmax_sampling": False,
+                   "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                   "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                   "use_boundary_loss": False, "use_tversky_loss": False,
+                   "use_cldice_loss": False, "use_srl_loss": False,
+                   "use_soft_boundary_schedule": False},
+
     # RERUN_T1ONLY: T1-only KD (t2_weight=0), matched checkpoint
     "RERUN_T1ONLY": {"name": "rerun_t1only",
                      "model_type": "dscformer",
@@ -3010,6 +3022,27 @@ ABLATION_PRESETS = {
                      "use_boundary_loss": False, "use_tversky_loss": False,
                      "use_cldice_loss": False, "use_srl_loss": False,
                      "use_soft_boundary_schedule": False},
+
+    # RERUN_HETERO_CC: Heterogeneous T1+T2 with class-conditional weights (full model recipe)
+    #   This is the "full TopoDistill" configuration under matched conditions.
+    "RERUN_HETERO_CC": {"name": "rerun_hetero_cc",
+                        "model_type": "dscformer",
+                        "use_kd": True, "use_dual_kd": True,
+                        "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+                        "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+                        "kd_teacher2_model_type": "sam_lora",
+                        "kd_alpha": 0.5, "kd_temperature": 4.0,
+                        "kd_t1_weight": 0.5, "kd_t2_weight": 0.5,
+                        "kd_class_weights": True,
+                        "kd_crack_t2_weight": 0.6,
+                        "kd_spalling_t2_weight": 0.3,
+                        "no_curriculum": True,
+                        "use_soft_curriculum": False, "use_softmax_sampling": False,
+                        "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                        "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                        "use_boundary_loss": False, "use_tversky_loss": False,
+                        "use_cldice_loss": False, "use_srl_loss": False,
+                        "use_soft_boundary_schedule": False},
 }
 
 
