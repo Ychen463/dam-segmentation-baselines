@@ -38,7 +38,7 @@ from baseline_unet.dataset import (
 )
 from baseline_unet.splits import SPLIT_FILES
 
-from .metrics_full import SegMetricsFull, _connectivity_ratio
+from .metrics_full import SegMetricsFull, _connectivity_ratio, _component_precision, _path_continuity
 from .cldice import cldice_single
 from .model_registry import get as get_entry, list_models, load_model
 
@@ -288,6 +288,12 @@ def _per_image_metrics(pred: np.ndarray, gt: np.ndarray) -> Dict[str, float]:
         # Connectivity ratio
         val = _connectivity_ratio(pred, gt, cid)
         row[f"ConnR_{name}"] = val if val is not None else float("nan")
+        # Component precision
+        val = _component_precision(pred, gt, cid)
+        row[f"CompP_{name}"] = val if val is not None else float("nan")
+        # Path continuity
+        val = _path_continuity(pred, gt, cid)
+        row[f"PathCont_{name}"] = val if val is not None else float("nan")
 
     return row
 
