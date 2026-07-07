@@ -175,6 +175,79 @@ class StandardConvBranch(nn.Module):
         return self.head(out)
 
 
+class DCNv2Branch(nn.Module):
+    """Deformable Convolution v2 control for CrackSnakeBranch.
+
+    Same projections + head structure, but replaces DSConv with two-layer
+    DCNv2 (torchvision.ops.DeformConv2d) per direction. This tests whether
+    DSConv's constrained snake-shaped sampling offers benefits over general
+    learned deformable offsets.
+
+    Parameter-matched to CrackSnakeBranch (~1.32M) via 2-layer 5x5 DCNv2
+    with mid_ch=168:
+      Per direction: 2*(offset_conv + dcn + norm) ≈ 643K
+      Two directions: ~1.29M + projections + head ≈ 1.33M
+    """
+
+    def __init__(self, s1_ch: int = 128, s2_ch: int = 320,
+                 hidden: int = 64, dcn_kernel: int = 5, dcn_mid: int = 168):
+        super().__init__()
+        from torchvision.ops import DeformConv2d
+
+        self.proj_s1 = nn.Conv2d(s1_ch, hidden, 1)
+        self.proj_s2 = nn.Conv2d(s2_ch, hidden, 1)
+
+        pad = dcn_kernel // 2
+        offset_ch = 2 * dcn_kernel * dcn_kernel
+
+        # Direction X: 2-layer DCNv2 (hidden -> dcn_mid -> hidden)
+        self.off_x1 = nn.Conv2d(hidden, offset_ch, 3, padding=1)
+        self.dcn_x1 = DeformConv2d(hidden, dcn_mid, dcn_kernel, padding=pad)
+        self.norm_x1 = nn.GroupNorm(min(8, dcn_mid), dcn_mid)
+        self.off_x2 = nn.Conv2d(dcn_mid, offset_ch, 3, padding=1)
+        self.dcn_x2 = DeformConv2d(dcn_mid, hidden, dcn_kernel, padding=pad)
+        self.norm_x2 = nn.GroupNorm(min(8, hidden), hidden)
+
+        # Direction Y: 2-layer DCNv2 (hidden -> dcn_mid -> hidden)
+        self.off_y1 = nn.Conv2d(hidden, offset_ch, 3, padding=1)
+        self.dcn_y1 = DeformConv2d(hidden, dcn_mid, dcn_kernel, padding=pad)
+        self.norm_y1 = nn.GroupNorm(min(8, dcn_mid), dcn_mid)
+        self.off_y2 = nn.Conv2d(dcn_mid, offset_ch, 3, padding=1)
+        self.dcn_y2 = DeformConv2d(dcn_mid, hidden, dcn_kernel, padding=pad)
+        self.norm_y2 = nn.GroupNorm(min(8, hidden), hidden)
+
+        self.act = nn.ReLU(inplace=True)
+
+        self.head = nn.Sequential(
+            nn.Conv2d(hidden, hidden // 2, 3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(hidden // 2, 1, 1),
+        )
+        # Zero-init output so branch starts as no-op
+        nn.init.zeros_(self.head[-1].weight)
+        nn.init.zeros_(self.head[-1].bias)
+        # Zero-init offsets so DCN starts as standard conv
+        for m in [self.off_x1, self.off_x2, self.off_y1, self.off_y2]:
+            nn.init.zeros_(m.weight)
+            nn.init.zeros_(m.bias)
+
+    def forward(self, s1: torch.Tensor, s2: torch.Tensor) -> torch.Tensor:
+        f1 = self.proj_s1(s1)
+        f2 = F.interpolate(self.proj_s2(s2), size=s1.shape[-2:],
+                           mode="bilinear", align_corners=False)
+        fused = f1 + f2
+
+        # Direction X: 2-layer DCNv2
+        x = self.act(self.norm_x1(self.dcn_x1(fused, self.off_x1(fused))))
+        out_x = self.act(self.norm_x2(self.dcn_x2(x, self.off_x2(x))))
+
+        # Direction Y: 2-layer DCNv2
+        y = self.act(self.norm_y1(self.dcn_y1(fused, self.off_y1(fused))))
+        out_y = self.act(self.norm_y2(self.dcn_y2(y, self.off_y2(y))))
+
+        return self.head(out_x + out_y)
+
+
 class CrackSnakeBranch(nn.Module):
     """Lightweight dual-DSConv branch for crack-specific geometric features.
 
@@ -381,7 +454,13 @@ class DSCformerDam(nn.Module):
         # Multi-scale DSConv branch (E1 preset) or single-scale (default)
         self.use_multiscale_snake = cfg is not None and getattr(cfg, 'use_multiscale_snake', False)
         self.use_standard_conv_branch = cfg is not None and getattr(cfg, 'use_standard_conv_branch', False)
-        if self.use_standard_conv_branch:
+        self.use_dcnv2_branch = cfg is not None and getattr(cfg, 'use_dcnv2_branch', False)
+        if self.use_dcnv2_branch:
+            self.snake_branch = DCNv2Branch(
+                s1_ch=encoder_dims[1], s2_ch=encoder_dims[2],
+                hidden=hidden,
+            )
+        elif self.use_standard_conv_branch:
             self.snake_branch = StandardConvBranch(
                 s1_ch=encoder_dims[1], s2_ch=encoder_dims[2],
                 hidden=hidden, kernel_size=ks,

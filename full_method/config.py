@@ -105,6 +105,7 @@ class RunCfg:
     use_multiscale_snake: bool = False       # Multi-Scale DSConv (E1 preset)
     snake_kernel_sizes: tuple = (5, 9, 15)   # kernel sizes for multi-scale branch
     use_standard_conv_branch: bool = False   # Parameter-matched standard Conv control (Issue 6)
+    use_dcnv2_branch: bool = False            # DCNv2 branch control (vs DSConv snake geometry)
 
     # SAM LoRA settings (model_type="sam_lora")
     sam_checkpoint: str = "sam_vit_b_01ec64.pth"   # path to SAM ViT-B weights
@@ -543,6 +544,17 @@ ABLATION_PRESETS = {
                   "use_boundary_loss": False, "use_tversky_loss": False,
                   "use_cldice_loss": False, "use_srl_loss": False,
                   "use_soft_boundary_schedule": False},
+    # DCNV2_CTRL: DCNv2 branch control (tests general deformable conv vs DSConv snake geometry)
+    "DCNV2_CTRL": {"name": "segformer_dcnv2_DCNV2_CTRL",
+                   "model_type": "dscformer",
+                   "use_dcnv2_branch": True,
+                   "no_curriculum": True,
+                   "use_soft_curriculum": False, "use_softmax_sampling": False,
+                   "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                   "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                   "use_boundary_loss": False, "use_tversky_loss": False,
+                   "use_cldice_loss": False, "use_srl_loss": False,
+                   "use_soft_boundary_schedule": False},
     "G1": {"name": "dscformer_srl_G1",
            "model_type": "dscformer",
            "no_curriculum": True,
