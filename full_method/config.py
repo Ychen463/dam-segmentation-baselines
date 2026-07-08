@@ -3036,7 +3036,7 @@ ABLATION_PRESETS = {
                      "use_soft_boundary_schedule": False},
 
     # RERUN_HETERO_CC: Heterogeneous T1+T2 with class-conditional weights (full model recipe)
-    #   This is the "full TopoDistill" configuration under matched conditions.
+    #   This is the "full HeteroDistill" configuration under matched conditions.
     "RERUN_HETERO_CC": {"name": "rerun_hetero_cc",
                         "model_type": "dscformer",
                         "use_kd": True, "use_dual_kd": True,

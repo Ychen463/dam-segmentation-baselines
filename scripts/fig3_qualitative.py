@@ -101,7 +101,7 @@ DISPLAY_NAMES = {
     "mask2former_swin_small_512": "Mask2Former",
     "dscformer_plain_G0": "DSConv",
     "dscformer_srl_G1": "DSConv+SRL",
-    "dkd10_no_srl": "TopoDistill",
+    "dkd10_no_srl": "HeteroDistill",
     "dataopt_baseline_N0": "DSConv+SRL (T1)",
 }
 

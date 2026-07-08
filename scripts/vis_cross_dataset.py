@@ -1,7 +1,7 @@
 """Generate qualitative cross-dataset visualisation (DamSegment -> S2DS).
 
 Picks representative S2DS test images and produces a grid:
-  input | GT | SegFormer-B2 | Mask2Former | TopoDistill | TopoDistill+DTKD
+  input | GT | SegFormer-B2 | Mask2Former | HeteroDistill | HeteroDistill+DTKD
 
 Usage (on RunPod):
     python scripts/vis_cross_dataset.py --device cuda
@@ -35,7 +35,7 @@ MODELS = [
     ("SegFormer-B2", "segformer_b2_plain_512"),
     ("Mask2Former", "mask2former_swin_small_512"),
     ("DSConv+SRL", "dscformer_srl_G1"),
-    ("TopoDistill", "dual_kd_classaware_DKD2"),
+    ("HeteroDistill", "dual_kd_classaware_DKD2"),
 ]
 
 

@@ -42,7 +42,7 @@ CMAP = ListedColormap([(0, 0, 0, 0), (1, 0, 0, 0.55), (0, 0.7, 0, 0.55)])
 
 
 def load_models():
-    """Load SegFormer-B2, DSConv+SRL (T1), and TopoDistill."""
+    """Load SegFormer-B2, DSConv+SRL (T1), and HeteroDistill."""
     models = {}
 
     # SegFormer-B2
@@ -68,7 +68,7 @@ def load_models():
                                  mode="bilinear", align_corners=False)
     models["DSConv+SRL"] = T1Wrapper(t1)
 
-    # TopoDistill
+    # HeteroDistill
     topo = DSCformerDam(cfg.pretrained, cfg=cfg).to(DEVICE)
     topo_ckpt = ROOT / "full_method" / "runs" / "dkd10_no_srl_rerun" / "best.pt"
     if topo_ckpt.exists():
@@ -84,7 +84,7 @@ def load_models():
         def forward(self, x):
             return F.interpolate(self.m(x)["seg_logits"], x.shape[-2:],
                                  mode="bilinear", align_corners=False)
-    models["TopoDistill"] = TopoWrapper(topo)
+    models["HeteroDistill"] = TopoWrapper(topo)
 
     return models
 
@@ -110,9 +110,9 @@ def compute_per_image_stats(models, test_loader):
 
             for i in range(B):
                 mask = masks[i]
-                topo_pred = preds["TopoDistill"][i]
+                topo_pred = preds["HeteroDistill"][i]
 
-                # Per-class IoU for TopoDistill
+                # Per-class IoU for HeteroDistill
                 ious = {}
                 for cls, cname in [(1, "crack"), (2, "spalling")]:
                     gt_c = (mask == cls)
@@ -216,7 +216,7 @@ IMAGENET_STD = np.array([0.229, 0.224, 0.225])
 
 def plot_gallery(selections, out_dir):
     """Plot and save each category as a separate figure."""
-    model_names = ["SegFormer-B2", "DSConv+SRL", "TopoDistill"]
+    model_names = ["SegFormer-B2", "DSConv+SRL", "HeteroDistill"]
 
     for cat_name, samples in selections.items():
         n = len(samples)
@@ -249,7 +249,7 @@ def plot_gallery(selections, out_dir):
             for j, mname in enumerate(model_names):
                 axes[row, 2 + j].imshow(img)
                 axes[row, 2 + j].imshow(s["preds"][mname], cmap=CMAP, vmin=0, vmax=2)
-                iou_cr = s["IoU_crack"] if mname == "TopoDistill" else ""
+                iou_cr = s["IoU_crack"] if mname == "HeteroDistill" else ""
                 axes[row, 2 + j].set_title(mname, fontsize=8)
                 axes[row, 2 + j].axis("off")
 

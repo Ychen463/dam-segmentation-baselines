@@ -35,8 +35,8 @@ MEASURE_ITERS = 50
 
 # All checkpoints to verify (path relative to ROOT, display name)
 CHECKPOINTS = [
-    # Row (c): TopoDistill student (DSConv + DTKD, no SRL)
-    ("full_method/runs/dkd10_no_srl_rerun/best.pt", "TopoDistill row(c)"),
+    # Row (c): HeteroDistill student (DSConv + DTKD, no SRL)
+    ("full_method/runs/dkd10_no_srl_rerun/best.pt", "HeteroDistill row(c)"),
     # Row (b): DSConv-only baseline
     ("full_method/runs/dscformer_plain_G0/best.pt", "DSConv-only row(b)"),
     # Teacher 1: DSConv + SRL

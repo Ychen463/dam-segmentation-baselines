@@ -2,7 +2,7 @@
 """Method overview architecture diagram — vertical (portrait) layout.
 
 Matches the paper's final method:
-  (a) TopoDistill: SegFormer-B2 + parallel DSConv branch
+  (a) HeteroDistill: SegFormer-B2 + parallel DSConv branch
   (b) DTKD: dual-teacher KD with agreement-aware distillation
 
 Usage:

@@ -11,7 +11,7 @@
 
 \opening{Dear Editor,}
 
-We are pleased to submit our manuscript entitled \textbf{``TopoDistill: Topology-Aware Crack and Spalling Segmentation in Concrete Dams via Dynamic Snake Convolution and Dual-Teacher Distillation''} for consideration for publication in \textit{Automation in Construction}.
+We are pleased to submit our manuscript entitled \textbf{``HeteroDistill: Crack and Spalling Segmentation in Concrete Dams via Heterogeneous Dual-Teacher Knowledge Distillation''} for consideration for publication in \textit{Automation in Construction}.
 
 \medskip
 \textbf{Motivation and scope.}
@@ -19,16 +19,13 @@ Automated segmentation of cracks and spalling on concrete dam surfaces is critic
 
 \medskip
 \textbf{Summary of contributions.}
-We propose TopoDistill, a topology-aware segmentation framework that augments SegFormer-B2 with two complementary enhancements:
-\begin{enumerate}
-    \item A \textbf{Dynamic Snake Convolution (DSConv)} branch that captures elongated crack geometry through deformable sampling, improving crack connectivity (ConnR$_{\text{fg}}$ +3.4) with only 4M additional parameters.
-    \item \textbf{Class-Conditional Dual-Teacher Knowledge Distillation (DTKD)} that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher (SAM-LoRA) with per-class weighting and pixel-level confidence modulation, improving pixel-level accuracy (mIoU$_{\text{fg}}$ +1.9) and connectivity (ConnR$_{\text{fg}}$ +2.6) at zero additional inference cost.
-\end{enumerate}
-We additionally report three empirical findings of broader interest: (i) Skeleton Recall Loss exhibits an asymmetric effect in distillation---benefiting teachers but harming students; (ii) a persistent crack--spalling tradeoff at shared class boundaries limits loss-based optimisation; and (iii) indirectly leveraging foundation models through knowledge distillation outperforms direct fine-tuning on small-scale industrial datasets. Zero-shot cross-dataset evaluation on S2DS confirms that DSConv's geometric inductive bias substantially improves cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$).
+We propose HeteroDistill, a segmentation framework that augments SegFormer-B2 with \textbf{class-conditional dual-teacher knowledge distillation (DTKD)}, transferring complementary knowledge from a task-specific teacher and a foundation-model teacher (SAM-LoRA) with per-class weighting and pixel-level confidence modulation. Multi-seed matched controls (5 conditions $\times$ 3 seeds) confirm that heterogeneous teachers produce a robust +1.5 mIoU$_{\text{fg}}$ gain with 5--7$\times$ variance reduction, while single-teacher distillation provides no benefit---establishing teacher diversity as the primary mechanism.
+
+We additionally report: (i)~a \textbf{negative result on geometric inductive bias}---parameter-matched controls show that Dynamic Snake Convolution provides no advantage over standard or deformable convolutions for crack topology, challenging the assumption that specialised convolution geometry is necessary; (ii)~Skeleton Recall Loss benefits teachers but harms students in distillation; (iii)~indirectly leveraging foundation models through distillation outperforms direct fine-tuning on small-scale industrial datasets. Zero-shot cross-dataset evaluation on S2DS confirms cross-domain robustness (18.7\% vs.\ 0.1\% mIoU$_{\text{fg}}$).
 
 \medskip
 \textbf{Significance.}
-To our knowledge, this is the first work to combine topology-aware convolutions with class-conditional multi-teacher distillation for infrastructure defect segmentation. The framework achieves state-of-the-art performance on the DamSegment benchmark (72.3\% foreground mIoU, 83.0\% ConnR$_{\text{fg}}$) while providing practical deployment advantages: no inference-time overhead from distillation, reduced training variance (${\sim}$3$\times$), and improved cross-domain robustness. These results offer practical guidance for deploying deep learning in data-scarce dam inspection scenarios.
+HeteroDistill achieves state-of-the-art performance on the DamSegment benchmark (72.3\% foreground mIoU, 83.0\% ConnR$_{\text{fg}}$) with practical deployment advantages: no inference-time overhead from distillation, 5--7$\times$ reduced training variance, and improved cross-domain robustness. The parameter-matched negative result on convolution geometry provides guidance for practitioners selecting architectural components for elongated-structure segmentation. These results offer practical guidance for deploying deep learning in data-scarce dam inspection scenarios.
 
 \medskip
 \textbf{Declarations.}
