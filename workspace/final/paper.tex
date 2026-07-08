@@ -33,7 +33,7 @@
 \begin{highlights}
 \item Heterogeneous dual-teacher knowledge distillation (DTKD) combining a task-specific teacher with a foundation-model teacher (SAM-LoRA) adds +1.8--1.9 mIoU$_{\text{fg}}$; the student surpasses the evaluated direct teacher ensemble by +1.5--1.6 at zero additional inference cost.
 \item Multi-seed matched controls (5 conditions $\times$ 3 seeds) confirm +1.5 mIoU$_{\text{fg}}$ net gain with 5--7$\times$ variance reduction; single-teacher KD provides no reliable benefit, and a same-architecture two-teacher control also shows no improvement in a limited control experiment---supporting teacher diversity as a key contributor (Section~\ref{sec:ablation}).
-\item Parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard Conv, 3 seeds each) shows no measurable difference (all mean $\pm$ std ranges overlap), establishing that geometric inductive bias does not help crack segmentation on this dataset---a negative result relevant to the community (Section~\ref{sec:ablation}).
+\item Parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard Conv, 3 seeds each) shows no measurable difference (all mean $\pm$ std ranges overlap), indicating that geometric inductive bias does not provide measurable benefit for crack segmentation under the evaluated setting---a negative result relevant to the community (Section~\ref{sec:ablation}).
 \item Single-run ablations suggest SRL improves teacher utility but harms student training under DTKD; multi-seed confirmation is needed.
 \end{highlights}
 
@@ -909,7 +909,7 @@ We report component-level topology metrics (CompF1, PathCont) in addition to clD
 We presented HeteroDistill, a segmentation framework for concrete dam defects that combines a parallel feature-extraction branch with dual-teacher knowledge distillation (DTKD).
 On DamSegment, HeteroDistill achieves 72.2--72.3\% mIoU$_{\text{fg}}$ at 51 FPS with only 1.32M parameter overhead and no additional inference cost from distillation.
 DTKD is the primary contributor, adding +1.8--1.9 mIoU$_{\text{fg}}$; multi-seed matched controls confirm +1.5 mIoU$_{\text{fg}}$ net gain and 5--7$\times$ variance reduction from teacher diversity (Section~\ref{sec:ablation}).
-A parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard Conv, 3 seeds each) shows no measurable difference (all mean $\pm$ std ranges overlap), establishing that the branch's geometric inductive bias does not matter on this dataset.
+A parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard Conv, 3 seeds each) shows no measurable difference (all mean $\pm$ std ranges overlap), indicating that the branch's geometric inductive bias does not provide measurable benefit under the evaluated setting.
 Limitations discussed in Section~\ref{sec:discussion} include single-run SRL ablations, confounds in the cross-dataset decomposition, and the exploratory nature of the cluster-split analysis.
 
 \section*{Data availability}
