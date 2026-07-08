@@ -33,12 +33,12 @@ NUM_WORKERS = 2
 
 # Models to evaluate (must be in model_registry)
 KEY_MODELS = [
-    "segformer_b2_512",          # (a) SegFormer-B2 baseline
-    "dscformer_dam_512",         # (b) DSConv-only
-    "dscformer_srl_512",         # (e) DSConv+SRL (Teacher 1)
-    "topodistill_512",           # (c) DTKD (final model)
-    "mask2former_512",           # Mask2Former baseline
-    "sam_lora_1024",             # SAM-LoRA (Teacher 2)
+    "plain_segformer_P0",          # (a) SegFormer-B2 baseline
+    "dscformer_plain_G0",          # (b) DSConv-only
+    "dscformer_srl_G1",            # (e) DSConv+SRL (Teacher 1)
+    "dscformer_full_G2",           # (c) DTKD (final model)
+    "mask2former_swin_small_512",  # Mask2Former baseline
+    "segformer_b2_plain_512",      # SegFormer-B2 (baseline_segformer)
 ]
 
 
