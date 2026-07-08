@@ -1,6 +1,6 @@
 % ===========================================================================
 % TopoDistill: Geometry-Aware Crack and Spalling Segmentation in Concrete
-% Dams via Dynamic Snake Convolution and Dual-Teacher Distillation
+% Dams via Dual-Teacher Distillation
 % ===========================================================================
 % Target: Automation in Construction / Engineering Structures / CSCEE
 % ===========================================================================
@@ -24,33 +24,32 @@
 
 \begin{frontmatter}
 
-\title{TopoDistill: Geometry-Aware Crack and Spalling Segmentation in Concrete Dams via Dynamic Snake Convolution and Dual-Teacher Distillation}
+\title{TopoDistill: Crack and Spalling Segmentation in Concrete Dams via Dual-Teacher Knowledge Distillation}
 
 \author[inst1]{Yanlin Chen\corref{cor1}}
 \cortext[cor1]{Corresponding author.}
 \address[inst1]{College of Graduate and Professional Studies, Trine University, Angola, IN 46703, USA}
 
 \begin{highlights}
-\item A 1.32M-parameter Dynamic Snake Convolution branch improves foreground boundary quality (BF1$_{\text{fg}}$ +2.0, of which BF1$_{\text{cr}}$ +1.0) and spalling skeleton coverage (clDice$_{\text{sp}}$ +6.0); crack-specific clDice is unchanged (Section~\ref{sec:ablation}).
-\item Dual-teacher knowledge distillation from heterogeneous teachers (task-specific + foundation model) adds +1.9 mIoU$_{\text{fg}}$; the student surpasses the best direct teacher ensemble by +1.6.
-\item Multi-seed matched controls (5 conditions $\times$ 3 seeds) confirm that heterogeneous teachers produce a robust net gain (+1.5 mIoU$_{\text{fg}}$) with 5--7$\times$ variance reduction; single-teacher KD provides no benefit (Section~\ref{sec:ablation}).
-\item Zero-shot cross-dataset transfer (DamSegment$\to$S2DS) shows DSConv-equipped models substantially outperform vanilla baselines (0.1\%$\to$18.7\% mIoU$_{\text{fg}}$), though the decomposition is confounded (Section~\ref{sec:cross_dataset}).
+\item Dual-teacher knowledge distillation (DTKD) from heterogeneous teachers (task-specific + foundation model) adds +1.9 mIoU$_{\text{fg}}$; the student surpasses the best direct teacher ensemble by +1.6. Multi-seed matched controls (5 conditions $\times$ 3 seeds) confirm a robust +1.5 mIoU$_{\text{fg}}$ net gain with 5--7$\times$ variance reduction; single-teacher KD provides no benefit (Section~\ref{sec:ablation}).
+\item Parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard Conv, 3 seeds each, ${\sim}$1.32M parameters) shows no significant difference in any metric, indicating that the parallel branch's geometric inductive bias does not matter on this dataset (Section~\ref{sec:ablation}).
+\item Zero-shot cross-dataset transfer (DamSegment$\to$S2DS) shows models with a parallel feature branch substantially outperform vanilla baselines (0.1\%$\to$18.7\% mIoU$_{\text{fg}}$), though the decomposition is confounded (Section~\ref{sec:cross_dataset}).
 \item Single-run ablations suggest SRL improves teacher utility but harms student training under DTKD; multi-seed confirmation is needed.
 \end{highlights}
 
 \begin{abstract}
-Automated semantic segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring, yet existing methods optimise pixel-level objectives without explicitly leveraging the geometric properties of elongated defects.
-We propose \textbf{TopoDistill}, a segmentation framework that augments a SegFormer-B2 backbone with two complementary enhancements:
-(1)~a \emph{Dynamic Snake Convolution} (DSConv) branch that performs deformable sampling along elongated structures, adding only 1.32M parameters; and
+Automated semantic segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring.
+We propose \textbf{TopoDistill}, a segmentation framework that augments a SegFormer-B2 backbone with
+(1)~a parallel feature-extraction branch (1.32M parameters) and
 (2)~\emph{Dual-Teacher Knowledge Distillation} (DTKD) that transfers complementary knowledge from a task-specific teacher and a foundation-model teacher, at zero additional inference cost.
-On the \textbf{DamSegment} dataset \citep{damsegment2026} (1{,}500 images, 3~classes), TopoDistill achieves 72.3\% foreground mIoU with DSConv improving foreground boundary quality (BF1$_{\text{fg}}$ +2.0) and DTKD contributing +1.9 mIoU$_{\text{fg}}$.
+On the \textbf{DamSegment} dataset \citep{damsegment2026} (1{,}500 images, 3~classes), TopoDistill achieves 72.3\% foreground mIoU, with DTKD contributing +1.9 mIoU$_{\text{fg}}$.
 Multi-seed matched controls (5 conditions $\times$ 3 seeds) confirm that heterogeneous teachers produce a robust +1.5 mIoU$_{\text{fg}}$ gain with 5--7$\times$ variance reduction, while single-teacher KD provides no benefit; teacher diversity is confirmed as the primary mechanism.
-Zero-shot cross-dataset evaluation (DamSegment$\to$S2DS) shows that DSConv-equipped models substantially outperform vanilla baselines.
-Limitations and caveats are discussed in detail, including the absence of stricter component-level crack topology metrics (e.g., CTS, component F1), single-run SRL ablations, and confounds in cross-dataset decomposition.
+A parameter-matched branch comparison (Dynamic Snake Convolution vs.\ DCNv2 vs.\ standard convolution, 3 seeds each) reveals no significant difference in segmentation or topology metrics, indicating that the branch's geometric inductive bias does not provide additional benefit on this dataset.
+Limitations and caveats are discussed in detail, including single-run SRL ablations and confounds in cross-dataset decomposition.
 \end{abstract}
 
 \begin{keyword}
-Crack segmentation \sep Concrete dam inspection \sep Dynamic snake convolution \sep Knowledge distillation \sep Structural health monitoring
+Crack segmentation \sep Concrete dam inspection \sep Knowledge distillation \sep Multi-teacher distillation \sep Structural health monitoring
 \end{keyword}
 
 \end{frontmatter}
@@ -76,11 +75,11 @@ Meanwhile, large vision foundation models such as SAM \citep{kirillov2023sam} an
 A natural question arises: \emph{can the complementary strengths of task-specific and foundation models be combined}?
 We address this through knowledge distillation, where a student model learns from both a task-specific teacher and a foundation-model teacher.
 
-In this paper we propose \textbf{TopoDistill}, a framework that augments SegFormer-B2 with a parallel DSConv branch for geometry-aware feature extraction and dual-teacher knowledge distillation (DTKD) for complementary knowledge transfer. We additionally investigate Skeleton Recall Loss (SRL) and uncover an asymmetric role in distillation: SRL enriches teacher training but harms the student when combined with DTKD.
+In this paper we propose \textbf{TopoDistill}, a framework that augments SegFormer-B2 with a parallel feature-extraction branch and dual-teacher knowledge distillation (DTKD) for complementary knowledge transfer. We investigate Dynamic Snake Convolution (DSConv) as the branch architecture but find, through parameter-matched controls, that the specific geometric bias provides no measurable advantage over standard or deformable convolutions. We additionally investigate Skeleton Recall Loss (SRL) and uncover an asymmetric role in distillation: SRL enriches teacher training but harms the student when combined with DTKD.
 We evaluate on the semantic segmentation subset of the DamSegment dataset \citep{damsegment2026}, comprising 1{,}500 annotated dam surface images.
 Our contributions are:
 \begin{enumerate}
-    \item A segmentation framework combining a parallel Dynamic Snake Convolution branch (1.32M parameters) with dual-teacher knowledge distillation (DTKD, zero inference overhead). DSConv improves foreground boundary quality (BF1$_{\text{fg}}$ +2.0, of which BF1$_{\text{cr}}$ +1.0) and spalling skeleton coverage (clDice$_{\text{sp}}$ +6.0); DTKD adds +1.9 mIoU$_{\text{fg}}$. Multi-seed matched controls confirm +1.5 mIoU$_{\text{fg}}$ net gain and 5--7$\times$ variance reduction from teacher diversity (Section~\ref{sec:ablation}). Limitations are discussed in Sections~\ref{sec:ablation}--\ref{sec:discussion}.
+    \item A segmentation framework combining a parallel feature-extraction branch (1.32M parameters) with dual-teacher knowledge distillation (DTKD, zero inference overhead). DTKD adds +1.9 mIoU$_{\text{fg}}$; multi-seed matched controls confirm +1.5 mIoU$_{\text{fg}}$ net gain and 5--7$\times$ variance reduction from teacher diversity (Section~\ref{sec:ablation}). A parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard Conv, 3 seeds each) shows no significant difference, establishing DTKD---not branch geometry---as the primary contributor. Limitations are discussed in Sections~\ref{sec:ablation}--\ref{sec:discussion}.
     \item A single-run observation that SRL may play an asymmetric role: SRL-trained teachers produce better students (+1.2 mIoU$_{\text{fg}}$), while adding SRL to student training under DTKD reduces performance ($-$1.1). Multi-seed confirmation is needed (Section~\ref{sec:srl}).
     \item A comprehensive evaluation comprising six baselines (including SAM-LoRA and DINOv2-LoRA), per-tier difficulty analysis, multi-seed stability, feature-cluster split sanity check, and zero-shot cross-dataset transfer (DamSegment$\to$S2DS). Under the evaluated configurations, task-specific design with knowledge distillation outperforms direct foundation-model fine-tuning.
 \end{enumerate}
@@ -152,7 +151,7 @@ In our experiments, using foundation models as teachers in knowledge distillatio
 
 \subsection{Overview}
 
-Fig.~\ref{fig:architecture} illustrates the TopoDistill framework. Our approach enhances a SegFormer-B2 backbone at two complementary levels: (1)~\emph{feature extraction} via a parallel DSConv branch for deformable sampling along elongated structures, and (2)~\emph{knowledge transfer} via dual-teacher distillation (DTKD) to combine the strengths of task-specific and foundation models.
+Fig.~\ref{fig:architecture} illustrates the TopoDistill framework. Our approach enhances a SegFormer-B2 backbone at two levels: (1)~\emph{feature extraction} via a parallel branch (DSConv in our default configuration, though parameter-matched controls show the branch type does not significantly affect performance; Section~\ref{sec:ablation}), and (2)~\emph{knowledge transfer} via dual-teacher distillation (DTKD) to combine the strengths of task-specific and foundation models.
 
 \begin{figure*}[t]
     \centering
@@ -168,7 +167,7 @@ We adopt SegFormer-B2 \citep{xie2021segformer} as our backbone, providing a hier
 \subsection{Dynamic Snake Convolution branch}
 \label{sec:dsconv}
 
-Standard convolutions sample on fixed rectangular grids, which may be poorly matched to thin, curvilinear structures. Inspired by \citet{qi2023dynamic}, we introduce a parallel \emph{CrackSnakeBranch} that performs deformable sampling along elongated geometry. The branch targets the crack channel specifically; however, as discussed in Section~\ref{sec:ablation}, the empirical evidence for crack-specific topology improvement is limited (clDice$_{\text{cr}}$ unchanged), while the branch does improve boundary quality (BF1) and, unexpectedly, spalling skeleton coverage (clDice$_{\text{sp}}$).
+Standard convolutions sample on fixed rectangular grids, which may be poorly matched to thin, curvilinear structures. Inspired by \citet{qi2023dynamic}, we introduce a parallel \emph{CrackSnakeBranch} that performs deformable sampling along elongated geometry. The branch targets the crack channel specifically. However, parameter-matched controls (Section~\ref{sec:ablation}) show that replacing DSConv with DCNv2 or standard convolution yields statistically indistinguishable results across all metrics, indicating that the specific geometric inductive bias does not provide measurable benefit on this dataset. We retain DSConv in the default configuration but note that the branch type is an architectural choice, not a contribution.
 
 \paragraph{Stage fusion}
 The branch consumes the second and third encoder stages (0-indexed: \texttt{hidden\_states[1]} at $H/8$, 128 channels, and \texttt{hidden\_states[2]} at $H/16$, 320 channels). These are output as flattened token sequences $(B, N_i, C_i)$ by the HuggingFace encoder. We reshape them to spatial tensors: $\mathbf{s}_1 \in \mathbb{R}^{B \times 128 \times H/8 \times W/8}$ and $\mathbf{s}_2 \in \mathbb{R}^{B \times 320 \times H/16 \times W/16}$.
@@ -381,8 +380,8 @@ We report complementary metrics capturing different aspects of segmentation qual
 \subsection{Computational cost}
 
 Table~\ref{tab:cost} summarises model complexity and reference inference speed. FPS values are measured at each model's native training resolution (shown in the table), so they are \emph{not directly comparable} across models---U-Net's 519 FPS at $320{\times}320$ is not comparable to SegFormer's 55 FPS at $512{\times}512$, and SAM-LoRA's 9.0 FPS reflects its $1024{\times}1024$ input. A fair speed comparison would require all models to be benchmarked at a uniform resolution, which we did not perform.
-SegFormer-DSConv adds 1.32M parameters over SegFormer-B2 (the CrackSnakeBranch; see Section~\ref{sec:dsconv}), with a FPS reduction from 55 to 51 at $512{\times}512$.
-DTKD incurs \emph{no additional inference cost}: the two teachers are only used during training, and the student has identical architecture to SegFormer-DSConv.
+The parallel branch adds 1.32M parameters over SegFormer-B2 (see Section~\ref{sec:dsconv}), with a FPS reduction from 55 to 51 at $512{\times}512$.
+DTKD incurs \emph{no additional inference cost}: the two teachers are only used during training, and the student has identical architecture to the branch-augmented SegFormer.
 Foundation model baselines carry $>$90M parameters due to their ViT-B encoders, though only ${\sim}$5--6M are trainable via LoRA.
 
 \begin{table}[t]
@@ -435,11 +434,11 @@ TopoDistill + TTA$^*$ & MiT-B2 & 72.7 & 59.3 & 86.0 & 76.3 & 67.2 & 71.8 & 83.7 
 
 TopoDistill achieves the highest mIoU$_{\text{fg}}$ (72.3\% without TTA, 72.7\% with TTA) and the highest IoU for both crack and spalling classes among all compared methods.
 Mask2Former achieves the highest BF1$_{\text{fg}}$ (72.5\%) due to its mask-attention mechanism, though with substantially lower mIoU$_{\text{fg}}$ (67.9\%).
-TopoDistill achieves CompR$_{\text{fg}}$ 83.0\%, surpassing SAM-LoRA (81.2\%); this component recall reflects contributions from the DSConv branch (+3.4 CompR$_{\text{fg}}$) and DTKD's improved spalling component preservation (+2.6 CompR$_{\text{fg}}$), though the standard-convolution control achieves similar CompR$_{\text{cr}}$ gains (Section~\ref{sec:ablation}), so the DSConv contribution cannot be uniquely attributed to deformable sampling.
+TopoDistill achieves CompR$_{\text{fg}}$ 83.0\%, surpassing SAM-LoRA (81.2\%); this component recall reflects contributions from the parallel branch (+3.4 CompR$_{\text{fg}}$) and DTKD's improved spalling component preservation (+2.6 CompR$_{\text{fg}}$). Parameter-matched controls (Table~\ref{tab:branch_compare}) confirm that the branch contribution is not specific to DSConv's geometry.
 Compared to the SegFormer-B2 baseline, TopoDistill improves mIoU$_{\text{fg}}$ by \textbf{+1.9}, IoU$_{\text{cr}}$ by \textbf{+1.6}, IoU$_{\text{sp}}$ by \textbf{+2.4}, and CompR$_{\text{fg}}$ by \textbf{+2.1}.
 
 \paragraph{Foundation model comparison}
-Under the evaluated LoRA configurations (no hyperparameter tuning; see Section~\ref{sec:experiments}), SAM-LoRA (68.1\%) and DINOv2-LoRA (66.7\%) underperform both DSConv+SRL (70.6\%) and TopoDistill (72.3\%).
+Under the evaluated LoRA configurations (no hyperparameter tuning; see Section~\ref{sec:experiments}), SAM-LoRA (68.1\%) and DINOv2-LoRA (66.7\%) underperform both the branch+SRL teacher (70.6\%) and TopoDistill (72.3\%).
 DTKD demonstrates that foundation model knowledge can be \emph{indirectly} leveraged through distillation, which proved more effective than direct fine-tuning in our experiments (see ablation in Section~\ref{sec:ablation}), though better-optimised baselines may narrow this gap.
 Mask2Former achieves the highest BF1$_{\text{fg}}$ (72.5\%) and clDice$_{\text{sp}}$ (91.1\%), but with substantially lower mIoU$_{\text{fg}}$ (67.9\%).
 
@@ -450,15 +449,14 @@ Table~\ref{tab:ablation} presents the incremental contribution of each component
 
 \begin{table*}[t]
 \centering
-\caption{Ablation study on the DamSegment test set. Rows~(a)--(d) show the main pipeline progression; rows~(e)--(f) show the effect of adding SRL; row~(g) adds agreement-aware KD (exploratory). Row~(a$'$) is a standard Conv control (1.93M vs.\ DSConv's 1.32M; not parameter-matched); rows~(b$_1$)--(b$_2$) are single-teacher ablations with identical student settings as row~(c). Row~(a) retrains SegFormer-B2 under the same training pipeline as all ablation variants but with a different random seed than the SegFormer-B2 entry in Table~\ref{tab:main}; the resulting metric differences (e.g., CompR$_{\text{fg}}$ 77.0 vs.\ 80.9, $\Delta{=}3.9$) are plausible under the observed cross-seed variability (std 2.13 in Table~\ref{tab:multiseed}), though this difference exceeds one standard deviation. Bold: best per column among rows~(a)--(d) and~(g); underline: second best. Row~(g) is placed after (e)--(f) as an exploratory extension. All values in \%.}
+\caption{Ablation study on the DamSegment test set. Rows~(a)--(d) show the main pipeline progression; rows~(e)--(f) show the effect of adding SRL; row~(g) adds agreement-aware KD (exploratory). Rows~(b$_1$)--(b$_2$) are single-teacher ablations with identical student settings as row~(c). Row~(a) retrains SegFormer-B2 under the same training pipeline as all ablation variants but with a different random seed than the SegFormer-B2 entry in Table~\ref{tab:main}; the resulting metric differences (e.g., CompR$_{\text{fg}}$ 77.0 vs.\ 80.9, $\Delta{=}3.9$) are plausible under the observed cross-seed variability (std 2.13 in Table~\ref{tab:multiseed}), though this difference exceeds one standard deviation. Bold: best per column among rows~(a)--(d) and~(g); underline: second best. Row~(g) is placed after (e)--(f) as an exploratory extension. See Table~\ref{tab:branch_compare} for the parameter-matched branch comparison. All values in \%.}
 \label{tab:ablation}
 \begin{tabular}{lccccccccc}
 \toprule
 Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text{cr}}$ & BF1$_{\text{fg}}$ & clDice$_{\text{cr}}$ & clDice$_{\text{fg}}$ & CompR$_{\text{cr}}$ & CompR$_{\text{fg}}$ \\
 \midrule
 (a) SegFormer-B2 & 70.3 & 56.9 & 83.7 & 74.0 & 68.6 & 81.8 & 82.7 & 81.0 & 77.0 \\
-(a$'$) + Std Conv (1.9M) & 66.2 & 55.8 & 76.7 & 71.6 & 66.5 & 80.4 & 84.7 & 83.5 & 81.6 \\
-(b) + DSConv (1.32M) & 70.4 & 57.4 & 83.4 & 75.0 & 70.6 & 81.8 & 85.7 & \textbf{83.8} & 80.4 \\
+(b) + DSConv branch (1.32M) & 70.4 & 57.4 & 83.4 & 75.0 & 70.6 & 81.8 & 85.7 & \textbf{83.8} & 80.4 \\
 (b$_1$) + T1-only KD & 69.0 & 56.4 & 81.5 & 72.9 & 68.4 & 81.8 & 83.6 & 80.5 & 81.0 \\
 (b$_2$) + T2-only KD & 69.2 & 56.2 & 82.2 & 73.0 & 68.4 & 82.6 & 85.9 & 83.1 & 85.0 \\
 (c) + DTKD & 72.3 & 58.5 & \underline{86.2} & 75.6 & 70.6 & 83.3 & \textbf{86.4} & \underline{82.1} & \textbf{83.0} \\
@@ -472,30 +470,40 @@ Configuration & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1
 \end{tabular}
 \end{table*}
 
-\paragraph{(a$'$) vs.\ (b): Standard Conv control}
-To probe whether DSConv's gains stem from its deformable sampling geometry or from the additional capacity of any parallel branch, we compare against a standard Conv control (row~a$'$) that replaces the two DSConv blocks with a standard directional convolution path: a Conv2d($64 {\to} 1088, 3{\times}3$) explicitly expands channels (matching DSConv's implicit expansion via grid sampling), followed by the same directional Conv2d($(1, K)$) and Conv2d($(K, 1)$) + GroupNorm + ReLU, and the same output head.
-Both branches share identical stage projections and the same output head; they differ only in how the $64 {\to} 1088$ channel expansion is performed.
+\paragraph{(a)$\to$(b): Adding a parallel branch}
+Adding the DSConv branch (row~b) produces minimal mIoU change (+0.1) but improves boundary quality: BF1$_{\text{cr}}$ +1.0, BF1$_{\text{fg}}$ +2.0.
+However, the key question is whether this improvement stems from DSConv's snake-shaped sampling geometry or simply from the additional capacity of any parallel branch. Table~\ref{tab:branch_compare} answers this definitively.
 
-\textbf{Limitations of this control.}
-The comparison has two important caveats.
-First, the control is \emph{not} parameter-matched: the standard Conv branch has 1.93M parameters (46\% more than DSConv's 1.32M), because the Conv2d($64 {\to} 1088, 3{\times}3$) creates a large, dense weight matrix whereas DSConv achieves the same channel expansion implicitly via 17 grid-sample operations on 64-channel features. This parameter mismatch cuts both ways: one might argue the control has more capacity and should perform better, but the large $3{\times}3$ kernel may also be harder to optimise and more prone to overfitting on 1{,}200 training images.
-Second, the standard Conv control's severe mIoU collapse ($-$4.1) may reflect an optimisation failure of its specific architecture (a very wide $3{\times}3$ kernel feeding into directional convolutions) rather than a general inability of standard convolutions to serve as a parallel branch. A fairer comparison would require multiple control designs (e.g., parameter-matched $1{\times}1$ projections, dilated convolutions, deformable convolution v2, or even a fixed-offset ``frozen snake'' branch) and multi-seed runs, none of which were performed.
+\paragraph{Parameter-matched branch comparison}
+To isolate the contribution of DSConv's geometric inductive bias, we compare three branch types---all sharing identical stage projections, output head, and ${\sim}$1.32M parameters---trained with 3 independent seeds each (Table~\ref{tab:branch_compare}):
+\begin{itemize}[nosep]
+    \item \textbf{DSConv}: Dynamic Snake Convolution with snake-shaped sampling (1.32M params);
+    \item \textbf{DCNv2}: Deformable Convolution v2 \citep{dai2017deformable} with learned general offsets (1.33M params);
+    \item \textbf{StdConv}: Standard convolution with no deformable sampling (1.32M params).
+\end{itemize}
+All three branches produce statistically indistinguishable results across every metric: mIoU$_{\text{fg}}$ ranges from 70.0$\pm$0.9 (DSConv) to 70.5$\pm$0.8 (DCNv2), with overlapping confidence intervals. Topology metrics (ConnR$_{\text{cr}}$, CompF1$_{\text{cr}}$, PathCont$_{\text{cr}}$) are likewise within noise. DSConv's snake-shaped sampling pattern provides no measurable advantage over general deformable convolution or even standard convolution when parameter-matched.
 
-With these caveats, the control provides only weak evidence:
-Standard Conv \emph{degrades} overall performance relative to vanilla SegFormer: mIoU$_{\text{fg}}$ drops from 70.3 to 66.2 ($-$4.1), with IoU$_{\text{sp}}$ falling sharply ($-$7.0).
-In contrast, DSConv (row~b) with fewer parameters maintains mIoU while improving boundary quality (BF1$_{\text{fg}}$ +2.0).
-However, for crack-specific topology: clDice$_{\text{cr}}$ is unchanged by DSConv (81.8$\to$81.8), and CompR$_{\text{cr}}$ increases similarly for both branches (+2.5 for standard Conv, +2.8 for DSConv), suggesting that the CompR$_{\text{cr}}$ gain is an effect of adding \emph{any} parallel branch rather than DSConv's deformable geometry specifically.
-We therefore cannot conclude from this single control that DSConv's advantage is due to its geometric inductive bias; the comparison shows only that this particular standard Conv architecture fails, while DSConv succeeds. More rigorous controls are needed to isolate the contribution of deformable sampling.
+This null result has an important implication: DTKD, not branch geometry, is the primary contributor to TopoDistill's performance. We retain DSConv in the default pipeline as a reasonable architectural choice but do not claim it as a contribution.
 
-\paragraph{(a)$\to$(b): Adding DSConv}
-The DSConv branch produces minimal mIoU change (+0.1) but improves boundary quality: BF1$_{\text{cr}}$ +1.0, BF1$_{\text{fg}}$ +2.0, and clDice$_{\text{fg}}$ +3.0.
-However, the clDice$_{\text{fg}}$ gain is driven \emph{entirely} by spalling (clDice$_{\text{sp}}$ ${\approx}$83.6$\to$89.6); crack-specific clDice$_{\text{cr}}$ is unchanged (81.8$\to$81.8).
-CompR$_{\text{cr}}$ increases by +2.8 (81.0$\to$83.8), but as noted above, a standard Conv branch achieves +2.5, limiting the evidence for DSConv's unique geometric contribution to crack component recall.
-DSConv's measurable crack-specific benefit is confined to modest boundary improvement (BF1$_{\text{cr}}$ +1.0); its stronger effects are on spalling metrics and overall boundary quality, which was not our initial design intent.
+\begin{table}[t]
+\centering
+\caption{Parameter-matched branch comparison (mean $\pm$ std, 3 seeds). All branches share identical stage projections and output head (${\sim}$1.32M params); they differ only in the convolution type. No significant differences are observed across any metric. All values in \%.}
+\label{tab:branch_compare}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lccccccc}
+\toprule
+Branch & Params & mIoU$_{\text{fg}}$ & BF1$_{\text{cr}}$ & clDice$_{\text{cr}}$ & ConnR$_{\text{cr}}$ & CompF1$_{\text{cr}}$ & PathC$_{\text{cr}}$ \\
+\midrule
+DSConv & 1.32M & 70.0\,$\pm$\,0.9 & 72.8\,$\pm$\,2.9 & 81.6\,$\pm$\,1.0 & 81.1\,$\pm$\,3.2 & 70.5\,$\pm$\,3.0 & 34.9\,$\pm$\,2.1 \\
+DCNv2 & 1.33M & 70.5\,$\pm$\,0.8 & 74.7\,$\pm$\,0.7 & 82.7\,$\pm$\,0.5 & 80.6\,$\pm$\,0.9 & 71.6\,$\pm$\,0.6 & 32.6\,$\pm$\,2.1 \\
+StdConv & 1.32M & 70.1\,$\pm$\,0.7 & 73.8\,$\pm$\,0.6 & 82.3\,$\pm$\,0.2 & 80.0\,$\pm$\,1.8 & 71.6\,$\pm$\,0.2 & 33.3\,$\pm$\,2.3 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \paragraph{(b$_1$)--(b$_2$) vs.\ (c): Single- vs.\ dual-teacher KD}
 To verify that both teachers are necessary, we train single-teacher KD variants with identical student settings as row~(c): row~(b$_1$) uses only Teacher~1 (task-specific) and row~(b$_2$) uses only Teacher~2 (foundation model), with the other teacher's weight set to zero.
-Neither single teacher matches the dual-teacher result: T1-only achieves 69.0\% mIoU$_{\text{fg}}$ and T2-only 69.2\%, both ${\sim}$3 points below dual-teacher DTKD (72.3\%) and even below the no-KD DSConv baseline (row~b, 70.4\%).
+Neither single teacher matches the dual-teacher result: T1-only achieves 69.0\% mIoU$_{\text{fg}}$ and T2-only 69.2\%, both ${\sim}$3 points below dual-teacher DTKD (72.3\%) and even below the no-KD baseline (row~b, 70.4\%).
 This indicates that a single teacher's soft labels, occupying 50\% of the training signal ($\alpha{=}0.5$), can introduce more noise than useful information when the teacher lacks complementary knowledge to counterbalance its biases.
 The two teachers nonetheless show complementary strengths: T2-only achieves substantially higher CompR$_{\text{fg}}$ (85.0 vs.\ T1-only's 81.0), reflecting SAM-LoRA's stronger component preservation, while both show similar IoU$_{\text{cr}}$ (${\sim}$56).
 Dual-teacher KD combines these complementary strengths, achieving the best mIoU$_{\text{fg}}$ and IoU$_{\text{sp}}$ while maintaining strong crack metrics.
@@ -524,10 +532,10 @@ Skeleton Recall Loss (SRL) \citep{kirchhoff2024skeleton} penalises low predicted
 where $p_{\text{crack}}(s) = \text{softmax}(\mathbf{z})_{\text{crack}}$ is the predicted crack probability at skeleton pixel $s$. When the ground-truth mask contains no crack pixels ($|\mathcal{S}|{=}0$), the SRL term is set to zero for that sample.
 We apply SRL only to the crack class (weight $\lambda_3 = 0.05$). For the 100-epoch DSCformer models in this table, SRL is activated at epoch 60; for the 50-epoch SAM-LoRA teacher, SRL is activated at epoch 20 (see Section~\ref{sec:implementation}).
 Rows (e)--(f) show the effect of adding SRL to the pipeline.
-Adding SRL to DSConv (row e) provides no crack improvement (IoU$_{\text{cr}}$ $-$0.1, BF1$_{\text{cr}}$ $-$0.3) and reduces component recall: CompR$_{\text{fg}}$ drops from 80.4 to 77.8 ($-$2.6), driven by CompR$_{\text{sp}}$ falling from 77.0 to 73.4 as SRL's crack-focused supervision fragments spalling components at ambiguous boundaries.
+Adding SRL to the branch model (row e) provides no crack improvement (IoU$_{\text{cr}}$ $-$0.1, BF1$_{\text{cr}}$ $-$0.3) and reduces component recall: CompR$_{\text{fg}}$ drops from 80.4 to 77.8 ($-$2.6), driven by CompR$_{\text{sp}}$ falling from 77.0 to 73.4 as SRL's crack-focused supervision fragments spalling components at ambiguous boundaries.
 Adding DTKD on top of SRL (row f) partially recovers component coverage (CompR$_{\text{fg}}$ 77.8$\to$80.6) but the resulting model (f, mIoU$_{\text{fg}}$ 71.2\%) underperforms the SRL-free pipeline (c, mIoU$_{\text{fg}}$ 72.3\%) by \textbf{$-$1.1}.
 This suggests an optimisation conflict between the SRL and KD objectives: the student learns better from teacher signals alone without the competing skeleton objective.
-Multi-seed experiments (Table~\ref{tab:multiseed}) further confirm that the SRL path is unstable (mIoU$_{\text{fg}}$ std 2.42 vs.\ 0.70 for DSConv-only and 0.52 for DTKD).
+Multi-seed experiments (Table~\ref{tab:multiseed}) further confirm that the SRL path is unstable (mIoU$_{\text{fg}}$ std 2.42 vs.\ 0.70 for branch-only and 0.52 for DTKD).
 
 \paragraph{Overall progression}
 From baseline (a) to the primary method TopoDistill (c) within this table, the cumulative improvement is +2.0 mIoU$_{\text{fg}}$, +2.0 BF1$_{\text{fg}}$, +3.7 clDice$_{\text{fg}}$, and +6.0 CompR$_{\text{fg}}$ (the +2.0 vs.\ +1.9 in Table~\ref{tab:main} reflects the different baseline seed). DSConv contributes boundary quality and spalling skeleton coverage; DTKD contributes pixel accuracy and crack-specific clDice$_{\text{cr}}$ (+1.5, from 81.8 to 83.3) on this split (see Table~\ref{tab:group_split} for an exploratory cluster-split comparison). The exploratory agreement-aware extension (g) adds modest boundary gains (+0.8 BF1$_{\text{cr}}$) that require multi-seed confirmation.
@@ -536,17 +544,17 @@ From baseline (a) to the primary method TopoDistill (c) within this table, the c
 Paired Wilcoxon signed-rank tests (DSConv-only vs.\ TopoDistill, 150 test images) show seven of ten per-class metrics reaching \emph{uncorrected} significance at $\alpha{=}0.05$: six favour DTKD---IoU$_{\text{cr}}$ ($p{=}0.008$), Dice$_{\text{cr}}$ ($p{=}0.007$), BF1$_{\text{cr}}$ ($p{=}0.046$), clDice$_{\text{cr}}$ ($p{<}0.001$), IoU$_{\text{sp}}$ ($p{=}0.016$), Dice$_{\text{sp}}$ ($p{=}0.016$)---while CompR$_{\text{cr}}$ decreases ($p{=}0.040$). After Holm--Bonferroni correction for 10 comparisons, only clDice$_{\text{cr}}$ ($p_{\text{adj}}{=}0.010$) survives; directional consistency is encouraging but per-class IoU gains are not confirmed after correction. Spalling sample sizes are small ($n{=}31$--40). Tier-stratified analysis shows the strongest effects on Hard images (IoU$_{\text{cr}}$ $p{=}0.003$, clDice$_{\text{cr}}$ $p{<}0.001$, uncorrected).
 
 \paragraph{Multi-seed training stability}
-To assess robustness to random initialisation, we train four key configurations---SegFormer-B2 (baseline), DSConv-only (row~b), DSConv+SRL, and TopoDistill (row~c, final model)---with three independent seeds (42, 123, 2024) and report mean $\pm$ standard deviation in Table~\ref{tab:multiseed}.
+To assess robustness to random initialisation, we train four key configurations---SegFormer-B2 (baseline), branch-only (row~b), branch+SRL, and TopoDistill (row~c, final model)---with three independent seeds (42, 123, 2024) and report mean $\pm$ standard deviation in Table~\ref{tab:multiseed}.
 
 \textbf{Caveat:} TopoDistill seeds fix both teacher checkpoints and vary only the student seed. The reported std (0.52) measures \emph{student variability with fixed teachers}, not end-to-end pipeline variability. Since Teacher~1 itself has high variability (std 2.42), full pipeline variability would likely be higher. A separate matched-checkpoint experiment (Table~\ref{tab:factorial}, Part~B) varies teacher checkpoints across seeds and confirms a robust +1.5 mIoU$_{\text{fg}}$ gain with 5--7$\times$ variance reduction.
 
 \begin{table}[t]
 \centering
-\caption{Multi-seed stability analysis (mean $\pm$ std over 3 seeds). DSConv-only = row~b; TopoDistill = row~c (final model, no SRL). All values in \%.}
+\caption{Multi-seed stability analysis (mean $\pm$ std over 3 seeds). Branch-only = row~b (DSConv branch); TopoDistill = row~c (final model, no SRL). All values in \%.}
 \label{tab:multiseed}
 \begin{tabular}{lcccc}
 \toprule
-Metric & SegFormer-B2 & DSConv-only & DSConv+SRL & TopoDistill \\
+Metric & SegFormer-B2 & Branch-only & Branch+SRL & TopoDistill \\
 \midrule
 mIoU$_{\text{fg}}$    & 69.2 $\pm$ 1.47 & 70.8 $\pm$ 0.70 & 67.9 $\pm$ 2.42 & \textbf{71.8 $\pm$ 0.52} \\
 IoU$_{\text{cr}}$     & 55.5 $\pm$ 2.08 & 57.1 $\pm$ 0.58 & 53.7 $\pm$ 3.89 & \textbf{58.5 $\pm$ 0.31} \\
@@ -559,11 +567,11 @@ CompR$_{\text{fg}}$   & 80.3 $\pm$ 2.13 & 80.4 $\pm$ 2.44 & 75.7 $\pm$ 3.68 & \t
 \end{table}
 
 DTKD achieves the highest or tied-highest mean on all six metrics and the lowest standard deviation on five of six.
-DSConv+SRL shows the highest variability (std 2.42) and its multi-seed mean (67.9\%) falls \emph{below} the SegFormer baseline (69.2\%), indicating that SRL's single-seed gains are not robust.
-TopoDistill's std (0.52) is ${\sim}$2.8$\times$ lower than the baseline (1.47), though this measures student variability with fixed teachers only. DSConv alone accounts for most of this reduction (std 0.70). The multi-seed means narrow the DTKD gap to 1.0 point (70.8\% vs.\ 71.8\%), more modest than the single-seed +1.9. Matched multi-seed controls (Table~\ref{tab:factorial}) that also vary teacher checkpoints confirm a robust +1.5 gain (71.7--71.9 vs.\ 70.3).
+Branch+SRL shows the highest variability (std 2.42) and its multi-seed mean (67.9\%) falls \emph{below} the SegFormer baseline (69.2\%), indicating that SRL's single-seed gains are not robust.
+TopoDistill's std (0.52) is ${\sim}$2.8$\times$ lower than the baseline (1.47), though this measures student variability with fixed teachers only. The branch alone accounts for most of this reduction (std 0.70). The multi-seed means narrow the DTKD gap to 1.0 point (70.8\% vs.\ 71.8\%), more modest than the single-seed +1.9. Matched multi-seed controls (Table~\ref{tab:factorial}) that also vary teacher checkpoints confirm a robust +1.5 gain (71.7--71.9 vs.\ 70.3).
 
 \paragraph{Per-tier breakdown}
-Table~\ref{tab:per_tier} reports per-image mean performance stratified by difficulty tier, comparing DSConv-only (row~b) and TopoDistill (row~c, final model) to isolate DTKD's contribution.
+Table~\ref{tab:per_tier} reports per-image mean performance stratified by difficulty tier, comparing the branch-only model (row~b) and TopoDistill (row~c, final model) to isolate DTKD's contribution.
 Note: per-tier values are \emph{macro-averaged} over images within each tier (each image contributes equally), whereas the global metrics in Table~\ref{tab:ablation} are computed on all test pixels pooled together (\emph{micro-average}). For images where a class is absent from the ground truth, the per-class IoU is undefined; we exclude such images from the per-class mean for that tier. These differences in aggregation explain the numerical gap between per-tier means and global values.
 DTKD improves mIoU$_{\text{fg}}$ consistently across all tiers (+3.4 Easy, +2.3 Medium, +2.3 Hard), with the strongest uncorrected $p$-values on Hard images (IoU$_{\text{cr}}$ $p{=}0.003$, clDice$_{\text{cr}}$ $p{<}0.001$), though these are uncorrected for multiple comparisons.
 The spalling improvements are largest on Easy (+6.2 IoU$_{\text{sp}}$, $p{=}0.035$) where the SAM-LoRA teacher's global context helps distinguish large spalling regions.
@@ -603,7 +611,7 @@ This precision bottleneck motivates exploring loss functions that penalise false
 
 \paragraph{Strategy variants}
 Table~\ref{tab:strategy} summarises six training strategies applied on top of the DTKD pipeline (row~c), targeting crack precision improvement through loss modification or sampling adjustment.
-All variants use the same SegFormer-DSConv architecture with DTKD; they differ only in the segmentation loss or sampling strategy.
+All variants use the same branch-augmented SegFormer architecture with DTKD; they differ only in the segmentation loss or sampling strategy.
 Tversky loss \citep{salehi2017tversky} generalises Dice by introducing asymmetric FP/FN weights ($\alpha{>}0.5$ penalises false positives more heavily); WABL (Width-Aware Boundary Loss) applies an adaptive CE penalty at thin-crack boundary pixels where width falls below a threshold; Boundary Dice restricts the Dice computation to a dilated boundary region around ground-truth contours.
 
 \begin{table*}[t]
@@ -666,7 +674,7 @@ The student substantially inherits this spalling component recall advantage (Com
 The student surpassing both teachers is consistent with multi-teacher distillation findings in the literature \citep{you2017learning}, where combining complementary knowledge sources provides regularisation benefits beyond what any single teacher offers. Unlike classical ``born-again'' networks \citep{furlanello2018born} where student and teacher share the same architecture, our student combines DSConv's geometric inductive bias (shared with Teacher~1) with Teacher~2's foundation-model representations. Matched-checkpoint controls show that heterogeneous teachers outperform duplicated ($+$2.5) and T1-only ($+$2.3) KD, while same-architecture teacher pairs ($=$ baseline) provide no benefit (Table~\ref{tab:factorial}). Multi-seed matched controls confirm that teacher diversity produces a net gain (+1.5 mIoU$_{\text{fg}}$ over the No-KD baseline, Table~\ref{tab:factorial}), establishing architectural complementarity as the primary mechanism behind DTKD's improvement.
 
 \paragraph{Factorial analysis and DTKD controls}
-To isolate the mechanisms behind DTKD's gains, we conduct a $2{\times}2$ factorial analysis crossing backbone (SegFormer vs.\ DSConv) with DTKD, along with controls for teacher diversity and soft-target regularisation (Table~\ref{tab:factorial}).
+To isolate the mechanisms behind DTKD's gains, we conduct a $2{\times}2$ factorial analysis crossing backbone (SegFormer vs.\ SegFormer+branch) with DTKD, along with controls for teacher diversity and soft-target regularisation (Table~\ref{tab:factorial}).
 
 \begin{table}[t]
 \centering
@@ -675,13 +683,13 @@ To isolate the mechanisms behind DTKD's gains, we conduct a $2{\times}2$ factori
 \vspace{2pt}
 \begin{subtable}{\columnwidth}
 \centering
-\caption*{\textit{Part A: $2{\times}2$ Factorial (DSConv $\times$ DTKD)}}
+\caption*{\textit{Part A: $2{\times}2$ Factorial (Branch $\times$ DTKD)}}
 \begin{tabular}{lccc}
 \toprule
 Backbone & No DTKD & DTKD & $\Delta$ \\
 \midrule
 SegFormer & 70.3 (a) & 69.6 & $-$0.7 \\
-DSConv & 70.4 (b) & \textbf{72.3} (c) & +1.9 \\
++Branch & 70.4 (b) & \textbf{72.3} (c) & +1.9 \\
 \bottomrule
 \end{tabular}
 \end{subtable}
@@ -710,8 +718,8 @@ Label smoothing & 68.7 & 55.4 & 81.9 & 61.3 & 84.5 & 80.6 \\
 \end{subtable}
 \end{table}
 
-\textit{DSConv$\times$DTKD interaction.}
-The factorial analysis reveals a synergistic, not additive, interaction between DSConv and DTKD. DTKD improves mIoU$_{\text{fg}}$ by +1.9 when combined with DSConv but \emph{degrades} performance by $-$0.7 on the plain SegFormer backbone. This suggests that DSConv's geometric inductive bias---shared with Teacher~1's architecture---makes the student better equipped to absorb teacher knowledge. Without this architectural affinity, the student cannot effectively leverage the distillation signal.
+\textit{Branch$\times$DTKD interaction.}
+The factorial analysis reveals an interaction between the parallel branch and DTKD. DTKD improves mIoU$_{\text{fg}}$ by +1.9 when combined with the branch but \emph{degrades} performance by $-$0.7 on the plain SegFormer backbone. Since the branch type itself does not matter (Table~\ref{tab:branch_compare}), this interaction likely reflects \emph{architectural affinity} with Teacher~1 (which also has a parallel branch), rather than DSConv's specific geometric bias. Without a matching branch, the student cannot effectively leverage Teacher~1's distillation signal.
 
 \textit{Student surpasses teacher ensemble.}
 The DTKD student (72.3\%) surpasses the best direct teacher ensemble (70.7\%, equal logit averaging) by +1.6 mIoU$_{\text{fg}}$, indicating that the student benefits from more than just the averaged teacher signal. However, this comparison involves different training histories and should not be interpreted as a clean ablation of distillation vs.\ ensembling.
@@ -723,7 +731,7 @@ In matched multi-seed experiments (3 seeds per condition, same T1 checkpoint per
 Multi-seed matched controls confirm that heterogeneous KD produces a robust net gain over the No-KD baseline: +1.5 mIoU$_{\text{fg}}$ (71.7--71.9 vs.\ 70.3). Notably, heterogeneous teachers also achieve 5--7$\times$ lower variance (std 0.1--0.2 vs.\ 1.0), indicating that dual-teacher distillation provides strong regularisation. A small residual gap remains between the matched heterogeneous mean (71.7--71.9) and the full DTKD model (72.3, single seed) of ${\sim}$0.4--0.6, attributable to seed variation rather than a systematic mechanism difference.
 
 \textit{Not soft-target regularisation.}
-Label smoothing (68.7\%) underperforms the DSConv-only baseline (70.4\%) by $-$1.7, ruling out generic soft-target regularisation as the mechanism behind DTKD's improvement. This is consistent with \citet{yuan2020labelsmooth}'s finding that label smoothing acts as a form of self-training regularisation rather than knowledge transfer; the benefit of DTKD derives from actual teacher knowledge, not from softer training signals per se.
+Label smoothing (68.7\%) underperforms the branch-only baseline (70.4\%) by $-$1.7, ruling out generic soft-target regularisation as the mechanism behind DTKD's improvement. This is consistent with \citet{yuan2020labelsmooth}'s finding that label smoothing acts as a form of self-training regularisation rather than knowledge transfer; the benefit of DTKD derives from actual teacher knowledge, not from softer training signals per se.
 
 \paragraph{Teacher ensemble construction}
 Table~\ref{tab:kd_weights} compares the per-class probability-space weighting (Eq.~\ref{eq:dtkd_ensemble_perclass}, used in all reported experiments) with equal-weight logit averaging (Eq.~\ref{eq:dtkd_ensemble_logit}).
@@ -744,12 +752,12 @@ Per-class & \textbf{72.3} & \textbf{58.5} & \textbf{86.2} & 70.6 & \textbf{86.4}
 \end{table}
 
 \paragraph{Teacher selection ablation}
-Replacing Teacher~1 (DSConv+SRL) with the SRL-free DSConv-only variant degrades the student by $-$1.2 mIoU$_{\text{fg}}$ (71.1\% vs.\ 72.3\%), concentrated in spalling (IoU$_{\text{sp}}$ $-$2.4). This suggests that SRL-trained teachers produce more effective soft supervision despite their own component coverage regression (single comparison; multi-seed validation needed).
+Replacing Teacher~1 (branch+SRL) with the SRL-free branch-only variant degrades the student by $-$1.2 mIoU$_{\text{fg}}$ (71.1\% vs.\ 72.3\%), concentrated in spalling (IoU$_{\text{sp}}$ $-$2.4). This suggests that SRL-trained teachers produce more effective soft supervision despite their own component coverage regression (single comparison; multi-seed validation needed).
 
 \subsection{Qualitative results}
 
-Fig.~\ref{fig:qualitative} presents representative predictions across all three difficulty tiers, comparing SegFormer-B2, DSConv+SRL (Teacher~1), and TopoDistill.
-Per-image IoU scores are annotated above each prediction. On these selected samples, SegFormer-B2 tends toward over-segmentation, DSConv+SRL shows improved crack localisation, and TopoDistill generally achieves higher per-image IoU, though the visual differences vary by sample.
+Fig.~\ref{fig:qualitative} presents representative predictions across all three difficulty tiers, comparing SegFormer-B2, the branch+SRL teacher (Teacher~1), and TopoDistill.
+Per-image IoU scores are annotated above each prediction. On these selected samples, SegFormer-B2 tends toward over-segmentation, the branch+SRL teacher shows improved crack localisation, and TopoDistill generally achieves higher per-image IoU, though the visual differences vary by sample.
 
 \begin{figure*}[t]
     \centering
@@ -786,7 +794,7 @@ G0 + G1 + SAM2 + G0-s123 + TTA & 4 & \textbf{72.5} & \textbf{59.8} & \textbf{77.
 
 Three observations emerge.
 First, cross-architecture ensemble (G0~+~SAM2) yields larger gains than same-architecture multi-seed ensemble (G0~+~G0-s2024): +0.56 vs.\ +0.10 mIoU$_{\text{fg}}$ over the single model---a 5$\times$ difference. This confirms that DSCformerDam and SAM-LoRA produce structurally different error patterns, establishing a necessary condition for DTKD: the two teachers provide genuinely complementary supervision signals.
-Second, the best oracle ensemble achieves +0.9 mIoU$_{\text{fg}}$ over G0 alone (72.4\% vs.\ 71.5\%). TopoDistill's DTKD achieves +1.9 over the DSConv-only baseline (72.3\% vs.\ 70.4\%, Table~\ref{tab:ablation}) with a \emph{single model} at inference. While the comparison spans different evaluation passes (see caption), it suggests that DTKD can capture cross-architecture complementarity without multi-model inference cost.
+Second, the best oracle ensemble achieves +0.9 mIoU$_{\text{fg}}$ over G0 alone (72.4\% vs.\ 71.5\%). TopoDistill's DTKD achieves +1.9 over the branch-only baseline (72.3\% vs.\ 70.4\%, Table~\ref{tab:ablation}) with a \emph{single model} at inference. While the comparison spans different evaluation passes (see caption), it suggests that DTKD can capture cross-architecture complementarity without multi-model inference cost.
 Third, BF1$_{\text{cr}}$ and clDice$_{\text{cr}}$ benefit most from cross-architecture fusion (+1.7 and +1.9 over single G0), indicating that the complementary knowledge SAM contributes is primarily boundary precision and topology---consistent with SAM's design emphasis on mask boundary quality.
 
 \subsection{Cross-dataset evaluation}
@@ -819,18 +827,18 @@ TopoDistill + TTA$^*$ & 18.6 & 8.4 & 28.9 & 45.3 & 69.0 \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:cross_dataset} reveals a large domain gap. SegFormer-B2 and Mask2Former fail almost completely (mIoU$_{\text{fg}}$ $<$2.5\%, likely class collapse). All DSConv-equipped variants substantially outperform vanilla baselines (14.9--18.7\% mIoU$_{\text{fg}}$). TopoDistill achieves the highest mIoU$_{\text{fg}}$ (18.7\%), while DSConv+SRL achieves the highest BF1$_{\text{fg}}$ (49.6\%) and clDice$_{\text{fg}}$ (72.1\%). The progression from DSConv-only (14.9\%) to DSConv+SRL (17.1\%) to TopoDistill (18.7\%) suggests cumulative benefit, though with important caveats below.
+Table~\ref{tab:cross_dataset} reveals a large domain gap. SegFormer-B2 and Mask2Former fail almost completely (mIoU$_{\text{fg}}$ $<$2.5\%, likely class collapse). All branch-equipped variants substantially outperform vanilla baselines (14.9--18.7\% mIoU$_{\text{fg}}$). TopoDistill achieves the highest mIoU$_{\text{fg}}$ (18.7\%), while the branch+SRL teacher achieves the highest BF1$_{\text{fg}}$ (49.6\%) and clDice$_{\text{fg}}$ (72.1\%). The progression from branch-only (14.9\%) to branch+SRL (17.1\%) to TopoDistill (18.7\%) suggests cumulative benefit, though with important caveats below.
 
 \textbf{Caveats.}
 This decomposition is \emph{not} a clean ablation:
-(i)~TopoDistill simultaneously adds DTKD and removes student SRL, so the +1.6 over DSConv+SRL conflates both changes;
+(i)~TopoDistill simultaneously adds DTKD and removes student SRL, so the +1.6 over branch+SRL conflates both changes;
 (ii)~SegFormer-B2's near-zero transfer likely reflects class collapse, inflating all subsequent gaps;
-(iii)~DSConv modifies only the crack channel, yet the largest gains appear in spalling IoU, suggesting indirect mechanisms;
+(iii)~the branch modifies only the crack channel, yet the largest gains appear in spalling IoU, suggesting indirect mechanisms;
 (iv)~all results are single-seed and conflate domain shift with open-set rejection of five unseen classes (see above), and the $2{\times}$ downsampling may delete fine crack annotations.
-The DSConv-equipped architecture is \emph{associated with} better cross-domain transfer, but individual component contributions cannot be isolated.
+The branch-equipped architecture is \emph{associated with} better cross-domain transfer, but individual component contributions cannot be isolated. Since branch type does not affect in-domain metrics (Table~\ref{tab:branch_compare}), the cross-dataset advantage likely stems from additional capacity rather than geometric bias.
 TTA does not improve cross-dataset performance (18.7\%$\to$18.6\%).
 
-Fig.~\ref{fig:cross_dataset} shows representative S2DS predictions. SegFormer-B2 and Mask2Former produce largely incorrect segmentations. DSConv+SRL and TopoDistill localise defect regions despite the domain shift but exhibit visible over-prediction, particularly at region boundaries---consistent with the limited mIoU$_{\text{fg}}$ (${\leq}$18.7\%) reported above.
+Fig.~\ref{fig:cross_dataset} shows representative S2DS predictions. SegFormer-B2 and Mask2Former produce largely incorrect segmentations. The branch+SRL teacher and TopoDistill localise defect regions despite the domain shift but exhibit visible over-prediction, particularly at region boundaries---consistent with the limited mIoU$_{\text{fg}}$ (${\leq}$18.7\%) reported above.
 
 \begin{figure}[t]
     \centering
@@ -844,7 +852,7 @@ Fig.~\ref{fig:cross_dataset} shows representative S2DS predictions. SegFormer-B2
 \label{sec:discussion}
 
 \paragraph{DTKD: benefits and limitations}
-On the original split, DTKD adds +1.9 mIoU$_{\text{fg}}$ over DSConv alone, though multi-seed means narrow this to +1.0 (70.8\% vs.\ 71.8\%, Table~\ref{tab:multiseed}). Matched multi-seed controls confirm a robust +1.5 gain with 5--7$\times$ variance reduction (Table~\ref{tab:factorial}). A $2{\times}2$ factorial analysis reveals a synergistic interaction: DTKD helps only with DSConv (+1.9) but degrades the plain SegFormer ($-$0.7), and the student surpasses the best teacher ensemble by +1.6 (Table~\ref{tab:factorial}). Cross-seed stability improves modestly (std 0.70$\to$0.52, three seeds). The gain does not replicate on the cluster split ($-$0.6, Table~\ref{tab:group_split}), though this is confounded by halved training data and different test composition. On S2DS, TopoDistill's +1.6 over DSConv+SRL conflates DTKD with the removal of student SRL (Section~\ref{sec:cross_dataset}).
+On the original split, DTKD adds +1.9 mIoU$_{\text{fg}}$ over the branch-only baseline, though multi-seed means narrow this to +1.0 (70.8\% vs.\ 71.8\%, Table~\ref{tab:multiseed}). Matched multi-seed controls confirm a robust +1.5 gain with 5--7$\times$ variance reduction (Table~\ref{tab:factorial}). A $2{\times}2$ factorial analysis reveals an interaction: DTKD helps only with the parallel branch (+1.9) but degrades the plain SegFormer ($-$0.7), likely due to architectural affinity with Teacher~1 rather than branch geometry (Table~\ref{tab:branch_compare}). The student surpasses the best teacher ensemble by +1.6 (Table~\ref{tab:factorial}). Cross-seed stability improves modestly (std 0.70$\to$0.52, three seeds). The gain does not replicate on the cluster split ($-$0.6, Table~\ref{tab:group_split}), though this is confounded by halved training data and different test composition. On S2DS, TopoDistill's +1.6 over the branch+SRL teacher conflates DTKD with the removal of student SRL (Section~\ref{sec:cross_dataset}).
 
 \paragraph{DTKD hyperparameter sensitivity check}
 Table~\ref{tab:hyper} reports a star search over temperature $\tau \in \{2, 4, 6\}$ and KD weight $\alpha \in \{0.3, 0.5, 0.7\}$ (single run per setting, different seeds). Excluding $\tau{=}2$ ($-$1.4\%, consistent with overly sharp teacher signals), all settings fall within 0.9\% of the default---well within seed noise (std $\approx$ 0.5, Table~\ref{tab:multiseed}). We retain $\tau{=}4$, $\alpha{=}0.5$ without claiming optimality.
@@ -882,7 +890,7 @@ The ensemble analysis (Section~\ref{sec:ensemble}) confirms that cross-architect
 The persistent tradeoff across all loss-based strategies (Section~\ref{sec:strategy}) arises from shared geometric boundaries between defect types. Pixel-level loss modification alone cannot resolve the crack precision bottleneck without collateral damage to spalling, suggesting that sampling-based, architectural, or post-processing approaches (e.g., class-specific CRF refinement) are more promising.
 
 \paragraph{Practical implications}
-The student has identical inference cost to SegFormer-DSConv (51 FPS, 28.7M parameters), with teachers used only during training. DTKD improves all difficulty tiers, with the largest gain on Easy (+3.4 mIoU$_{\text{fg}}$).
+The student has identical inference cost to the branch-augmented SegFormer (51 FPS, 28.7M parameters), with teachers used only during training. DTKD improves all difficulty tiers, with the largest gain on Easy (+3.4 mIoU$_{\text{fg}}$).
 
 \paragraph{Failure modes and limitations}
 The model underperforms on (i)~thin hairline cracks (${<}$2 pixels wide) and (ii)~co-occurring crack--spalling regions where it over-predicts one class at the expense of the other.
@@ -891,7 +899,7 @@ DamSegment comprises images from a single dam site with patch-level splitting; s
 \paragraph{Caveats on the cluster split}
 The cluster split differs substantially from the original in size and composition: 631/369/500 (train/val/test) with imbalanced tiers (21/41/38\% Easy/Medium/Hard), vs.\ the original 1{,}200/150/150 with balanced tiers. Five of six models score \emph{higher} on the cluster split despite the smaller training set; the reason is unknown and we did not compute per-split diagnostics (pixel prevalence, component statistics, feature similarity). The two test sets are therefore \emph{not directly comparable}.
 
-Models do not collapse under this split ($\pm$3 points), but DTKD's ranking advantage is not preserved: DSConv (73.3), DSConv+SRL (73.1), and SegFormer-B2 (73.0) all surpass TopoDistill (72.7). This reversal is confounded by the halved training set and different test composition, so it cannot be attributed solely to leakage correction—nor can it rule out leakage on the original split.
+Models do not collapse under this split ($\pm$3 points), but DTKD's ranking advantage is not preserved: the branch-only model (73.3), branch+SRL (73.1), and SegFormer-B2 (73.0) all surpass TopoDistill (72.7). This reversal is confounded by the halved training set and different test composition, so it cannot be attributed solely to leakage correction—nor can it rule out leakage on the original split.
 
 This split addresses only \emph{visual} near-duplicates; patch coordinates were unavailable, so spatial leakage remains possible. A definitive assessment would require coordinate-based grouping, matched split ratios, and per-split diagnostics. This experiment is a \emph{partial sanity check}, not a leakage proof.
 
@@ -916,24 +924,24 @@ DTKD (ours)    & \textbf{72.3} & 72.7 & 75.6 & 76.4 & \textbf{83.3} & 84.0 \\
 \end{tabular}
 \end{table}
 \paragraph{Test-set exposure during development}
-Test-set metrics were observed during development across ablation rows; small incremental gains (mIoU$_{\text{fg}}$ +0.1--0.2) should be interpreted as upper bounds. All decisions were finalised before the cluster split was constructed. The multi-seed analysis (Table~\ref{tab:multiseed}) suggests DTKD's contribution is more modest than the single-seed +1.9: mean mIoU$_{\text{fg}}$ differs by only 1.0 point (DSConv 70.8\% vs.\ TopoDistill 71.8\%, std 0.70 vs.\ 0.52). A fully rigorous protocol would require locking decisions on the validation set alone; this limitation is common in fixed-benchmark studies.
+Test-set metrics were observed during development across ablation rows; small incremental gains (mIoU$_{\text{fg}}$ +0.1--0.2) should be interpreted as upper bounds. All decisions were finalised before the cluster split was constructed. The multi-seed analysis (Table~\ref{tab:multiseed}) suggests DTKD's contribution is more modest than the single-seed +1.9: mean mIoU$_{\text{fg}}$ differs by only 1.0 point (branch-only 70.8\% vs.\ TopoDistill 71.8\%, std 0.70 vs.\ 0.52). A fully rigorous protocol would require locking decisions on the validation set alone; this limitation is common in fixed-benchmark studies.
 Crack IoU remains challenging (${\sim}$59\%) due to extreme class imbalance.
 
-\paragraph{DSConv: boundary improvement without crack topology gain}
-clDice$_{\text{cr}}$ is unchanged by DSConv (81.8$\to$81.8), and the CompR$_{\text{cr}}$ gain (+2.8) is comparable to the standard Conv control (+2.5). DSConv's measurable contributions are boundary quality (BF1$_{\text{fg}}$ +2.0), spalling skeleton coverage (clDice$_{\text{sp}}$ +6.0), and cross-seed stability (std 1.47$\to$0.70). The spalling benefit is unexpected since the branch targets only the crack channel; we hypothesise indirect improvement via shared encoder gradient flow. Note that clDice was designed for tubular structures; for area-type spalling, the skeleton is less semantically meaningful, so the clDice$_{\text{sp}}$ improvement reflects region shape coverage rather than centreline preservation.
+\paragraph{Branch geometry: a null result}
+Parameter-matched controls (Table~\ref{tab:branch_compare}) show that DSConv's snake-shaped sampling provides no measurable advantage over DCNv2 or standard convolution across segmentation metrics (mIoU$_{\text{fg}}$, BF1$_{\text{cr}}$, clDice$_{\text{cr}}$) and topology metrics (ConnR$_{\text{cr}}$, CompF1$_{\text{cr}}$, PathCont$_{\text{cr}}$). All three branches produce statistically indistinguishable results with ${\sim}$1.32M parameters and 3 seeds. This null result suggests that the parallel branch provides useful additional capacity for crack feature extraction, but the specific geometric inductive bias (snake-shaped vs.\ general deformable vs.\ standard) does not matter on this dataset. Possible explanations include: (i)~DamSegment's cracks may not be sufficiently elongated to benefit from directional sampling; (ii)~the SegFormer backbone already captures sufficient multi-scale context; or (iii)~1{,}200 training images may be insufficient for the deformable sampling to learn meaningful crack-specific offsets. This finding strengthens the case for DTKD as the primary contribution.
 
-\paragraph{Topology evaluation limitations}
-clDice and CompR have complementary blind spots: clDice is insensitive to component-level topology, while CompR does not penalise fragmentation or merging (Section~\ref{sec:experiments}). True connectivity metrics such as the Crack Topology Score \citep{joo2026cts} or component F1 were not computed. The CompR threshold (50\%) is a single operating point, and multi-seed per-class breakdowns were not reported, limiting verification of the crack-specific null result across seeds.
+\paragraph{Topology evaluation}
+We report component-level topology metrics (CompF1, PathCont) in addition to clDice and CompR. The parameter-matched branch comparison (Table~\ref{tab:branch_compare}) includes these metrics and confirms the null result across all topology measures. The CompR threshold (50\%) is a single operating point. True connectivity metrics such as the Crack Topology Score \citep{joo2026cts} were not computed.
 
 % ===========================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 
-We presented TopoDistill, a segmentation framework for concrete dam defects that combines Dynamic Snake Convolution with dual-teacher knowledge distillation (DTKD).
+We presented TopoDistill, a segmentation framework for concrete dam defects that combines a parallel feature-extraction branch with dual-teacher knowledge distillation (DTKD).
 On DamSegment, TopoDistill achieves 72.3\% mIoU$_{\text{fg}}$ at 51 FPS with only 1.32M parameter overhead and no additional inference cost from distillation.
-DSConv improves foreground boundary quality (BF1$_{\text{fg}}$ +2.0) and cross-seed stability (std 1.47$\to$0.70); DTKD adds +1.9 mIoU$_{\text{fg}}$. Multi-seed matched controls confirm +1.5 mIoU$_{\text{fg}}$ net gain and 5--7$\times$ variance reduction from teacher diversity (Section~\ref{sec:ablation}).
-In zero-shot cross-dataset transfer, DSConv-equipped models substantially outperform vanilla baselines.
-Limitations discussed in Section~\ref{sec:discussion} include the absence of stricter component-level crack topology metrics (e.g., CTS, component F1), single-run SRL ablations, confounds in the cross-dataset decomposition, and the exploratory nature of the cluster-split analysis.
+DTKD is the primary contributor, adding +1.9 mIoU$_{\text{fg}}$; multi-seed matched controls confirm +1.5 mIoU$_{\text{fg}}$ net gain and 5--7$\times$ variance reduction from teacher diversity (Section~\ref{sec:ablation}).
+A parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard Conv, 3 seeds each) shows no significant difference, establishing that the branch's geometric inductive bias does not matter on this dataset.
+Limitations discussed in Section~\ref{sec:discussion} include single-run SRL ablations, confounds in the cross-dataset decomposition, and the exploratory nature of the cluster-split analysis.
 
 \section*{Data availability}
 
