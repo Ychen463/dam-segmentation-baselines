@@ -1,0 +1,34 @@
+run: dcnv2_ctrl_s2024
+pretrained: nvidia/segformer-b2-finetuned-ade-512-512  img_size: 512  batch: 4  grad_accum: 1  epochs: 100  lr: 6e-05  warmup: 5
+difficulty: alpha=1.0 beta=0.5 gamma=0.3 delta=0.3 ema=0.9 tau=0.5
+bonuses: spalling=0.3 late_hard_crack=0.4
+ablation: dynamic_difficulty=False class_sampling_bonus=False class_loss_schedule=False boundary_loss=False tversky_loss=False
+new switches: soft_curriculum=False softmax_sampling=False dynamic_loss_reweight=False (lambda=0.5) soft_boundary=False
+cldice: use=False weight=0.15 start_epoch=40 iters=7
+srl: use=False
+loss: ce_w=0.5 dice_w=0.5 tversky_alpha=0.3 tversky_beta=0.7
+best epoch: 55
+best val mIoU_fg: 0.6899367923770336
+test set metrics:
+  IoU_background: 0.9762132991191158
+  IoU_crack: 0.5729398411605552
+  IoU_spalling: 0.8459768901481741
+  Dice_background: 0.9879634951897718
+  Dice_crack: 0.7284955548431218
+  Dice_spalling: 0.916562817945428
+  mIoU_fg: 0.7094583656543647
+  mIoU_all: 0.7983766768092817
+  pixel_acc: 0.977007064819336
+  BF1_crack: 0.7548862169883397
+  BF1_spalling: 0.661798215037497
+  BF1_fg_mean: 0.7083422160129184
+  clDice_crack: 0.8321897910139369
+  clDice_spalling: 0.869667394516978
+  clDice_fg_mean: 0.8509285927654575
+  ConnR_crack: 0.8156752474927322
+  ConnR_spalling: 0.8378378378378378
+  ConnR_fg_mean: 0.826756542665285
+confusion matrix (rows=gt, cols=pred):
+[[36819714   523065    37689]
+ [  290599  1100940     1871]
+ [   45807     5088   496827]]
