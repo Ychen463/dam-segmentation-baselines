@@ -1,10 +1,16 @@
 % ===========================================================================
-% HeteroDistill: Crack and Spalling Segmentation in Concrete Dams via
-% Heterogeneous Dual-Teacher Knowledge Distillation
+% HeteroDistill: Automated Crack and Spalling Segmentation for Concrete
+% Dam Inspection via Heterogeneous Dual-Teacher Distillation
 % ===========================================================================
 % Target: Automation in Construction / Engineering Structures / CSCEE
 % ===========================================================================
 \documentclass[review,authoryear]{elsarticle}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{textcomp}
+\input{glyphtounicode}
+\pdfgentounicode=1
 
 \usepackage{graphicx}
 \usepackage{amsmath}
@@ -24,7 +30,7 @@
 
 \begin{frontmatter}
 
-\title{HeteroDistill: Crack and Spalling Segmentation in Concrete Dams via Heterogeneous Dual-Teacher Knowledge Distillation}
+\title{HeteroDistill: Automated Crack and Spalling Segmentation for Concrete Dam Inspection via Heterogeneous Dual-Teacher Distillation}
 
 \author[inst1]{Yanlin Chen\corref{cor1}}
 \cortext[cor1]{Corresponding author.}
@@ -41,8 +47,9 @@
 Automated semantic segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring, yet combining task-specific models with foundation models remains underexplored for infrastructure defects.
 We propose \textbf{HeteroDistill}, a framework that augments a SegFormer-B2 backbone with \emph{Heterogeneous Dual-Teacher Knowledge Distillation} (DTKD), which transfers complementary knowledge from a task-specific teacher and a foundation-model teacher (SAM-LoRA) at zero additional inference cost.
 On the \textbf{DamSegment} dataset \citep{damsegment2026} (1{,}500 images, 3~classes), HeteroDistill achieves 72.2--72.3\% foreground mIoU (depending on teacher-ensemble construction), with DTKD contributing +1.8--1.9 mIoU$_{\text{fg}}$ and the student surpassing the evaluated direct teacher ensemble by +1.5--1.6.
-Multi-seed matched controls (5 conditions $\times$ 3 seeds) confirm that heterogeneous teachers produce a +1.5 mIoU$_{\text{fg}}$ gain with 5--7$\times$ variance reduction, while single-teacher KD provides no reliable benefit---supporting \emph{teacher diversity} as the main contributor under the evaluated settings.
+Multi-seed matched controls (5 conditions $\times$ 3 seeds) confirm that heterogeneous teachers produce a +1.5 mIoU$_{\text{fg}}$ gain with 5--7$\times$ variance reduction, while single-teacher KD provides no reliable benefit---consistent with \emph{teacher diversity} being a key factor under the evaluated dam inspection setting.
 We additionally investigate Dynamic Snake Convolution as a parallel crack-enhancement branch but find, through parameter-matched controls (DSConv vs.\ DCNv2 vs.\ standard convolution, 3 seeds each), that the geometric inductive bias provides no measurable benefit---a negative result relevant to the crack segmentation community.
+The resulting lightweight student model (51 FPS, 28.7M parameters) is intended as the vision module in automated dam inspection workflows, where segmented masks support defect-area estimation, component retrieval, continuity assessment, and engineer review.
 Limitations and caveats are discussed in detail, including single-run SRL ablations and confounds in cross-dataset decomposition.
 \end{abstract}
 
@@ -78,7 +85,7 @@ We evaluate on the semantic segmentation subset of the DamSegment dataset \citep
 Our contributions are:
 \begin{enumerate}
     \item \emph{Heterogeneous dual-teacher knowledge distillation} (DTKD) that combines a task-specific teacher with a foundation-model teacher at zero inference overhead. DTKD adds +1.8--1.9 mIoU$_{\text{fg}}$ and the student surpasses the evaluated direct teacher ensemble by +1.5--1.6. Multi-seed matched controls (5 conditions $\times$ 3 seeds) confirm +1.5 mIoU$_{\text{fg}}$ net gain with 5--7$\times$ variance reduction, supporting teacher diversity as a key contributor (Section~\ref{sec:ablation}).
-    \item A \emph{negative result on geometric inductive bias}: parameter-matched comparison of Dynamic Snake Convolution, DCNv2, and standard convolution (3 seeds each, ${\sim}$1.32M parameters) shows no measurable difference across segmentation and topology metrics (all mean $\pm$ std ranges overlap), indicating that snake-shaped sampling does not help crack segmentation on this dataset (Section~\ref{sec:ablation}). Limitations are discussed in Sections~\ref{sec:ablation}--\ref{sec:discussion}.
+    \item A \emph{negative result on geometric inductive bias}: parameter-matched comparison of Dynamic Snake Convolution, DCNv2, and standard convolution (3 seeds each, ${\sim}$1.32M parameters) shows no measurable difference across segmentation and topology metrics (all mean $\pm$ std ranges overlap), indicating that snake-shaped sampling does not provide measurable benefit under the evaluated setting (Section~\ref{sec:ablation}). Limitations are discussed in Sections~\ref{sec:ablation}--\ref{sec:discussion}.
     \item A single-run observation that SRL may play an asymmetric role: SRL-trained teachers produce better students (+1.2 mIoU$_{\text{fg}}$), while adding SRL to student training under DTKD reduces performance ($-$1.1). Multi-seed confirmation is needed (Section~\ref{sec:srl}).
     \item A comprehensive evaluation comprising six baselines (including SAM-LoRA and DINOv2-LoRA), per-tier difficulty analysis, multi-seed stability, feature-cluster split sanity check, and zero-shot cross-dataset transfer (DamSegment$\to$S2DS). Under the evaluated configurations, task-specific design with knowledge distillation outperforms direct foundation-model fine-tuning.
 \end{enumerate}
@@ -99,7 +106,7 @@ Universal architectures such as Mask2Former \citep{cheng2022mask2former} further
 
 Applied to dam inspection specifically, \citet{arafin2024concrete} performed multi-class concrete defect segmentation using DeepLabV3+, while \citet{li2024dam} proposed a lightweight CNN-Transformer hybrid for dam crack patrol inspection.
 \citet{chen2024damsurvey} surveyed visual perception methods for intelligent dam inspection, identifying limited dataset scale and poor topology preservation as key open challenges.
-More recently, CCT~Net \citep{gao2026cctnet} combined CNN and Transformer branches for dam surface crack segmentation, achieving 88.7\% mIoU on a custom single-class dataset, though it does not address multi-class segmentation or topology preservation.
+More recently, CCT~Net \citep{ling2025cctnet} combined CNN and Transformer branches for dam surface crack segmentation, achieving 88.7\% mIoU on a custom single-class dataset, though it does not address multi-class segmentation or topology preservation.
 
 \subsection{Topology-aware segmentation}
 \label{sec:related:topology}
@@ -130,10 +137,10 @@ Knowledge distillation (KD) \citep{hinton2015distilling} transfers knowledge fro
 In semantic segmentation, structured KD approaches \citep{liu2019structured,wang2020intra} distil spatial relationships rather than just per-pixel logits.
 Multi-teacher distillation \citep{you2017learning} combines knowledge from multiple specialised teachers, but typically uses uniform teacher weighting across all classes.
 \citet{zhang2022camkd} proposed confidence-aware multi-teacher KD (CA-MKD) with sample-wise teacher reliability weighting, though at the sample level rather than per-class or per-pixel. Our agreement-aware variant operates at the pixel level, using inter-teacher KL divergence rather than individual teacher confidence, which better captures spatial ambiguity at defect boundaries.
-Recently, \citet{wang2025taskspecifickd} demonstrated task-specific KD from vision foundation models for medical segmentation, showing that distilling SAM's knowledge into lightweight students outperforms direct fine-tuning---a finding consistent with our results in the infrastructure domain.
+Recently, \citet{liang2025taskspecifickd} demonstrated task-specific KD from vision foundation models for medical segmentation, showing that distilling SAM's knowledge into lightweight students outperforms direct fine-tuning---a finding consistent with our results in the infrastructure domain.
 
 Our dual-teacher strategy differs by combining a task-specific teacher with a foundation-model teacher whose complementary strengths are empirically validated. Ablation shows that the dual-teacher ensemble itself is the key contributor, with per-class vs.\ equal weighting yielding negligible difference. Pixel-level agreement-aware modulation is explored as an extension.
-This contrasts with CA-MKD's sample-level weighting and with \citet{wang2025taskspecifickd}'s single-teacher approach.
+This contrasts with CA-MKD's sample-level weighting and with \citet{liang2025taskspecifickd}'s single-teacher approach.
 
 \subsection{Foundation models for segmentation}
 \label{sec:related:foundation}
@@ -155,7 +162,7 @@ Fig.~\ref{fig:architecture} illustrates the HeteroDistill framework. Our approac
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.92\textwidth]{figures/fig_architecture.png}
-    \caption{Overview of the HeteroDistill framework. (a)~A SegFormer-B2 encoder with a parallel CrackSnake branch (DSConv) produces 3-class segmentation logits; the DSConv branch consumes encoder stages~2 and~3 (1-indexed; 0-indexed \texttt{hidden\_states[1]} at $H/8$ and \texttt{hidden\_states[2]} at $H/16$; see Section~\ref{sec:dsconv}) and additively enhances only the crack channel. (b)~Dual-teacher knowledge distillation (DTKD): Teacher~1 (DSConv+SRL, strong on pixel accuracy) and Teacher~2 (SAM-LoRA+SRL, strong on spalling component coverage recall) are combined via per-class probability-space weighting (see Section~\ref{sec:dtkd}; equal-weight logit averaging performs similarly). The dashed path shows an optional agreement-aware variant (Section~\ref{sec:ablation}) that modulates the KD loss by pixel-level teacher agreement; this is \emph{not} part of the default pipeline (row~c).}
+    \caption{Overview of the HeteroDistill framework. (a)~A SegFormer-B2 encoder with a parallel DSConv branch produces 3-class segmentation logits; the DSConv branch consumes encoder stages~2 and~3 (1-indexed; 0-indexed \texttt{hidden\_states[1]} at $H/8$ and \texttt{hidden\_states[2]} at $H/16$; see Section~\ref{sec:dsconv}) and additively enhances only the crack channel. (b)~Dual-teacher knowledge distillation (DTKD): Teacher~1 (DSConv+SRL, strong on pixel accuracy) and Teacher~2 (SAM-LoRA+SRL, strong on spalling component coverage recall) are combined into an ensemble target; equal-weight logit averaging is the recommended default, while a per-class probability-space variant performs similarly (see Section~\ref{sec:dtkd}). The dashed path shows an optional agreement-aware variant (Section~\ref{sec:ablation}) that modulates the KD loss by pixel-level teacher agreement; this is \emph{not} part of the default pipeline (row~c).}
     \label{fig:architecture}
 \end{figure*}
 
@@ -346,6 +353,14 @@ We report complementary metrics capturing different aspects of segmentation qual
     \item \textbf{PathCont}: Path Continuity---for each GT connected component, we extract its morphological skeleton and identify skeleton endpoints (pixels with exactly one 8-connected skeleton neighbour). A component is ``testable'' if its skeleton has $\geq$2 endpoints. PathCont is the fraction of testable GT components whose skeleton endpoints are mutually reachable through the predicted mask (i.e., all endpoints fall within the same connected component of the prediction restricted to the GT component's spatial extent). PathCont captures whether the prediction preserves the end-to-end connectivity of elongated structures; it is undefined (excluded from averaging) for images where no GT component has $\geq$2 skeleton endpoints.
 \end{itemize}
 
+\noindent Each metric maps to a specific dam inspection concern.
+IoU bounds the relative error in pixel-counted defect area, which, combined with a known ground sampling distance (GSD), yields physical area estimates for maintenance records.
+BF1 measures boundary localization precision, critical for estimating crack width and spalling perimeter---both of which inform repair scope.
+clDice and PathCont capture crack continuity: a fragmented prediction may cause an engineer to underestimate propagation length and misjudge residual structural capacity.
+CompR quantifies missed-defect risk---the most dangerous failure mode in safety-critical inspection---since low CompR means entire ground-truth defect instances are undetected; CompR$_{\text{sp}}$ is especially important because missing a spalling region may mean overlooking exposed reinforcement.
+CompP measures the false-alarm rate: high CompP means the system does not flag phantom defects that waste inspection effort.
+CompF1 balances both concerns into a single component-level quality score.
+
 \subsection{Computational cost}
 
 Table~\ref{tab:cost} summarises model complexity and reference inference speed. FPS values are measured at each model's native training resolution (shown in the table), so they are \emph{not directly comparable} across models---U-Net's 519 FPS at $320{\times}320$ is not comparable to SegFormer's 55 FPS at $512{\times}512$, and SAM-LoRA's 9.0 FPS reflects its $1024{\times}1024$ input. A fair speed comparison would require all models to be benchmarked at a uniform resolution, which we did not perform.
@@ -452,7 +467,7 @@ To isolate the contribution of DSConv's geometric inductive bias, we compare thr
 \end{itemize}
 All three branches produce indistinguishable results across every metric: mIoU$_{\text{fg}}$ ranges from 70.0$\pm$0.9 (DSConv) to 70.5$\pm$0.8 (DCNv2), with overlapping mean $\pm$ std ranges. Topology metrics (CompR$_{\text{cr}}$, CompF1$_{\text{cr}}$, PathCont$_{\text{cr}}$) are likewise within noise. DSConv's snake-shaped sampling pattern provides no measurable advantage over general deformable convolution or even standard convolution when parameter-matched.
 
-This null result has an important implication: DTKD, not branch geometry, is the primary contributor to HeteroDistill's performance. We retain DSConv in the default pipeline as a reasonable architectural choice but do not claim it as a contribution.
+Under the evaluated setting, this null result suggests that DTKD contributes more to HeteroDistill's performance than branch geometry. We retain DSConv in the default pipeline as a reasonable architectural choice but do not claim it as a contribution.
 
 \begin{table}[t]
 \centering
@@ -640,7 +655,7 @@ The DTKD student surpasses both teachers on mIoU$_{\text{fg}}$ (+1.7 over Teache
 The two teachers achieve identical CompR$_{\text{cr}}$ (82.2\%), but Teacher~2 (SAM-LoRA+SRL) achieves substantially higher CompR$_{\text{sp}}$ (86.0\% vs.\ 73.4\%), reflecting SAM's strong global structure preservation.
 The student substantially inherits this spalling component recall advantage (CompR$_{\text{sp}}$ = 83.8\%, vs.\ Teacher~1's 73.4\%), while maintaining superior pixel-level accuracy. However, the student does not fully match Teacher~2's CompR$_{\text{sp}}$ (83.8\% vs.\ 86.0\%) and slightly trails both teachers on CompR$_{\text{cr}}$ (82.1\% vs.\ 82.2\%), consistent with the CompR$_{\text{cr}}$ trade-off observed in the ablation.
 
-The student surpassing both teachers is consistent with multi-teacher distillation findings in the literature \citep{you2017learning}, where combining complementary knowledge sources provides regularisation benefits beyond what any single teacher offers. Unlike classical ``born-again'' networks \citep{furlanello2018born} where student and teacher share the same architecture, our student combines the branch-augmented task-specific representation shared with Teacher~1 with Teacher~2's foundation-model representations. Matched-checkpoint controls show that heterogeneous teachers outperform duplicated ($+$2.5) and T1-only ($+$2.3) KD, while same-architecture teacher pairs ($=$ baseline) provide no benefit (Table~\ref{tab:factorial}). Multi-seed matched controls confirm that teacher diversity produces a net gain (+1.5 mIoU$_{\text{fg}}$ over the No-KD baseline, Table~\ref{tab:factorial}), supporting architectural complementarity as a key contributor to DTKD's improvement.
+The student surpassing both teachers is consistent with multi-teacher distillation findings in the literature \citep{you2017learning}, where combining complementary knowledge sources provides regularisation benefits beyond what any single teacher offers. Unlike classical ``born-again'' networks \citep{furlanello2018born} where student and teacher share the same architecture, our student combines the branch-augmented task-specific representation shared with Teacher~1 with Teacher~2's foundation-model representations. Matched-checkpoint controls show that heterogeneous teachers outperform duplicated ($+$2.5) and T1-only ($+$2.3) KD, while same-architecture teacher pairs ($=$ baseline) provide no benefit (Table~\ref{tab:factorial}). Multi-seed matched controls confirm that teacher diversity produces a net gain (+1.5 mIoU$_{\text{fg}}$ over the No-KD baseline, Table~\ref{tab:factorial}), consistent with architectural complementarity contributing to DTKD's improvement under the evaluated setting.
 
 \paragraph{Factorial analysis and DTKD controls}
 To isolate the mechanisms behind DTKD's gains, we conduct a $2{\times}2$ factorial analysis crossing backbone (SegFormer vs.\ SegFormer+branch) with DTKD, along with controls for teacher diversity and soft-target regularisation (Table~\ref{tab:factorial}).
@@ -708,7 +723,7 @@ The two yield near-identical mIoU$_{\text{fg}}$ (72.2 vs.\ 72.3, within seed noi
 
 \begin{table}[t]
 \centering
-\caption{Effect of teacher ensemble construction in DTKD (final model, no SRL). ``Equal'' (recommended default) uses logit-space averaging (Eq.~\ref{eq:dtkd_ensemble_logit}, $w_1{=}w_2{=}0.5$). ``Per-class'' uses probability-space per-class weighting (Eq.~\ref{eq:dtkd_ensemble_perclass}, $w_{T2}{=}0.6/0.3/0.5$ for crack/spalling/background; used in main tables, which were trained first). The near-identical performance confirms that DTKD's value derives from the dual-teacher ensemble, not the specific mixing procedure. Bold: better value per metric. All values in \%.}
+\caption{Effect of teacher ensemble construction in DTKD (final model, no SRL). ``Equal'' (recommended default) uses logit-space averaging (Eq.~\ref{eq:dtkd_ensemble_logit}, $w_1{=}w_2{=}0.5$). ``Per-class'' uses probability-space per-class weighting (Eq.~\ref{eq:dtkd_ensemble_perclass}, $w_{T2}{=}0.6/0.3/0.5$ for crack/spalling/background; used in main tables, which were trained first). The near-identical performance suggests that DTKD's value derives from the dual-teacher ensemble rather than the specific mixing procedure. Bold: better value per metric. All values in \%.}
 \label{tab:kd_weights}
 \begin{tabular}{lcccccc}
 \toprule
@@ -734,6 +749,34 @@ Per-image IoU scores are annotated above each prediction. On these selected samp
     \caption{Qualitative comparison on test samples across difficulty tiers. Left to right: input, ground truth, SegFormer-B2, DSConv+SRL (Teacher~1), HeteroDistill. Per-image crack (Cr) and spalling (Sp) IoU scores are shown above each prediction. Red: crack, green: spalling. \textbf{Selection:} images containing both crack and spalling, sorted by descending defect pixel count. This biases toward larger, more visible defects; hairline cracks, false-positive-heavy cases, and failure cases are not represented. A complete gallery including median-performance samples, failure cases, and crack--spalling coexistence errors will be provided in the supplementary material.}
     \label{fig:qualitative}
 \end{figure*}
+
+\paragraph{From segmentation masks to engineering quantities}
+The per-pixel segmentation masks produced by HeteroDistill can be post-processed to extract engineering quantities relevant to inspection reporting.
+Defect area is obtained by counting foreground pixels and converting to physical units via the ground sampling distance (GSD): at a typical close-range UAV GSD of 1\,mm/pixel, a 512${\times}$512 patch covers 0.26\,m$^2$.
+Crack length is estimated from the morphological skeleton of the crack mask, and the number of connected components provides a defect-instance census for each class.
+PathCont directly indicates whether the predicted crack path is end-to-end connected---information that an engineer needs to assess propagation risk.
+Missed GT components (low CompR) flag the most safety-critical failure mode: defects that are entirely absent from the prediction.
+
+Table~\ref{tab:eng_quantities} illustrates these derived quantities on three representative ground-truth test patches (one per difficulty tier, selected as the median-defect-area image among patches containing both crack and spalling).
+At a hypothetical close-range UAV GSD of 1\,mm/pixel, the Easy patch contains a single short crack (${\sim}$159\,mm skeleton length) alongside a large spalling region (${\sim}$28\,cm$^2$), whereas the Hard patch exhibits 50 crack components totalling ${\sim}$4{,}514\,mm of cumulative crack length---over 28$\times$ longer---with a smaller spalling region.
+This progression mirrors the tier-design intent and highlights the engineering value of component-level and skeleton-based post-processing: the same segmentation mask yields qualitatively different inspection reports depending on defect morphology.
+Physical-unit conversion requires camera calibration parameters (focal length, flight altitude) that are outside the scope of this study; the GSD assumed here is illustrative only.
+
+\begin{table}[t]
+\centering
+\caption{Ground-truth engineering quantities for representative test patches (one per tier, median defect area among patches with both crack and spalling). Area and skeleton length are converted to physical units assuming GSD\,$=$\,1\,mm/pixel (illustrative; actual GSD depends on camera calibration). CC: connected components.}
+\label{tab:eng_quantities}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrr}
+\toprule
+Tier & Cr area (mm$^2$) & Sp area (mm$^2$) & Cr CC & Sp CC & Cr skel (mm) \\
+\midrule
+Easy   & 1{,}146  & 28{,}106 & 1  & 1 & 159 \\
+Medium & 7{,}306  & 13{,}439 & 2  & 1 & 604 \\
+Hard   & 30{,}278 & 2{,}780  & 50 & 1 & 4{,}514 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Architectural complementarity analysis}
 \label{sec:ensemble}
@@ -762,7 +805,7 @@ G0 + G1 + SAM2 + G0-s123 + TTA & 4 & \textbf{72.5} & \textbf{59.8} & \textbf{77.
 \end{table}
 
 Three observations emerge.
-First, cross-architecture ensemble (G0~+~SAM2) yields larger gains than same-architecture multi-seed ensemble (G0~+~G0-s2024): +0.56 vs.\ +0.10 mIoU$_{\text{fg}}$ over the single model---a 5$\times$ difference. This confirms that the branch-augmented SegFormer and SAM-LoRA produce structurally different error patterns, establishing a necessary condition for DTKD: the two teachers provide genuinely complementary supervision signals.
+First, cross-architecture ensemble (G0~+~SAM2) yields larger gains than same-architecture multi-seed ensemble (G0~+~G0-s2024): +0.56 vs.\ +0.10 mIoU$_{\text{fg}}$ over the single model---a 5$\times$ difference. This is consistent with the branch-augmented SegFormer and SAM-LoRA producing structurally different error patterns on this dataset, supporting a necessary condition for DTKD: the two teachers provide complementary supervision signals.
 Second, the best oracle ensemble achieves +0.9 mIoU$_{\text{fg}}$ over G0 alone (72.4\% vs.\ 71.5\%). HeteroDistill's DTKD achieves +1.9 over the branch-only baseline (72.3\% vs.\ 70.4\%, Table~\ref{tab:ablation}) with a \emph{single model} at inference. While the comparison spans different evaluation passes (see caption), it suggests that DTKD can capture cross-architecture complementarity without multi-model inference cost.
 Third, BF1$_{\text{cr}}$ and clDice$_{\text{cr}}$ benefit most from cross-architecture fusion (+1.7 and +1.9 over single G0), indicating that the complementary knowledge SAM contributes is primarily boundary precision and topology---consistent with SAM's design emphasis on mask boundary quality.
 
@@ -853,13 +896,45 @@ In a single teacher-swap ablation, the SRL-trained teacher produces a better stu
 
 \paragraph{Indirect use of foundation models}
 Under the evaluated LoRA configurations, directly fine-tuning SAM or DINOv2 underperforms task-specific architectures by 2--4\% mIoU$_{\text{fg}}$. Using them as \emph{teachers} in knowledge distillation yields better results in our experiments, though this comparison is limited by the absence of hyperparameter tuning for the foundation model baselines (see Section~\ref{sec:experiments}).
-The ensemble analysis (Section~\ref{sec:ensemble}) confirms that cross-architecture models produce complementary error patterns: G0+SAM2 ensemble yields 5$\times$ the gain of same-architecture multi-seed ensemble (+0.56 vs.\ +0.10 mIoU$_{\text{fg}}$). This complementarity is a necessary condition for DTKD to be effective, and multi-seed matched controls confirm this complementarity translates to a robust net gain (+1.5 mIoU$_{\text{fg}}$, Section~\ref{sec:ablation}).
+The ensemble analysis (Section~\ref{sec:ensemble}) is consistent with cross-architecture models producing complementary error patterns on this dataset: G0+SAM2 ensemble yields 5$\times$ the gain of same-architecture multi-seed ensemble (+0.56 vs.\ +0.10 mIoU$_{\text{fg}}$). This complementarity supports DTKD's effectiveness, and multi-seed matched controls indicate that it translates to a robust net gain (+1.5 mIoU$_{\text{fg}}$, Section~\ref{sec:ablation}).
 
 \paragraph{Crack--spalling tradeoff}
 The persistent tradeoff across all loss-based strategies (Section~\ref{sec:strategy}) arises from shared geometric boundaries between defect types. Pixel-level loss modification alone cannot resolve the crack precision bottleneck without collateral damage to spalling, suggesting that sampling-based, architectural, or post-processing approaches (e.g., class-specific CRF refinement) are more promising.
 
 \paragraph{Practical implications}
 The student has identical inference cost to the branch-augmented SegFormer (51 FPS, 28.7M parameters), with teachers used only during training. DTKD improves all difficulty tiers, with the largest gain on Easy (+3.4 mIoU$_{\text{fg}}$).
+
+\paragraph{Deployment in dam inspection workflows}
+Fig.~\ref{fig:workflow} outlines how HeteroDistill fits into a practical dam inspection pipeline:
+\begin{enumerate}[nosep]
+    \item A UAV or close-range camera captures high-resolution imagery of the dam face at scheduled intervals.
+    \item Images are tiled into overlapping 512${\times}$512 patches with georeferenced coordinates.
+    \item HeteroDistill segments each patch into crack, spalling, and background at 51 FPS on a single GPU.
+    \item Post-processing extracts engineering quantities: defect area (pixel count $\times$ GSD$^2$), crack length (skeleton-based), connected-component count, and path continuity.
+    \item Per-patch results are stitched into a georeferenced defect map overlaid on a dam face orthomosaic.
+    \item Engineers review flagged regions, prioritising by crack density, spalling area, or crack length.
+\end{enumerate}
+This paper addresses \emph{step~3 only}; tiling, stitching, georeferencing, and decision-support layers are engineering integration tasks beyond the current scope.
+
+\begin{figure}[t]
+    \centering
+    \setlength{\fboxsep}{6pt}
+    \fbox{\parbox{0.92\columnwidth}{\centering\small
+    \textbf{UAV / camera capture} \\[2pt]
+    $\downarrow$ \\[2pt]
+    \textbf{Tile into 512$\times$512 patches} \\[2pt]
+    $\downarrow$ \\[2pt]
+    \textbf{HeteroDistill segmentation} \emph{(this paper)} \\[2pt]
+    $\downarrow$ \\[2pt]
+    \textbf{Post-processing:} area, components, skeleton, continuity \\[2pt]
+    $\downarrow$ \\[2pt]
+    \textbf{Stitch into georeferenced defect map} \\[2pt]
+    $\downarrow$ \\[2pt]
+    \textbf{Engineer review \& prioritisation}
+    }}
+    \caption{Envisioned dam inspection workflow. HeteroDistill serves as the segmentation module (step~3); upstream acquisition and downstream decision-support are outside the current scope.}
+    \label{fig:workflow}
+\end{figure}
 
 \paragraph{Failure modes and limitations}
 The model underperforms on (i)~thin hairline cracks (${<}$2 pixels wide) and (ii)~co-occurring crack--spalling regions where it over-predicts one class at the expense of the other.
@@ -897,10 +972,20 @@ Test-set metrics were observed during development across ablation rows; small in
 Crack IoU remains challenging (${\sim}$59\%) due to extreme class imbalance.
 
 \paragraph{Branch geometry: a null result}
-Parameter-matched controls (Table~\ref{tab:branch_compare}) show that DSConv's snake-shaped sampling provides no measurable advantage over DCNv2 or standard convolution across segmentation metrics (mIoU$_{\text{fg}}$, BF1$_{\text{cr}}$, clDice$_{\text{cr}}$) and topology metrics (CompR$_{\text{cr}}$, CompF1$_{\text{cr}}$, PathCont$_{\text{cr}}$). All three branches produce indistinguishable results (overlapping mean $\pm$ std ranges) with ${\sim}$1.32M parameters and 3 seeds. This null result suggests that the parallel branch provides useful additional capacity for crack feature extraction, but the specific geometric inductive bias (snake-shaped vs.\ general deformable vs.\ standard) does not matter on this dataset. Possible explanations include: (i)~DamSegment's cracks may not be sufficiently elongated to benefit from directional sampling; (ii)~the SegFormer backbone already captures sufficient multi-scale context; or (iii)~1{,}200 training images may be insufficient for the deformable sampling to learn meaningful crack-specific offsets. This finding strengthens the case for DTKD as the primary contribution.
+Parameter-matched controls (Table~\ref{tab:branch_compare}) show that DSConv's snake-shaped sampling provides no measurable advantage over DCNv2 or standard convolution across segmentation metrics (mIoU$_{\text{fg}}$, BF1$_{\text{cr}}$, clDice$_{\text{cr}}$) and topology metrics (CompR$_{\text{cr}}$, CompF1$_{\text{cr}}$, PathCont$_{\text{cr}}$). All three branches produce indistinguishable results (overlapping mean $\pm$ std ranges) with ${\sim}$1.32M parameters and 3 seeds. This null result suggests that the parallel branch provides useful additional capacity for crack feature extraction, but the specific geometric inductive bias (snake-shaped vs.\ general deformable vs.\ standard) does not matter on this dataset. Possible explanations include: (i)~DamSegment's cracks may not be sufficiently elongated to benefit from directional sampling; (ii)~the SegFormer backbone already captures sufficient multi-scale context; or (iii)~1{,}200 training images may be insufficient for the deformable sampling to learn meaningful crack-specific offsets. Under the evaluated setting, this finding is consistent with DTKD being the primary source of improvement.
 
 \paragraph{Topology evaluation}
 We report component-level topology metrics (CompF1, PathCont) in addition to clDice and CompR. The parameter-matched branch comparison (Table~\ref{tab:branch_compare}) includes these metrics and confirms the null result across all topology measures. The CompR threshold (50\%) is a single operating point. True connectivity metrics such as the Crack Topology Score \citep{joo2026cts} were not computed.
+
+\paragraph{Limitations for inspection deployment}
+Several gaps remain between the current segmentation study and a deployable inspection system.
+(i)~\emph{Single-site generalization}: DamSegment is captured from a single dam; domain shift to dams with different concrete mix, weathering patterns, or lighting conditions is uncharacterised beyond the limited S2DS zero-shot transfer, which showed weak cross-domain performance.
+(ii)~\emph{Patch-boundary artefacts}: the pipeline operates on fixed 512${\times}$512 patches; stitching artefacts at patch boundaries, especially for cracks spanning multiple patches, are not addressed.
+(iii)~\emph{Foundation model baselines}: SAM-LoRA and DINOv2-LoRA use default LoRA configurations without hyperparameter tuning on DamSegment; better-tuned baselines may narrow the performance gap.
+(iv)~\emph{Segmentation is not engineering judgment}: pixel-level masks require post-processing and expert interpretation to become actionable inspection decisions; the model does not predict defect severity, structural risk, or repair priority.
+(v)~\emph{Physical-unit calibration}: crack width and length in pixels require known GSD from camera calibration and flight altitude to convert to physical units; without calibration, the outputs remain relative.
+(vi)~\emph{System integration}: deploying in a full inspection workflow requires integration with UAV flight planning, image stitching, georeferencing, and an inspection management system---all beyond the current scope.
+(vii)~\emph{Temporal monitoring}: this work addresses single-survey analysis; tracking defect progression across surveys requires registration and change detection, which is future work.
 
 % ===========================================================================
 \section{Conclusion}
@@ -908,9 +993,10 @@ We report component-level topology metrics (CompF1, PathCont) in addition to clD
 
 We presented HeteroDistill, a segmentation framework for concrete dam defects that combines a parallel feature-extraction branch with dual-teacher knowledge distillation (DTKD).
 On DamSegment, HeteroDistill achieves 72.2--72.3\% mIoU$_{\text{fg}}$ at 51 FPS with only 1.32M parameter overhead and no additional inference cost from distillation.
-DTKD is the primary contributor, adding +1.8--1.9 mIoU$_{\text{fg}}$; multi-seed matched controls confirm +1.5 mIoU$_{\text{fg}}$ net gain and 5--7$\times$ variance reduction from teacher diversity (Section~\ref{sec:ablation}).
+Under the evaluated setting, DTKD is the primary contributor, adding +1.8--1.9 mIoU$_{\text{fg}}$; multi-seed matched controls confirm +1.5 mIoU$_{\text{fg}}$ net gain and 5--7$\times$ variance reduction from teacher diversity (Section~\ref{sec:ablation}).
 A parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard Conv, 3 seeds each) shows no measurable difference (all mean $\pm$ std ranges overlap), indicating that the branch's geometric inductive bias does not provide measurable benefit under the evaluated setting.
 Limitations discussed in Section~\ref{sec:discussion} include single-run SRL ablations, confounds in the cross-dataset decomposition, and the exploratory nature of the cluster-split analysis.
+These results position HeteroDistill as a lightweight segmentation module for automated dam inspection workflows, supporting defect-area estimation, component-level retrieval, crack-continuity assessment, and engineer review while leaving georeferenced mapping and decision-support integration for future work.
 
 \section*{Data availability}
 
@@ -1021,12 +1107,12 @@ Li, M., Yuan, J., Ren, Q., Luo, Q., Fu, J., Li, Z., 2024.
 \newblock CNN-Transformer hybrid network for concrete dam crack patrol inspection.
 \newblock Automation in Construction 163, 105440.
 
-\bibitem[Liang et~al.(2025)]{wang2025taskspecifickd}
+\bibitem[Liang et~al.(2025)]{liang2025taskspecifickd}
 Liang, P., Huang, H., Pu, B., Chen, J., Hua, X., Zhang, J., Ma, W., Chen, Z., Li, Y., Chang, Q., 2025.
 \newblock Task-specific knowledge distillation from the vision foundation model for enhanced medical image segmentation.
 \newblock arXiv preprint arXiv:2503.06976.
 
-\bibitem[Ling and Sun(2025)]{gao2026cctnet}
+\bibitem[Ling and Sun(2025)]{ling2025cctnet}
 Ling, H., Sun, F., 2025.
 \newblock CCT Net: A dam surface crack segmentation model based on CNN and Transformer.
 \newblock Infrastructures 10~(9), 240.
