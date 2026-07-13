@@ -80,12 +80,12 @@ def load_cluster_assignments() -> Dict[str, int]:
 
 
 # ---------------------------------------------------------------------------
-# Feature extraction (requires torch, torchvision, cv2 — RunPod only)
+# Feature extraction (requires torch, torchvision, PIL — RunPod only)
 # ---------------------------------------------------------------------------
 
 def extract_and_cache_features(all_rels: List[str], batch_size: int = 16) -> None:
     """Extract ResNet-50 features for all images and save to .npy cache."""
-    import cv2
+    from PIL import Image
     import torch
     import torchvision.models as models
     import torchvision.transforms as T
@@ -99,7 +99,6 @@ def extract_and_cache_features(all_rels: List[str], batch_size: int = 16) -> Non
     backbone.to(device).eval()
 
     preprocess = T.Compose([
-        T.ToPILImage(),
         T.Resize(256),
         T.CenterCrop(224),
         T.ToTensor(),
@@ -115,8 +114,7 @@ def extract_and_cache_features(all_rels: List[str], batch_size: int = 16) -> Non
         for rel in batch_rels:
             tier = rel.split("/")[0]
             img_path = data_root / tier / "Images" / rel.split("/")[1]
-            img = cv2.imread(str(img_path))
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = Image.open(str(img_path)).convert("RGB")
             tensors.append(preprocess(img))
         batch = torch.stack(tensors).to(device)
         with torch.no_grad():
