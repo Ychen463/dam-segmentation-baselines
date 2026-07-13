@@ -34,6 +34,23 @@ __pycache__/
 .ruff_cache/
 .ipynb_checkpoints/
 
+# --- LaTeX build artifacts ---
+*.aux
+*.log
+*.out
+*.spl
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# --- Compiled PDFs (rebuild from .tex) ---
+workspace/final/*.pdf
+
+# --- Cached features (large) ---
+*.npy
+
 # --- OS / IDE ---
 .DS_Store
 .idea/

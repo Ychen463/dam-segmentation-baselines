@@ -1,1 +1,0 @@
-SAM-LoRA @ 1024: 9.0 FPS (110.8 ms/img)
