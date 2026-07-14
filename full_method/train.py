@@ -48,7 +48,11 @@ from full_method.config import ABLATION_PRESETS, apply_preset
 from full_method.dataset import FullMethodDataset, build_records, dict_collate
 from full_method.model import SegFormerWithBoundary, DSCformerDam, _PreviewWrapper
 from full_method.sam_model import TopoLoRASAM
-from full_method.calora_model import CrackAdaptiveLoRASAM, compute_router_aux_loss
+try:
+    from full_method.calora_model import CrackAdaptiveLoRASAM, compute_router_aux_loss
+except ImportError:
+    CrackAdaptiveLoRASAM = None
+    compute_router_aux_loss = None
 from full_method.dinov2_model import DINOv2LoRA
 from full_method.losses import (
     CompositeLoss, confidence_aware_kd_loss, topo_kd_loss,
