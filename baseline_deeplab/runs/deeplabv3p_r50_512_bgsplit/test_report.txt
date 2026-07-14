@@ -1,0 +1,22 @@
+run: deeplabv3p_r50_512_bgsplit
+preset: A
+encoder: resnet50  img_size: 512  batch: 4  grad_accum: 1  epochs: 50  lr: 0.0005
+best epoch: 44
+best val mIoU_fg: 0.581665747137322
+test set metrics:
+  IoU_background: 0.9750443026014822
+  IoU_crack: 0.5601898883466103
+  IoU_spalling: 0.820114789960583
+  Dice_background: 0.9873644872848438
+  Dice_crack: 0.7181047544671165
+  Dice_spalling: 0.9011682059661124
+  mIoU_fg: 0.6901523391535966
+  mIoU_all: 0.7851163269695585
+  pixel_acc: 0.9759182484944662
+  BF1_crack: 0.7157837616001035
+  BF1_spalling: 0.5919415571063151
+  BF1_fg_mean: 0.6538626593532093
+confusion matrix (rows=gt, cols=pred):
+[[36810713   524450    45305]
+ [  315420  1075843     2147]
+ [   56974     2637   488111]]

@@ -1,0 +1,28 @@
+run: segformer_b2_plain_512_bgsplit
+preset: A
+pretrained: nvidia/segformer-b2-finetuned-ade-512-512  img_size: 512  batch: 4  grad_accum: 1  epochs: 100  lr: 6e-05  warmup: 5  curriculum: none
+best epoch: 45
+best val mIoU_fg: 0.698511637294126
+test set metrics:
+  IoU_background: 0.9813161348067132
+  IoU_crack: 0.6384295735068832
+  IoU_spalling: 0.9159608198978061
+  Dice_background: 0.9905699727241613
+  Dice_crack: 0.7793189085819454
+  Dice_spalling: 0.9561373180341567
+  mIoU_fg: 0.7771951967023447
+  mIoU_all: 0.8452355094038008
+  pixel_acc: 0.9820883433024089
+  BF1_crack: 0.8071115161885883
+  BF1_spalling: 0.7806009855164354
+  BF1_fg_mean: 0.7938562508525119
+  clDice_crack: 0.8747791950223284
+  clDice_spalling: 0.9705948776211029
+  clDice_fg_mean: 0.9226870363217157
+  ConnR_crack: 0.8642637713137548
+  ConnR_spalling: 0.9594594594594594
+  ConnR_fg_mean: 0.911861615386607
+confusion matrix (rows=gt, cols=pred):
+[[36926514   422589    31365]
+ [  233010  1159805      595]
+ [   16102      654   530966]]

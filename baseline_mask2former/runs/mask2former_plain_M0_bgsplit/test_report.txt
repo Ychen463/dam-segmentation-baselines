@@ -1,0 +1,29 @@
+run: mask2former_plain_M0_bgsplit
+pretrained: facebook/mask2former-swin-small-ade-semantic  img_size: 512  batch: 4  grad_accum: 1  epochs: 100  lr: 0.0001  warmup: 5
+curriculum: no_curriculum=True use_soft_curriculum=False
+contributions: difficulty_weighting=False cldice_loss=False
+best epoch: 5
+best val mIoU_fg: 0.6794904006384659
+test set metrics:
+  IoU_background: 0.9777940777514026
+  IoU_crack: 0.5460920783531565
+  IoU_spalling: 0.8456309075696828
+  Dice_background: 0.9887723790366266
+  Dice_crack: 0.7064159838847823
+  Dice_spalling: 0.9163597164540392
+  mIoU_fg: 0.6958614929614197
+  mIoU_all: 0.7898390212247474
+  pixel_acc: 0.9779522450764974
+  BF1_crack: 0.7267718709712463
+  BF1_spalling: 0.6574972401118114
+  BF1_fg_mean: 0.6921345555415288
+  clDice_crack: 0.8025294036250296
+  clDice_spalling: 0.8996461898763434
+  clDice_fg_mean: 0.8510877967506865
+  ConnR_crack: 0.7424256984965109
+  ConnR_spalling: 0.7207207207207208
+  ConnR_fg_mean: 0.7315732096086158
+confusion matrix (rows=gt, cols=pred):
+[[37008266   357749    14453]
+ [  422303   970339      768]
+ [   45961    25719   476042]]
