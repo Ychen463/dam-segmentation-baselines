@@ -29,3 +29,4 @@ pydensecrf @ git+https://github.com/lucasb-eyer/pydensecrf.git@master
 # ---- Plotting + progress ----
 matplotlib==3.9.4
 tqdm==4.67.3
+scikit-learn

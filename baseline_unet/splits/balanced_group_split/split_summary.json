@@ -1,0 +1,25 @@
+{
+  "seed": 42,
+  "max_group_size": 30,
+  "n_groups": 135,
+  "splits": {
+    "train": {
+      "total": 1202,
+      "Easy": 397,
+      "Medium": 402,
+      "Hard": 403
+    },
+    "val": {
+      "total": 149,
+      "Easy": 45,
+      "Medium": 53,
+      "Hard": 51
+    },
+    "test": {
+      "total": 149,
+      "Easy": 58,
+      "Medium": 45,
+      "Hard": 46
+    }
+  }
+}
