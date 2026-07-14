@@ -51,6 +51,11 @@ workspace/final/*.pdf
 # --- Cached features (large) ---
 *.npy
 
+# --- Top-level logs (development artifacts) ---
+pipeline1.log
+runs_*.log
+paper_tables.txt
+
 # --- OS / IDE ---
 .DS_Store
 .idea/
