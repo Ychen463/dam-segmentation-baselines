@@ -170,12 +170,30 @@ METRIC_KEYS: List[str] = [
 
 def kd_loss(student_logits: torch.Tensor, teacher_logits: torch.Tensor,
             temperature: float = 4.0) -> torch.Tensor:
-    """Knowledge distillation loss (KL divergence on softened probabilities)."""
+    """Knowledge distillation loss (KL divergence on softened probabilities).
+
+    Uses reduction="batchmean" (sums over C,H,W; divides by N).
+    This is appropriate for convex combination: α*sup + (1-α)*kd.
+    """
     s_log_prob = F.log_softmax(student_logits / temperature, dim=1)
     t_prob = F.softmax(teacher_logits / temperature, dim=1)
     # KL(teacher || student), mean over all pixels
     loss = F.kl_div(s_log_prob, t_prob, reduction="batchmean") * (temperature ** 2)
     return loss
+
+
+def kd_loss_pixelmean(student_logits: torch.Tensor, teacher_logits: torch.Tensor,
+                      temperature: float = 4.0) -> torch.Tensor:
+    """Pixel-mean KD loss for additive combination: sup + w * kd.
+
+    Unlike kd_loss(), this averages over ALL dimensions (N,C,H,W) so the
+    scale is comparable to per-pixel CE (~0.1-1.0 range).
+    """
+    s_log_prob = F.log_softmax(student_logits / temperature, dim=1)
+    t_prob = F.softmax(teacher_logits / temperature, dim=1)
+    # Per-pixel KL, then mean over all pixels
+    pixel_kl = (t_prob * (t_prob.clamp_min(1e-8).log() - s_log_prob)).sum(dim=1)  # (N,H,W)
+    return pixel_kl.mean() * (temperature ** 2)
 
 
 def dual_teacher_ensemble(t1_logits: torch.Tensor, t2_logits: torch.Tensor,
@@ -455,10 +473,10 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                                           align_corners=False)
 
                 if cfg.kd_mode == "t1_only":
-                    ckd_loss = kd_loss(_s_logits, _t1_logits, cfg.kd_temperature)
+                    ckd_loss = kd_loss_pixelmean(_s_logits, _t1_logits, cfg.kd_temperature)
                 elif cfg.kd_mode == "dual_equal" and _t2_logits is not None:
                     _ens_logits = 0.5 * _t1_logits + 0.5 * _t2_logits
-                    ckd_loss = kd_loss(_s_logits, _ens_logits, cfg.kd_temperature)
+                    ckd_loss = kd_loss_pixelmean(_s_logits, _ens_logits, cfg.kd_temperature)
                 elif cfg.kd_mode == "t2_rescue" and _t2_logits is not None:
                     ckd_loss, rescue_stats = selective_t2_rescue_kd(
                         _s_logits, _t1_logits, _t2_logits,
