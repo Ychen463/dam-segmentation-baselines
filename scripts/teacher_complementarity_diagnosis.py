@@ -6,6 +6,9 @@ Computes:
   3. Per-tier teacher comparison (mIoU_fg, IoU per class)
   4. Teacher disagreement vs actual error correlation
   5. Oracle ensemble upper bound (pixel-level best-teacher selection)
+  6. Image Oracle: per-image best-teacher selection with per-tier distribution
+  7. Component Oracle with Thin Crack Analysis: per-component best-teacher
+     selection, T2-rescue counts, and thin crack (median width ≤ 2px) breakdown
 
 Usage (on RunPod, from Codes/):
     python scripts/teacher_complementarity_diagnosis.py
@@ -25,6 +28,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 from scipy import ndimage
+from scipy.ndimage import distance_transform_edt
+from skimage.morphology import skeletonize
 from torch.utils.data import DataLoader, Dataset
 
 torch.backends.cudnn.enabled = False
@@ -221,6 +226,33 @@ def run_diagnosis(val_rels: list[str], data_root: Path, device: str):
     agree_pixels_total = 0
     agree_and_wrong = 0
 
+    # Image Oracle accumulators
+    img_oracle_iou = {
+        "intersection": defaultdict(int),
+        "union": defaultdict(int),
+    }
+    img_oracle_tier_wins = defaultdict(lambda: {"t1": 0, "t2": 0})
+
+    # Component Oracle accumulators
+    comp_oracle = {
+        "t1_only": defaultdict(int),       # T1 hits, T2 misses
+        "t2_only": defaultdict(int),       # T2 hits, T1 misses (rescued)
+        "both_detected": defaultdict(int), # both hit
+        "neither": defaultdict(int),       # both miss
+        "total": defaultdict(int),
+        "oracle_hit": defaultdict(int),    # best-teacher hit count
+    }
+
+    # Thin crack analysis accumulators
+    thin_crack = {
+        "total": 0,
+        "t1_hit": 0,
+        "t2_hit": 0,
+        "t2_rescued": 0,       # T2 hits but T1 misses
+        "both_detected": 0,
+        "neither": 0,
+    }
+
     for images, masks, rels in loader:
         images = images.to(device, non_blocking=True)
         gt = masks.numpy()[0]  # (H, W)
@@ -299,6 +331,79 @@ def run_diagnosis(val_rels: list[str], data_root: Path, device: str):
         disagree_and_t1_wrong += int((disagree & ~t1_correct).sum())
         disagree_and_t2_wrong += int((disagree & ~t2_correct).sum())
         agree_and_wrong += int((agree & ~t1_correct).sum())
+
+        # --- Image Oracle: pick teacher with higher present-class macro IoU ---
+        present_classes = [c for c in range(NUM_CLASSES) if (gt == c).any()]
+        t1_ious_img, t2_ious_img = [], []
+        for c in present_classes:
+            gt_c = (gt == c)
+            inter_t1 = int(((pred_t1 == c) & gt_c).sum())
+            union_t1 = int(((pred_t1 == c) | gt_c).sum())
+            inter_t2 = int(((pred_t2 == c) & gt_c).sum())
+            union_t2 = int(((pred_t2 == c) | gt_c).sum())
+            t1_ious_img.append(inter_t1 / union_t1 if union_t1 > 0 else 0.0)
+            t2_ious_img.append(inter_t2 / union_t2 if union_t2 > 0 else 0.0)
+        t1_macro = sum(t1_ious_img) / len(t1_ious_img) if t1_ious_img else 0.0
+        t2_macro = sum(t2_ious_img) / len(t2_ious_img) if t2_ious_img else 0.0
+        best_pred = pred_t1 if t1_macro >= t2_macro else pred_t2
+        winner = "t1" if t1_macro >= t2_macro else "t2"
+        img_oracle_tier_wins[tier][winner] += 1
+        # Accumulate image oracle IoU
+        for c in range(NUM_CLASSES):
+            gt_c = (gt == c)
+            inter = int(((best_pred == c) & gt_c).sum())
+            union = int(((best_pred == c) | gt_c).sum())
+            img_oracle_iou["intersection"][c] += inter
+            img_oracle_iou["union"][c] += union
+
+        # --- Component Oracle with Thin Crack Analysis ---
+        for cls_id in [1, 2]:
+            gt_mask_co = (gt == cls_id)
+            if not gt_mask_co.any():
+                continue
+            pred_t1_mask_co = (pred_t1 == cls_id)
+            pred_t2_mask_co = (pred_t2 == cls_id)
+            labeled_co, n_comp_co = ndimage.label(gt_mask_co)
+            for c in range(1, n_comp_co + 1):
+                c_mask = (labeled_co == c)
+                c_sum = float(c_mask.sum())
+                t1_cov = float((c_mask & pred_t1_mask_co).sum()) / c_sum
+                t2_cov = float((c_mask & pred_t2_mask_co).sum()) / c_sum
+                best_cov = max(t1_cov, t2_cov)
+                t1_hit_flag = (t1_cov >= 0.5)
+                t2_hit_flag = (t2_cov >= 0.5)
+                comp_oracle["total"][cls_id] += 1
+                if best_cov >= 0.5:
+                    comp_oracle["oracle_hit"][cls_id] += 1
+                if t1_hit_flag and t2_hit_flag:
+                    comp_oracle["both_detected"][cls_id] += 1
+                elif t2_hit_flag and not t1_hit_flag:
+                    comp_oracle["t2_only"][cls_id] += 1
+                elif t1_hit_flag and not t2_hit_flag:
+                    comp_oracle["t1_only"][cls_id] += 1
+                else:
+                    comp_oracle["neither"][cls_id] += 1
+
+                # Thin crack analysis (class 1 only)
+                if cls_id == 1:
+                    # Skeletonize and measure width via distance transform
+                    skel = skeletonize(c_mask)
+                    if skel.any():
+                        dt = distance_transform_edt(c_mask)
+                        skel_widths = dt[skel]
+                        median_width = float(np.median(skel_widths))
+                        if median_width <= 2.0:
+                            thin_crack["total"] += 1
+                            if t1_hit_flag:
+                                thin_crack["t1_hit"] += 1
+                            if t2_hit_flag:
+                                thin_crack["t2_hit"] += 1
+                            if t1_hit_flag and t2_hit_flag:
+                                thin_crack["both_detected"] += 1
+                            elif t2_hit_flag and not t1_hit_flag:
+                                thin_crack["t2_rescued"] += 1
+                            elif not t1_hit_flag and not t2_hit_flag:
+                                thin_crack["neither"] += 1
 
     # --- Compute results ---
     results = {}
@@ -438,6 +543,114 @@ def run_diagnosis(val_rels: list[str], data_root: Path, device: str):
     print(f"\n  Oracle gain over T1: {oracle_gain:+.1f} mIoU_fg")
     oracle_results["oracle_gain_mIoU_fg"] = round(oracle_gain, 2)
     results["oracle_ensemble"] = oracle_results
+
+    # 6. Image Oracle
+    print("\n" + "=" * 70)
+    print("  6. IMAGE ORACLE (per-image best-teacher selection)")
+    print("=" * 70)
+    img_oracle_results = {}
+
+    # Macro IoU: average of per-class IoUs
+    img_oracle_ious = []
+    img_oracle_fg_ious = []
+    for cls_id in range(NUM_CLASSES):
+        u = img_oracle_iou["union"][cls_id]
+        iou_val = img_oracle_iou["intersection"][cls_id] / u * 100 if u > 0 else 0.0
+        img_oracle_ious.append(iou_val)
+        if cls_id > 0:
+            img_oracle_fg_ious.append(iou_val)
+    img_oracle_macro = sum(img_oracle_ious) / len(img_oracle_ious) if img_oracle_ious else 0.0
+    img_oracle_micro_inter = sum(img_oracle_iou["intersection"][c] for c in range(NUM_CLASSES))
+    img_oracle_micro_union = sum(img_oracle_iou["union"][c] for c in range(NUM_CLASSES))
+    img_oracle_micro = img_oracle_micro_inter / img_oracle_micro_union * 100 if img_oracle_micro_union > 0 else 0.0
+    img_oracle_mIoU_fg = sum(img_oracle_fg_ious) / len(img_oracle_fg_ious) if img_oracle_fg_ious else 0.0
+
+    print(f"  Image-oracle macro IoU (all classes):  {img_oracle_macro:.1f}%")
+    print(f"  Image-oracle micro IoU (all classes):  {img_oracle_micro:.1f}%")
+    print(f"  Image-oracle mIoU_fg:                  {img_oracle_mIoU_fg:.1f}%")
+    for cls_id in range(NUM_CLASSES):
+        name = CLASS_NAMES[cls_id]
+        u = img_oracle_iou["union"][cls_id]
+        iou_val = img_oracle_iou["intersection"][cls_id] / u * 100 if u > 0 else 0.0
+        print(f"    {name}: {iou_val:.1f}%")
+
+    img_oracle_results["macro_iou"] = round(img_oracle_macro, 2)
+    img_oracle_results["micro_iou"] = round(img_oracle_micro, 2)
+    img_oracle_results["mIoU_fg"] = round(img_oracle_mIoU_fg, 2)
+
+    print(f"\n  Per-tier teacher selection distribution:")
+    tier_sel = {}
+    for tier_name in ["Easy", "Medium", "Hard"]:
+        wins = img_oracle_tier_wins[tier_name]
+        total_imgs = wins["t1"] + wins["t2"]
+        if total_imgs == 0:
+            continue
+        t1_pct = wins["t1"] / total_imgs * 100
+        t2_pct = wins["t2"] / total_imgs * 100
+        print(f"    {tier_name:8s}:  T1 wins {wins['t1']:3d} ({t1_pct:.0f}%)  |  T2 wins {wins['t2']:3d} ({t2_pct:.0f}%)  |  total {total_imgs}")
+        tier_sel[tier_name] = {"t1_wins": wins["t1"], "t2_wins": wins["t2"], "total": total_imgs}
+    img_oracle_results["tier_selection"] = tier_sel
+    results["image_oracle"] = img_oracle_results
+
+    # 7. Component Oracle with Thin Crack Analysis
+    print("\n" + "=" * 70)
+    print("  7. COMPONENT ORACLE WITH THIN CRACK ANALYSIS")
+    print("=" * 70)
+    comp_oracle_results = {}
+    for cls_id in [1, 2]:
+        name = CLASS_NAMES[cls_id]
+        total_c = comp_oracle["total"][cls_id]
+        if total_c == 0:
+            continue
+        oracle_hit_c = comp_oracle["oracle_hit"][cls_id]
+        oracle_recall = oracle_hit_c / total_c * 100
+        both_c = comp_oracle["both_detected"][cls_id]
+        t1_only_c = comp_oracle["t1_only"][cls_id]
+        t2_only_c = comp_oracle["t2_only"][cls_id]
+        neither_c = comp_oracle["neither"][cls_id]
+        comp_oracle_results[name] = {
+            "total_components": total_c,
+            "oracle_recall_pct": round(oracle_recall, 2),
+            "both_detected": both_c,
+            "t1_only": t1_only_c,
+            "t2_rescued": t2_only_c,
+            "neither_detected": neither_c,
+        }
+        print(f"\n  {name}:")
+        print(f"    GT components:           {total_c}")
+        print(f"    Oracle CompR:            {oracle_recall:.1f}%  ({oracle_hit_c}/{total_c})")
+        print(f"    Both detected:           {both_c}")
+        print(f"    T1-only:                 {t1_only_c}")
+        print(f"    T2-only (rescued):       {t2_only_c}")
+        print(f"    Neither detected:        {neither_c}")
+
+    # Thin crack analysis
+    print(f"\n  Thin crack analysis (median skeleton width <= 2px):")
+    thin_total = thin_crack["total"]
+    if thin_total > 0:
+        t1_thin_recall = thin_crack["t1_hit"] / thin_total * 100
+        t2_thin_recall = thin_crack["t2_hit"] / thin_total * 100
+        t2_rescue_rate = thin_crack["t2_rescued"] / thin_total * 100
+        print(f"    Total thin crack components:  {thin_total}")
+        print(f"    T1 recall on thin cracks:     {t1_thin_recall:.1f}%  ({thin_crack['t1_hit']}/{thin_total})")
+        print(f"    T2 recall on thin cracks:     {t2_thin_recall:.1f}%  ({thin_crack['t2_hit']}/{thin_total})")
+        print(f"    T2-rescued thin cracks:       {thin_crack['t2_rescued']}  ({t2_rescue_rate:.1f}%)")
+        print(f"    Both detected:                {thin_crack['both_detected']}")
+        print(f"    Neither detected:             {thin_crack['neither']}")
+        comp_oracle_results["thin_crack"] = {
+            "total": thin_total,
+            "t1_recall_pct": round(t1_thin_recall, 2),
+            "t2_recall_pct": round(t2_thin_recall, 2),
+            "t2_rescue_rate_pct": round(t2_rescue_rate, 2),
+            "t2_rescued": thin_crack["t2_rescued"],
+            "both_detected": thin_crack["both_detected"],
+            "neither_detected": thin_crack["neither"],
+        }
+    else:
+        print(f"    No thin crack components found.")
+        comp_oracle_results["thin_crack"] = {"total": 0}
+
+    results["component_oracle"] = comp_oracle_results
 
     # Verdict
     print("\n" + "=" * 70)

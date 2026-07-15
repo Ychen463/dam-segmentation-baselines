@@ -16,6 +16,74 @@ from . import config as C
 
 
 # ---------------------------------------------------------------------------
+# Selective T2 Rescue KD (Curriculum Distillation)
+# ---------------------------------------------------------------------------
+
+def selective_t2_rescue_kd(student_logits: torch.Tensor,
+                           t1_logits: torch.Tensor,
+                           t2_logits: torch.Tensor,
+                           temperature: float = 4.0,
+                           routing_threshold: float = 0.1,
+                           routing_temperature: float = 1.0) -> tuple[torch.Tensor, dict]:
+    """Selective T2 rescue KD: only distill from T2 where it is more confident than T1.
+
+    At disagreement pixels where T2's max confidence exceeds T1's by more than
+    routing_threshold, use T2 soft labels as the KD target.
+
+    Returns:
+        (loss, stats_dict) where stats_dict contains routing diagnostics.
+    """
+    with torch.no_grad():
+        t1_rp = F.softmax(t1_logits / routing_temperature, dim=1)
+        t2_rp = F.softmax(t2_logits / routing_temperature, dim=1)
+        disagree = t1_rp.argmax(1).ne(t2_rp.argmax(1))
+        delta_c = t2_rp.max(1).values - t1_rp.max(1).values
+        route_t2 = disagree & (delta_c > routing_threshold)
+        t2_soft = F.softmax(t2_logits / temperature, dim=1)
+
+    total_pixels = route_t2.numel()
+    routed_count = int(route_t2.sum().item())
+    routed_ratio = routed_count / max(total_pixels, 1)
+
+    stats = {
+        "route_pixel_count": routed_count,
+        "route_pixel_ratio": routed_ratio,
+    }
+
+    if routed_count == 0:
+        stats["rescue_kd_raw_value"] = 0.0
+        return student_logits.sum() * 0.0, stats
+
+    s_log_prob = F.log_softmax(student_logits / temperature, dim=1)
+    pixel_kl = (t2_soft * (t2_soft.clamp_min(1e-8).log() - s_log_prob)).sum(1)
+    raw_loss = pixel_kl[route_t2].mean() * temperature ** 2
+
+    stats["rescue_kd_raw_value"] = float(raw_loss.detach().cpu())
+
+    if routed_ratio < 1e-5:
+        import warnings
+        warnings.warn(f"[t2_rescue] routed_ratio={routed_ratio:.6f} < 1e-5, "
+                      "very few pixels being rescued")
+
+    return raw_loss, stats
+
+
+def get_kd_weight(epoch: int, total_epochs: int, max_w: float, final_w: float,
+                  rampup_end: float = 0.2, warmdown_start: float = 0.6,
+                  warmdown_end: float = 0.8) -> float:
+    """4-phase KD weight schedule: rampup -> plateau -> warmdown -> GT-only."""
+    frac = epoch / max(total_epochs - 1, 1)
+    if frac < rampup_end:
+        return max_w * frac / max(rampup_end, 1e-8)
+    if frac < warmdown_start:
+        return max_w
+    if frac < warmdown_end:
+        progress = (frac - warmdown_start) / max(warmdown_end - warmdown_start, 1e-8)
+        return max_w + progress * (final_w - max_w)
+    return final_w
+
+
+# ---------------------------------------------------------------------------
 # Confidence-aware KD loss (DGACL pixel-level)
 # ---------------------------------------------------------------------------
 

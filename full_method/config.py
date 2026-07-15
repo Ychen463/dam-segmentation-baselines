@@ -227,6 +227,17 @@ class RunCfg:
     dgacl_phase2_lr: float = 1e-5                 # Phase 2 base LR
     dgacl_phase2_warmup: int = 3                  # Phase 2 warmup epochs
 
+    # Curriculum KD (CKD): T1-init + selective T2 rescue
+    kd_mode: str = "none"                         # "none" | "t1_only" | "dual_equal" | "t2_rescue"
+    kd_init_from_teacher: str = ""                # path to teacher ckpt for student weight init
+    kd_rescue_weight_max: float = 0.2             # max KD weight during plateau
+    kd_rescue_weight_final: float = 0.0           # final KD weight (GT-only refinement)
+    kd_rescue_rampup_end: float = 0.2             # fraction of training for rampup
+    kd_rescue_warmdown_start: float = 0.6         # fraction to start warmdown
+    kd_rescue_warmdown_end: float = 0.8           # fraction to end warmdown
+    kd_routing_threshold: float = 0.1             # T2 confidence delta threshold
+    kd_routing_temperature: float = 1.0           # temperature for routing softmax
+
     # Topology-Aware KD (match soft skeletons between student and teacher)
     use_topo_kd: bool = False                 # enable topo-KD loss
     topo_kd_weight: float = 0.10              # weight for topo-KD loss
@@ -3055,6 +3066,144 @@ ABLATION_PRESETS = {
                         "use_boundary_loss": False, "use_tversky_loss": False,
                         "use_cldice_loss": False, "use_srl_loss": False,
                         "use_soft_boundary_schedule": False},
+
+    # ===================================================================
+    # Set CKD: Curriculum KD (T1-init + selective T2 rescue)
+    # Teacher 1 (T1): DSCformer G1 (task-specific)
+    # Teacher 2 (T2): SAM2-LoRA (foundation model)
+    # Student: DSCformerDam initialized from T1 weights
+    # ===================================================================
+
+    # Shared base config for all CKD experiments
+    # Note: kd_init_from_teacher is set per-preset to point to T1 checkpoint
+
+    # CKD_B0: T1 val metrics baseline (no training, just eval T1 on val)
+    "CKD_B0": {"name": "ckd_b0_t1_baseline",
+               "model_type": "dscformer",
+               "epochs": 1,  # minimal; will be used for eval only
+               "kd_mode": "none",
+               "kd_init_from_teacher": "runs/dscformer_srl_G1/best.pt",
+               "no_curriculum": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+
+    # CKD_C0: Continued training (GT-only, no KD)
+    "CKD_C0": {"name": "ckd_c0_gt_only",
+               "model_type": "dscformer",
+               "lr": 1e-5, "warmup_epochs": 2, "epochs": 50,
+               "kd_mode": "none",
+               "kd_init_from_teacher": "runs/dscformer_srl_G1/best.pt",
+               "no_curriculum": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+
+    # CKD_C1: T1-only anchoring KD
+    "CKD_C1": {"name": "ckd_c1_t1_anchor",
+               "model_type": "dscformer",
+               "lr": 1e-5, "warmup_epochs": 2, "epochs": 50,
+               "kd_mode": "t1_only",
+               "kd_init_from_teacher": "runs/dscformer_srl_G1/best.pt",
+               "use_kd": True, "use_dual_kd": True,
+               "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+               "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+               "kd_teacher2_model_type": "sam_lora",
+               "kd_temperature": 4.0,
+               "kd_rescue_weight_max": 0.2,
+               "kd_rescue_weight_final": 0.0,
+               "kd_rescue_rampup_end": 0.2,
+               "kd_rescue_warmdown_start": 0.6,
+               "kd_rescue_warmdown_end": 0.8,
+               "no_curriculum": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+
+    # CKD_C2: Dual-equal KD (original DTKD strategy + T1-init)
+    "CKD_C2": {"name": "ckd_c2_dual_equal",
+               "model_type": "dscformer",
+               "lr": 1e-5, "warmup_epochs": 2, "epochs": 50,
+               "kd_mode": "dual_equal",
+               "kd_init_from_teacher": "runs/dscformer_srl_G1/best.pt",
+               "use_kd": True, "use_dual_kd": True,
+               "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+               "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+               "kd_teacher2_model_type": "sam_lora",
+               "kd_temperature": 4.0,
+               "kd_rescue_weight_max": 0.2,
+               "kd_rescue_weight_final": 0.0,
+               "kd_rescue_rampup_end": 0.2,
+               "kd_rescue_warmdown_start": 0.6,
+               "kd_rescue_warmdown_end": 0.8,
+               "no_curriculum": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+
+    # CKD_C3: Selective T2 rescue (MAIN experiment)
+    "CKD_C3": {"name": "ckd_c3_t2_rescue",
+               "model_type": "dscformer",
+               "lr": 1e-5, "warmup_epochs": 2, "epochs": 50,
+               "kd_mode": "t2_rescue",
+               "kd_init_from_teacher": "runs/dscformer_srl_G1/best.pt",
+               "use_kd": True, "use_dual_kd": True,
+               "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+               "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+               "kd_teacher2_model_type": "sam_lora",
+               "kd_temperature": 4.0,
+               "kd_rescue_weight_max": 0.2,
+               "kd_rescue_weight_final": 0.0,
+               "kd_rescue_rampup_end": 0.2,
+               "kd_rescue_warmdown_start": 0.6,
+               "kd_rescue_warmdown_end": 0.8,
+               "kd_routing_threshold": 0.1,
+               "kd_routing_temperature": 1.0,
+               "no_curriculum": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+
+    # CKD_C4: Selective T2 rescue with lower KD weight (sensitivity test)
+    "CKD_C4": {"name": "ckd_c4_t2_rescue_low",
+               "model_type": "dscformer",
+               "lr": 1e-5, "warmup_epochs": 2, "epochs": 50,
+               "kd_mode": "t2_rescue",
+               "kd_init_from_teacher": "runs/dscformer_srl_G1/best.pt",
+               "use_kd": True, "use_dual_kd": True,
+               "kd_teacher_checkpoint": "runs/dscformer_srl_G1/best.pt",
+               "kd_teacher2_checkpoint": "runs/sam_lora_srl_SAM2/best.pt",
+               "kd_teacher2_model_type": "sam_lora",
+               "kd_temperature": 4.0,
+               "kd_rescue_weight_max": 0.1,
+               "kd_rescue_weight_final": 0.0,
+               "kd_rescue_rampup_end": 0.2,
+               "kd_rescue_warmdown_start": 0.6,
+               "kd_rescue_warmdown_end": 0.8,
+               "kd_routing_threshold": 0.1,
+               "kd_routing_temperature": 1.0,
+               "no_curriculum": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
 }
 
 

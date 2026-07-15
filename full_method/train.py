@@ -57,6 +57,7 @@ from full_method.dinov2_model import DINOv2LoRA
 from full_method.losses import (
     CompositeLoss, confidence_aware_kd_loss, topo_kd_loss,
     boundary_privileged_kd_loss, extract_boundary_map,
+    selective_t2_rescue_kd, get_kd_weight,
 )
 from full_method.adaptive_weights import (
     AdaptiveTeacherWeights, adaptive_dual_teacher_ensemble, accw_epoch_update,
@@ -300,7 +301,7 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
     model.train()
     metrics.reset()
     loss_sum = 0.0
-    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0, "loss_skel_pred": 0.0, "loss_skel_consist": 0.0, "loss_contrastive": 0.0, "loss_bd_dice": 0.0, "loss_kd": 0.0, "loss_topo_kd": 0.0, "loss_router": 0.0}
+    loss_parts = {"loss_ce": 0.0, "loss_dice": 0.0, "loss_tversky": 0.0, "loss_bd": 0.0, "loss_cldice": 0.0, "loss_snake": 0.0, "loss_skel_pred": 0.0, "loss_skel_consist": 0.0, "loss_contrastive": 0.0, "loss_bd_dice": 0.0, "loss_kd": 0.0, "loss_topo_kd": 0.0, "loss_router": 0.0, "loss_ckd": 0.0}
     n_batches = 0
     total_steps = len(loader)
     log_every = max(1, total_steps // 10)
@@ -344,7 +345,9 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                                          bbox_masks=bbox_masks)
 
             # Knowledge distillation: blend hard loss with soft teacher loss
-            if teacher_model is not None and cfg is not None and cfg.use_kd:
+            # Skip legacy KD path when CKD kd_mode is active (handled below)
+            if (teacher_model is not None and cfg is not None and cfg.use_kd
+                    and cfg.kd_mode == "none"):
                 with torch.no_grad():
                     t_out = teacher_model(imgs)
                     t1_logits = F.interpolate(t_out["seg_logits"].float(),
@@ -431,6 +434,52 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     loss_tk = topo_kd_loss(s_logits, t_logits, iters=cfg.topo_kd_iters)
                     total_loss = total_loss + cfg.topo_kd_weight * loss_tk
                     info["loss_topo_kd"] = float(loss_tk.detach().cpu())
+
+            # CKD: unified kd_mode dispatch (additive loss, NOT convex combination)
+            if (cfg is not None and cfg.kd_mode != "none"
+                    and teacher_model is not None):
+                with torch.no_grad():
+                    t_out = teacher_model(imgs)
+                    _t1_logits = F.interpolate(t_out["seg_logits"].float(),
+                                               masks.shape[-2:], mode="bilinear",
+                                               align_corners=False)
+                    _t2_logits = None
+                    if teacher2_model is not None:
+                        t2_out = teacher2_model(imgs)
+                        _t2_logits = F.interpolate(t2_out["seg_logits"].float(),
+                                                   masks.shape[-2:], mode="bilinear",
+                                                   align_corners=False)
+
+                _s_logits = F.interpolate(outputs["seg_logits"].float(),
+                                          masks.shape[-2:], mode="bilinear",
+                                          align_corners=False)
+
+                if cfg.kd_mode == "t1_only":
+                    ckd_loss = kd_loss(_s_logits, _t1_logits, cfg.kd_temperature)
+                elif cfg.kd_mode == "dual_equal" and _t2_logits is not None:
+                    _ens_logits = 0.5 * _t1_logits + 0.5 * _t2_logits
+                    ckd_loss = kd_loss(_s_logits, _ens_logits, cfg.kd_temperature)
+                elif cfg.kd_mode == "t2_rescue" and _t2_logits is not None:
+                    ckd_loss, rescue_stats = selective_t2_rescue_kd(
+                        _s_logits, _t1_logits, _t2_logits,
+                        temperature=cfg.kd_temperature,
+                        routing_threshold=cfg.kd_routing_threshold,
+                        routing_temperature=cfg.kd_routing_temperature)
+                    info["route_pixel_count"] = rescue_stats["route_pixel_count"]
+                    info["route_pixel_ratio"] = rescue_stats["route_pixel_ratio"]
+                    info["rescue_kd_raw_value"] = rescue_stats["rescue_kd_raw_value"]
+                else:
+                    ckd_loss = total_loss.new_zeros(())
+
+                ckd_w = get_kd_weight(
+                    epoch, total_epochs, cfg.kd_rescue_weight_max,
+                    cfg.kd_rescue_weight_final, cfg.kd_rescue_rampup_end,
+                    cfg.kd_rescue_warmdown_start, cfg.kd_rescue_warmdown_end)
+                weighted_ckd = ckd_w * ckd_loss
+                total_loss = total_loss + weighted_ckd
+                info["loss_ckd"] = float(ckd_loss.detach().cpu())
+                info["ckd_weight"] = ckd_w
+                info["weighted_ckd"] = float(weighted_ckd.detach().cpu())
 
             # CALoRA: auxiliary routing loss (crack density -> high-rank gate)
             if (cfg is not None and cfg.model_type == "calora_sam"
@@ -527,6 +576,15 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
         ranks_str = "/".join(str(r) for r in cfg.calora_ranks)
         gate_str = " ".join(f"r{r}={g:.3f}" for r, g in zip(cfg.calora_ranks, gate_mean))
         print(f"  [{run_tag}] router gates (ranks {ranks_str}): {gate_str}")
+
+    # Log CKD routing statistics (last batch)
+    if cfg is not None and cfg.kd_mode == "t2_rescue" and "route_pixel_ratio" in info:
+        run_tag = cfg.name if cfg else "ckd"
+        print(f"  [{run_tag}] CKD routing: count={info['route_pixel_count']}"
+              f" ratio={info['route_pixel_ratio']:.4f}"
+              f" kd_raw={info['rescue_kd_raw_value']:.4f}"
+              f" kd_w={info.get('ckd_weight', 0):.4f}"
+              f" weighted={info.get('weighted_ckd', 0):.4f}")
 
     return m
 
@@ -764,6 +822,10 @@ def main() -> None:
           f" w_loss={cfg.dgacl_w_loss} lambda={cfg.dgacl_lambda}"
           f" pixel_kd={cfg.dgacl_pixel_kd}"
           f" phase2_lr={cfg.dgacl_phase2_lr} warmup={cfg.dgacl_phase2_warmup}")
+    print(f"[train] CKD: kd_mode={cfg.kd_mode}"
+          f" init_from={cfg.kd_init_from_teacher or 'none'}"
+          f" rescue_wt_max={cfg.kd_rescue_weight_max}"
+          f" routing_thresh={cfg.kd_routing_threshold}")
     print(f"[train] MAC: use={cfg.use_mac} morph_diff={cfg.use_mac_morph_difficulty}"
           f" adaptive_pacing={cfg.use_mac_adaptive_pacing}"
           f" class_loss={cfg.use_mac_class_loss}"
@@ -905,6 +967,21 @@ def main() -> None:
         model = DSCformerDam(cfg.pretrained, cfg=cfg).to(device)
     else:
         model = SegFormerWithBoundary(cfg.pretrained).to(device)
+    # ----- CKD: T1-init (load teacher weights into student) -----
+    if cfg.kd_init_from_teacher:
+        init_path = Path(cfg.kd_init_from_teacher)
+        if not init_path.is_absolute():
+            init_path = (C.PKG_DIR / init_path).resolve()
+        print(f"[CKD] initializing student from teacher: {init_path}")
+        init_state = torch.load(init_path, map_location=device, weights_only=False)
+        init_weights = init_state.get("ema_model", init_state["model"])
+        missing, unexpected = model.load_state_dict(init_weights, strict=True)
+        assert not missing and not unexpected, \
+            f"T1-init key mismatch: missing={missing}, unexpected={unexpected}"
+        init_miou = init_state.get("mIoU_fg", init_state.get("best_miou_fg", "?"))
+        print(f"[CKD] T1-init loaded (mIoU_fg={init_miou}), LR={cfg.lr} "
+              f"(T1 original LR was 6e-5, ratio={cfg.lr/6e-5:.2f}x)")
+
     preview_model = _PreviewWrapper(model)
     criterion = CompositeLoss(ce_weight=w, cfg=cfg).to(device)
 
@@ -1132,6 +1209,9 @@ def main() -> None:
         ema_model.eval()
         for p in ema_model.parameters():
             p.requires_grad_(False)
+        # CKD: T1-init already loaded into model, so EMA copy has those weights
+        if cfg.kd_init_from_teacher:
+            print(f"[CKD] EMA synced from T1-init weights")
         print(f"[train] EMA enabled: decay={cfg.ema_decay} start_epoch={cfg.ema_start_epoch}")
 
     # ----- knowledge distillation: load teacher(s) -----
