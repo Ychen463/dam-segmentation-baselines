@@ -25,8 +25,8 @@
 set -euo pipefail
 
 SPLIT_DIR="baseline_unet/splits/balanced_group_split"
-T1_CKPT="full_method/runs/dscformer_srl_G1/best.pt"
-T2_CKPT="full_method/runs/sam_lora_srl_SAM2/best.pt"
+T1_CKPT="full_method/runs/dscformer_srl_G1_bgsplit/best.pt"
+T2_CKPT="full_method/runs/sam_lora_srl_SAM2_bgsplit/best.pt"
 
 # Verify prerequisites
 for f in "$T1_CKPT" "$T2_CKPT" "$SPLIT_DIR/train.txt" "$SPLIT_DIR/val.txt"; do
