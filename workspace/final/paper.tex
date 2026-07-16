@@ -1,6 +1,6 @@
 % ===========================================================================
-% HeteroDistill: Automated Crack and Spalling Segmentation for Concrete
-% Dam Inspection via Heterogeneous Dual-Teacher Distillation
+% When Does Heterogeneous Dual-Teacher Distillation Help?
+% Protocol Sensitivity and Failure Mechanisms in Concrete Dam Defect Segmentation
 % ===========================================================================
 % Target: Automation in Construction / Engineering Structures / CSCEE
 % ===========================================================================
@@ -30,29 +30,32 @@
 
 \begin{frontmatter}
 
-\title{HeteroDistill: Automated Crack and Spalling Segmentation for Concrete Dam Inspection via Heterogeneous Dual-Teacher Distillation}
+\title{When Does Heterogeneous Dual-Teacher Distillation Help? Protocol Sensitivity and Failure Mechanisms in Concrete Dam Defect Segmentation}
 
 \author[inst1]{Yanlin Chen\corref{cor1}}
 \cortext[cor1]{Corresponding author.}
 \address[inst1]{College of Graduate and Professional Studies, Trine University, Angola, IN 46703, USA}
 
 \begin{highlights}
-\item Heterogeneous DTKD improves mIoU$_{\text{fg}}$ by 1.5 points under the original development protocol, but the gain is not preserved under a group-disjoint feature-cluster split---highlighting evaluation-protocol sensitivity in patch-level datasets.
-\item Single-teacher and duplicated-teacher controls show that the original-split gain cannot be explained by generic soft-target regularisation alone.
-\item Parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard Conv, 3 seeds each) shows no measurable difference---a negative result relevant to the crack segmentation community.
+\item Heterogeneous dual-teacher KD (DTKD) adds +1.5 mIoU$_{\text{fg}}$ on the original split but the student no longer surpasses its best teacher on a leakage-free balanced group split---revealing that evaluation protocol can reverse method rankings.
+\item A pixel-level oracle analysis confirms +8.2 mIoU$_{\text{fg}}$ complementarity between the two teachers, but selective distillation fails to transfer it; two further post-hoc interventions (continued supervised fine-tuning, group-aware resampling) also fail to improve the strong Teacher~1 initialisation.
+\item Parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard convolution, 3 seeds each) shows no measurable difference---a negative result relevant to the crack segmentation community.
+\item Systematic failure-mechanism analysis identifies three root causes: evaluation-protocol artefacts, inability to route complementary knowledge via pixel-level confidence, and resistance of a strong task-specific initialisation to further optimisation on small datasets.
 \end{highlights}
 
 \begin{abstract}
-Automated semantic segmentation of cracks and spalling on concrete dam surfaces is essential for structural health monitoring, yet combining task-specific models with foundation models remains underexplored for infrastructure defects.
-We propose \textbf{HeteroDistill}, a framework that augments a SegFormer-B2 backbone with \emph{Heterogeneous Dual-Teacher Knowledge Distillation} (DTKD), which transfers complementary knowledge from a task-specific teacher and a foundation-model teacher (SAM-LoRA) at zero additional inference cost.
-On the \textbf{DamSegment} dataset \citep{damsegment2026} (1{,}500 images, 3~classes), multi-seed matched controls (5 conditions $\times$ 3 seeds) show DTKD adds +1.5 mIoU$_{\text{fg}}$ with 5--7$\times$ variance reduction on the development split.
-However, when all models are retrained and evaluated on a leakage-free balanced group split, the student (76.7\%) does not surpass its best teacher (78.6\%), suggesting that DTKD's advantage on the original split may partly reflect evaluation-protocol artefacts.
-A parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard convolution, 3 seeds each) finds no measurable benefit from geometric inductive bias---a negative result relevant to the crack segmentation community.
-The resulting lightweight student model (51 FPS, 28.7M parameters) is intended as the vision module in automated dam inspection workflows.
+Heterogeneous dual-teacher knowledge distillation (DTKD)---combining a task-specific teacher with a foundation-model teacher---has shown promising gains on patch-level infrastructure datasets, but how robust are these gains to evaluation protocol changes?
+We investigate this question on the \textbf{DamSegment} dataset \citep{damsegment2026} (1{,}500 images, 3~classes) using a SegFormer-B2 student with a parallel crack-enhancement branch.
+On the original random split, multi-seed matched controls (5 conditions $\times$ 3 seeds) confirm that DTKD adds +1.5~mIoU$_{\text{fg}}$ with 5--7$\times$ variance reduction.
+However, when all models are retrained on a leakage-free balanced group split (135 feature clusters, group-disjoint partitioning), the student (76.7\%) no longer surpasses its best teacher (78.6\%), reversing the method ranking.
+A pixel-level oracle analysis on the validation set reveals +8.2~mIoU$_{\text{fg}}$ complementarity between the two teachers, confirming that the knowledge exists but cannot be automatically extracted: a selective distillation strategy that routes Teacher~2's knowledge based on pixel-level confidence fails to transfer the complementarity and exhibits a val--test ranking inversion.
+Two further post-hoc interventions---continued ground-truth fine-tuning and group-aware resampling, neither of which involves Teacher~2---also fail to improve the strong Teacher~1 initialisation.
+A parameter-matched branch comparison (DSConv vs.\ DCNv2 vs.\ standard convolution, 3 seeds each) additionally finds no measurable benefit from geometric inductive bias.
+These results provide concrete evidence that (i)~evaluation protocol can reverse method rankings on patch-level datasets, (ii)~oracle complementarity does not guarantee extractable distillation gains when routing relies on pixel-level confidence, and (iii)~a strong task-specific initialisation resists further improvement on small datasets.
 \end{abstract}
 
 \begin{keyword}
-Crack segmentation \sep Concrete dam inspection \sep Knowledge distillation \sep Multi-teacher distillation \sep Structural health monitoring
+Crack segmentation \sep Concrete dam inspection \sep Knowledge distillation \sep Evaluation protocol sensitivity \sep Negative results \sep Structural health monitoring
 \end{keyword}
 
 \end{frontmatter}
@@ -74,13 +77,14 @@ Topology-preserving losses such as clDice \citep{shit2021cldice} and persistent-
 Meanwhile, foundation models such as SAM \citep{kirillov2023sam} offer powerful pretrained representations, yet in our experiments, LoRA fine-tuning \citep{hu2022lora} on small industrial datasets underperforms fully fine-tuned task-specific architectures.
 A natural question arises: \emph{can the complementary strengths of task-specific and foundation models be combined}?
 
-We address this through knowledge distillation, proposing \textbf{HeteroDistill}, a framework with dual-teacher knowledge distillation (DTKD) for complementary knowledge transfer.
+We investigate this through knowledge distillation, constructing a dual-teacher knowledge distillation (DTKD) framework and subjecting it to progressively stricter evaluation protocols.
 We evaluate on the DamSegment dataset \citep{damsegment2026}, comprising 1{,}500 annotated dam surface images.
-Our contributions are:
+Our contributions are empirical findings rather than method proposals:
 \begin{enumerate}
-    \item \emph{Heterogeneous dual-teacher knowledge distillation} (DTKD) combining a task-specific teacher with a foundation-model teacher at zero inference overhead. DTKD improves mIoU$_{\text{fg}}$ by 1.5 points on the original split (multi-seed), but the gain is not preserved on a leakage-free balanced group split, revealing evaluation-protocol sensitivity (Section~\ref{sec:ablation},~\ref{sec:discussion}).
+    \item \emph{Evaluation-protocol sensitivity of DTKD}: heterogeneous dual-teacher KD combining a task-specific teacher with a foundation-model teacher adds +1.5~mIoU$_{\text{fg}}$ on the original random split (multi-seed), but the student no longer surpasses Teacher~1 on a leakage-free balanced group split, reversing the method ranking (Sections~\ref{sec:ablation},~\ref{sec:balanced_split}).
+    \item \emph{Oracle complementarity vs.\ extractable gains}: pixel-level oracle analysis reveals +8.2~mIoU$_{\text{fg}}$ complementarity between teachers, but selective distillation based on pixel-level confidence fails to transfer it; two further post-hoc interventions (continued GT fine-tuning, group-aware resampling) also fail to improve the strong Teacher~1 initialisation (Section~\ref{sec:rescue}).
     \item A \emph{negative result on geometric inductive bias}: parameter-matched comparison of Dynamic Snake Convolution, DCNv2, and standard convolution (3 seeds each, ${\sim}$1.32M parameters) shows no measurable difference (Section~\ref{sec:ablation}).
-    \item Comprehensive evaluation with six baselines, per-tier analysis, multi-seed stability, leakage-free split validation, and zero-shot cross-dataset transfer (Section~\ref{sec:experiments}).
+    \item \emph{Failure mechanism analysis}: we identify three root causes---evaluation-protocol artefacts in patch-level datasets, the inability to route complementary knowledge via pixel-level confidence, and resistance of a strong initialisation to further optimisation on small datasets---providing practical guidance for future distillation research on small infrastructure datasets (Section~\ref{sec:discussion}).
 \end{enumerate}
 
 % ===========================================================================
@@ -106,7 +110,7 @@ Recent work has critically examined topology-aware losses \citep{arora2025srlcri
 Deformable Convolutional Networks (DCN) \citep{dai2017deformable} introduced learnable offsets for adaptive sampling.
 Dynamic Snake Convolution (DSConv) \citep{qi2023dynamic} constrains offsets along a one-dimensional path for elongated structures.
 \citet{yu2024dscformer} proposed a dual-branch architecture combining DSConv with SegFormer for road crack segmentation.
-Our work differs in addressing multi-class segmentation, introducing DTKD, and providing parameter-matched controls showing that DSConv's geometric bias provides no measurable benefit.
+Our work addresses multi-class segmentation, investigates DTKD for complementary knowledge transfer, and provides parameter-matched controls showing that DSConv's geometric bias provides no measurable benefit.
 
 \subsection{Knowledge distillation for segmentation}
 
@@ -114,7 +118,7 @@ Knowledge distillation \citep{hinton2015distilling} transfers knowledge from tea
 Multi-teacher distillation \citep{you2017learning} combines multiple specialised teachers.
 \citet{zhang2022camkd} proposed confidence-aware multi-teacher KD at the sample level.
 \citet{liang2025taskspecifickd} demonstrated task-specific KD from vision foundation models for medical segmentation.
-Our strategy differs by combining a task-specific teacher with a foundation-model teacher whose complementary strengths are empirically validated through multi-seed matched controls.
+Our study combines a task-specific teacher with a foundation-model teacher and critically examines whether their complementary strengths can be reliably extracted through distillation.
 
 \subsection{Foundation models for segmentation}
 
@@ -129,12 +133,12 @@ In our experiments, using foundation models as \emph{teachers} in knowledge dist
 
 \subsection{Overview}
 
-Fig.~\ref{fig:architecture} illustrates the HeteroDistill framework. Our approach enhances a SegFormer-B2 backbone at two levels: (1)~\emph{feature extraction} via a parallel branch, and (2)~\emph{knowledge transfer} via dual-teacher distillation (DTKD).
+Fig.~\ref{fig:architecture} illustrates the studied framework. The architecture enhances a SegFormer-B2 backbone at two levels: (1)~\emph{feature extraction} via a parallel branch, and (2)~\emph{knowledge transfer} via dual-teacher distillation (DTKD).
 
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.92\textwidth]{figures/fig_architecture.png}
-    \caption{Overview of the HeteroDistill framework. (a)~A SegFormer-B2 encoder with a parallel DSConv branch produces 3-class segmentation logits; the branch additively enhances only the crack channel. (b)~Dual-teacher knowledge distillation (DTKD): Teacher~1 (DSConv+SRL, strong on pixel accuracy) and Teacher~2 (SAM-LoRA+SRL, strong on spalling component recall) are combined by equal-weight logit averaging.}
+    \caption{Overview of the studied DTKD framework. (a)~A SegFormer-B2 encoder with a parallel DSConv branch produces 3-class segmentation logits; the branch additively enhances only the crack channel. (b)~Dual-teacher knowledge distillation (DTKD): Teacher~1 (DSConv+SRL, strong on pixel accuracy) and Teacher~2 (SAM-LoRA+SRL, strong on spalling component recall) are combined by equal-weight logit averaging.}
     \label{fig:architecture}
 \end{figure*}
 
@@ -197,7 +201,8 @@ An agreement-aware variant that modulates KD loss by pixel-level teacher agreeme
 
 \subsection{Dataset}
 
-We evaluate on the \textbf{semantic segmentation subset} of DamSegment \citep{damsegment2026}, which contains 1{,}500 pixel-level annotated images with three classes (background, crack, spalling) at $512{\times}512$ resolution, organised into three difficulty tiers (Easy, Medium, Hard; 500 each).
+We evaluate on the \textbf{semantic segmentation subset} of DamSegment \citep{damsegment2026}, which contains 1{,}500 pixel-level annotated images with three classes (background, crack, spalling) at $640{\times}640$ original resolution, organised into three difficulty tiers (Easy, Medium, Hard; 500 each).
+All images are resized to $512{\times}512$ for training and evaluation.
 We split the data into train/val/test sets of 1{,}200/150/150 images, stratified by tier.
 Fig.~\ref{fig:dataset} shows representative samples; crack pixels range from 0.3\% to 7.9\% and spalling from 1.0\% to 11.7\%.
 
@@ -232,7 +237,7 @@ Mask2Former (Swin-S) & 512 & 4 & 100 & $10^{-4}$ & 5 \\
 SAM-LoRA$^\dagger$ & 1024 & 2 & 50 & $10^{-4}$ & 5 \\
 DINOv2-LoRA$^\dagger$ & 518 & 2 & 50 & $10^{-4}$ & 5 \\
 \midrule
-HeteroDistill & 512 & 4 & 100 & $6{\times}10^{-5}$ & 5 \\
+DTKD Student & 512 & 4 & 100 & $6{\times}10^{-5}$ & 5 \\
 Teacher~1 (DSConv+SRL) & 512 & 4 & 100 & $6{\times}10^{-5}$ & 5 \\
 Teacher~2 (SAM-LoRA+SRL)$^\dagger$ & 1024 & 2 & 50 & $10^{-4}$ & 5 \\
 \bottomrule
@@ -272,7 +277,7 @@ Mask2Former & Swin-S & 68.7 & 68.7 & 512 & 39 \\
 SAM-LoRA$^\dagger$ & ViT-B & 93.7 & 5.0 & 1024 & 9.0 \\
 DINOv2-LoRA$^\dagger$ & ViT-B/14 & 92.7 & 6.1 & 518 & 68 \\
 \midrule
-HeteroDistill & MiT-B2 & 28.7 & 28.7 & 512 & 51 \\
+DTKD Student & MiT-B2 & 28.7 & 28.7 & 512 & 51 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -297,16 +302,16 @@ SAM-LoRA$^\dagger$ \citep{kirillov2023sam} & ViT-B & 68.1 & 55.9 & 80.2 & 73.1 &
 DINOv2-LoRA$^\dagger$ \citep{oquab2024dinov2} & ViT-B & 66.7 & 49.1 & \underline{84.2} & 64.7 & 60.1 & 62.4 & 77.4 & 86.1 & 76.5 \\
 \midrule
 DSConv+SRL$^\S$ & MiT-B2 & \underline{70.6} & \underline{57.3} & 83.8 & 74.7 & \underline{66.0} & 70.3 & \underline{82.5} & 89.0 & 77.8 \\
-HeteroDistill & MiT-B2 & \textbf{72.3} & \textbf{58.5} & \textbf{86.2} & \underline{75.6} & 65.6 & \underline{70.6} & \textbf{83.3} & \underline{89.6} & \textbf{83.0} \\
+DTKD Student & MiT-B2 & \textbf{72.3} & \textbf{58.5} & \textbf{86.2} & \underline{75.6} & 65.6 & \underline{70.6} & \textbf{83.3} & \underline{89.6} & \textbf{83.0} \\
 \midrule
-HeteroDistill + TTA$^*$ & MiT-B2 & 72.7 & 59.3 & 86.0 & 76.3 & 67.2 & 71.8 & 83.7 & 88.7 & 80.2 \\
+DTKD Student + TTA$^*$ & MiT-B2 & 72.7 & 59.3 & 86.0 & 76.3 & 67.2 & 71.8 & 83.7 & 88.7 & 80.2 \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-HeteroDistill achieves the highest mIoU$_{\text{fg}}$ (72.3\%) and the highest IoU for both crack and spalling among all compared methods.
-Compared to the SegFormer-B2 baseline, HeteroDistill improves mIoU$_{\text{fg}}$ by +1.9, IoU$_{\text{cr}}$ by +1.6, IoU$_{\text{sp}}$ by +2.4, and CompR$_{\text{fg}}$ by +2.1.
-Under the evaluated LoRA configurations, SAM-LoRA (68.1\%) and DINOv2-LoRA (66.7\%) underperform HeteroDistill, demonstrating that foundation model knowledge can be more effectively leveraged through distillation than direct fine-tuning.
+On the original split, the DTKD student achieves the highest mIoU$_{\text{fg}}$ (72.3\%) and the highest IoU for both crack and spalling among all compared methods.
+Compared to the SegFormer-B2 baseline, DTKD improves mIoU$_{\text{fg}}$ by +1.9, IoU$_{\text{cr}}$ by +1.6, IoU$_{\text{sp}}$ by +2.4, and CompR$_{\text{fg}}$ by +2.1.
+Under the evaluated LoRA configurations, SAM-LoRA (68.1\%) and DINOv2-LoRA (66.7\%) underperform the DTKD student, suggesting that foundation model knowledge may be more effectively leveraged through distillation than direct fine-tuning---though this advantage is qualified by the balanced-split findings in Section~\ref{sec:balanced_split}.
 
 \subsection{Ablation study}
 \label{sec:ablation}
@@ -377,11 +382,11 @@ Table~\ref{tab:multiseed} reports mean $\pm$ std over 3 seeds for key configurat
 
 \begin{table}[t]
 \centering
-\caption{Multi-seed stability (mean $\pm$ std, 3 seeds). HeteroDistill seeds vary the student only (teachers fixed); see Table~\ref{tab:factorial} Part~B for full pipeline variability. All values in \%.}
+\caption{Multi-seed stability (mean $\pm$ std, 3 seeds). DTKD seeds vary the student only (teachers fixed); see Table~\ref{tab:factorial} Part~B for full pipeline variability. All values in \%.}
 \label{tab:multiseed}
 \begin{tabular}{lcccc}
 \toprule
-Metric & SegFormer-B2 & Branch-only & Branch+SRL & HeteroDistill \\
+Metric & SegFormer-B2 & Branch-only & Branch+SRL & DTKD \\
 \midrule
 mIoU$_{\text{fg}}$    & 69.2 $\pm$ 1.47 & 70.8 $\pm$ 0.70 & 67.9 $\pm$ 2.42 & \textbf{71.8 $\pm$ 0.52} \\
 IoU$_{\text{cr}}$     & 55.5 $\pm$ 2.08 & 57.1 $\pm$ 0.58 & 53.7 $\pm$ 3.89 & \textbf{58.5 $\pm$ 0.31} \\
@@ -423,7 +428,7 @@ Student (DTKD) & \textbf{72.3} & \textbf{58.5} & \textbf{86.2} & 82.1 & \underli
 \end{table}
 
 On the original split, the student exceeds both teachers on mIoU$_{\text{fg}}$ (+1.7 over Teacher~1, +3.3 over Teacher~2) and substantially inherits Teacher~2's spalling component recall advantage (83.8\% vs.\ Teacher~1's 73.4\%).
-However, as discussed in Section~\ref{sec:discussion}, this ranking is not preserved on a leakage-free balanced group split.
+However, as shown in Section~\ref{sec:balanced_split}, this ranking is not preserved on a leakage-free balanced group split.
 
 \paragraph{Factorial analysis and DTKD controls}
 Table~\ref{tab:factorial} presents a $2{\times}2$ factorial analysis and matched controls isolating DTKD mechanisms.
@@ -472,7 +477,7 @@ Three key findings emerge from the original split:
 (1)~DTKD helps only with the parallel branch (+1.9) but degrades the plain SegFormer ($-$0.7), reflecting architectural affinity with Teacher~1.
 (2)~The student surpasses the direct teacher ensemble by +1.6 on this split.
 (3)~Matched multi-seed controls confirm a robust +1.5 mIoU$_{\text{fg}}$ gain (71.7 vs.\ 70.3) with 5--7$\times$ variance reduction; T1-only KD (69.7) and duplicated teachers (70.1) provide no benefit; label smoothing (68.7) rules out generic soft-target regularisation as the mechanism.
-These results are qualified by balanced-split findings in Section~\ref{sec:discussion}.
+These results are qualified by balanced-split findings in Section~\ref{sec:balanced_split}.
 
 \subsection{Qualitative results}
 
@@ -481,46 +486,13 @@ Fig.~\ref{fig:qualitative} presents representative predictions across difficulty
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.95\textwidth]{figures/fig3_qualitative.png}
-    \caption{Qualitative comparison on test samples across difficulty tiers. Left to right: input, ground truth, SegFormer-B2, DSConv+SRL (Teacher~1), HeteroDistill. Per-image crack (Cr) and spalling (Sp) IoU shown above each prediction. Red: crack, green: spalling.}
+    \caption{Qualitative comparison on test samples across difficulty tiers. Left to right: input, ground truth, SegFormer-B2, DSConv+SRL (Teacher~1), DTKD Student. Per-image crack (Cr) and spalling (Sp) IoU shown above each prediction. Red: crack, green: spalling.}
     \label{fig:qualitative}
 \end{figure*}
 
-\subsection{Cross-dataset evaluation}
-\label{sec:cross_dataset}
+\subsection{Balanced group split evaluation}
+\label{sec:balanced_split}
 
-We perform zero-shot transfer evaluation on the S2DS dataset \citep{s2ds2021} (743 images, $1024{\times}1024$, eight classes; we map crack and spalling, treating all others as background).
-All images are resized to $512{\times}512$; no fine-tuning is performed.
-
-\begin{table}[t]
-\centering
-\caption{Cross-dataset evaluation: DamSegment$\to$S2DS (zero-shot). All values in \%.}
-\label{tab:cross_dataset}
-\begin{tabular}{lccccc}
-\toprule
-Model & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text{fg}}$ & clDice$_{\text{fg}}$ \\
-\midrule
-SegFormer-B2 & 0.1 & 0.1 & 0.0 & 2.8 & 1.3 \\
-Mask2Former & 2.5 & 0.1 & 4.8 & 5.5 & 21.2 \\
-DSConv & 14.9 & 6.8 & 23.1 & 44.3 & 62.0 \\
-DSConv+SRL & 17.1 & 7.6 & 26.7 & \textbf{49.6} & \textbf{72.1} \\
-HeteroDistill & \textbf{18.7} & \textbf{8.6} & \textbf{28.9} & 46.6 & 68.4 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-A large domain gap is evident. SegFormer-B2 and Mask2Former fail almost completely. All branch-equipped variants substantially outperform vanilla baselines. HeteroDistill achieves the highest mIoU$_{\text{fg}}$ (18.7\%), though the branch-equipped architecture's advantage likely stems from additional capacity rather than geometric bias.
-The decomposition is not a clean ablation (HeteroDistill adds DTKD while removing student SRL); further details in Supplementary~S8.
-
-% ===========================================================================
-\section{Discussion}
-\label{sec:discussion}
-
-\paragraph{DTKD: benefits and limitations}
-On the original (patch-level random) split, DTKD adds +1.9 mIoU$_{\text{fg}}$ in a single run; multi-seed matched controls confirm +1.5 with 5--7$\times$ variance reduction (Table~\ref{tab:factorial}).
-The $2{\times}2$ factorial reveals that DTKD benefits require the parallel branch (architectural affinity with Teacher~1).
-DTKD's hyperparameters ($\tau$, $\alpha$) are robust: excluding $\tau{=}2$, all settings fall within 0.9\% of the default (Supplementary~S4).
-
-\textbf{Balanced group split.}
 To address potential patch-level leakage from the original random split, we constructed a leakage-free balanced group split using ResNet-50 feature clustering (135 groups, agglomerative clustering with cosine distance).
 All models were retrained from scratch with locked hyperparameters on an 80/10/10 train/val/test partition (1{,}202/149/149 images).
 Table~\ref{tab:balanced_split} reports the results.
@@ -547,39 +519,171 @@ DTKD Student & 76.7 & 64.4 & 89.0 & 79.7 \\
 \end{tabular}
 \end{table}
 
-Critically, the DTKD student (76.7\%) no longer surpasses its best teacher, Teacher~1 (78.6\%), on the balanced split.
-This suggests that the student-exceeds-teacher finding on the original split may partly reflect evaluation-protocol artefacts (patch-level leakage or test-set exposure during development).
-The DTKD student still outperforms all baselines except SegFormer-B2 and Teacher~1, and remains a practical choice given its zero additional inference cost over the backbone.
-We report both splits transparently and caution against interpreting the original-split ranking as definitive.
+Critically, the DTKD student (76.7\%) no longer surpasses its best teacher, Teacher~1 (78.6\%), on the balanced split---a reversal of the original-split ranking.
+This suggests that the student-exceeds-teacher finding on the original split partly reflects evaluation-protocol artefacts.
+The DTKD student still outperforms all baselines except SegFormer-B2 and Teacher~1, and remains competitive given its zero additional inference cost.
+
+\subsection{Rescue experiments}
+\label{sec:rescue}
+
+The balanced-split results raise two questions: (i)~can the complementary knowledge between the two teachers be transferred to the student via better distillation strategies? and (ii)~can the strong Teacher~1 initialisation be further improved by post-hoc optimisation?
+We first quantify the complementarity via oracle analysis, then report one distillation-based rescue (which uses Teacher~2) and two post-hoc fine-tuning interventions (which do not).
+Because different experiments use different evaluation subsets, we present results in separate tables to avoid conflating splits.
+
+\paragraph{Oracle complementarity (validation set)}
+A pixel-level oracle---selecting the better teacher prediction per pixel using ground truth---quantifies the upper bound of complementarity on the balanced-split validation set (Table~\ref{tab:oracle}).
+The +8.2~mIoU$_{\text{fg}}$ gap between the oracle and either individual teacher confirms that substantial complementarity exists: Teacher~2 genuinely complements Teacher~1 on specific pixel regions, particularly for spalling boundaries.
+
+\begin{table}[t]
+\centering
+\caption{Oracle complementarity analysis on the balanced-split \textbf{validation} set. The oracle selects the better teacher prediction per pixel using ground truth. All values in \%.}
+\label{tab:oracle}
+\begin{tabular}{lcc}
+\toprule
+Model & Val mIoU$_{\text{fg}}$ & $\Delta$ vs.\ T1 \\
+\midrule
+Teacher~1 (DSConv+SRL) & 69.3 & -- \\
+Teacher~2 (SAM-LoRA+SRL) & 65.5 & $-$3.8 \\
+Pixel-level oracle (T1$\cup$T2) & 77.5 & +8.2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Distillation-based rescue and continued training}
+We initialised the student from Teacher~1's checkpoint and tested two strategies: (i)~selective KD (CKD), which actively uses Teacher~2 by applying its soft label only where Teacher~2's max-probability exceeded Teacher~1's; and (ii)~continued GT fine-tuning (C0), training with ground-truth labels only (no Teacher~2 involvement) for 50 additional epochs at learning rate $10^{-5}$.
+Table~\ref{tab:rescue_kd} reports both validation and exploratory test results.
+
+\begin{table}[t]
+\centering
+\caption{Selective KD and continued training on the balanced group split. Val and test are reported separately. B0 is the Teacher~1-initialised baseline without further training. All values in \%.}
+\label{tab:rescue_kd}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{Validation} & \multicolumn{2}{c}{Test (exploratory)} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+Strategy & mIoU$_{\text{fg}}$ & $\Delta$ & mIoU$_{\text{fg}}$ & $\Delta$ \\
+\midrule
+B0 (T1 init, no training) & 69.26 & -- & 78.71 & -- \\
+C0 (GT fine-tuning, 50 ep) & 69.30 & +0.04 & 79.59 & +0.88 \\
+C2 (Dual-equal KD) & 69.40 & +0.14 & 79.30 & +0.59 \\
+CKD (Selective T2 rescue) & 69.55 & +0.29 & 77.85 & $-$0.86 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+CKD shows a val--test ranking inversion: the strategy that appears best on validation (+0.29) is worst on test ($-$0.86), with damage concentrated in crack geometry metrics (IoU$_{\text{cr}}$ $-$1.9, BF1$_{\text{cr}}$ $-$2.4, clDice$_{\text{cr}}$ $-$1.2).
+This indicates that max-probability routing does not capture geometric quality and overfits to validation-set characteristics.
+C0 shows a small test improvement (+0.88) but negligible validation gain (+0.04); given single-seed evaluation and test-set exposure during development, this is not reliable evidence of improvement.
+
+\paragraph{Post-hoc optimisation: group-aware fine-tuning}
+Since 135 feature-cluster groups have highly imbalanced sizes (min=1, max=156, median=8), we tested whether resampling to upweight underrepresented groups could improve robustness.
+These experiments do not involve Teacher~2; they test whether the Teacher~1 initialisation can be refined by adjusting the training data distribution.
+All strategies were initialised from Teacher~1 and trained for 50 epochs.
+Table~\ref{tab:rescue_group} reports validation-only results.
+
+\begin{table}[t]
+\centering
+\caption{Group-aware fine-tuning on the balanced group split (\textbf{validation} only). All strategies initialised from Teacher~1. Best epoch shown in parentheses. All values in \%.}
+\label{tab:rescue_group}
+\begin{tabular}{llcc}
+\toprule
+Strategy & Sampler & Val mIoU$_{\text{fg}}$ (best ep) & Val mIoU$_{\text{fg}}$ (ep50) \\
+\midrule
+G0 & Shuffle & 69.26 (ep1) & 67.96 \\
+G0R & Equal-wt replacement & 69.26 (ep1) & 68.76 \\
+G2 & Inverse-sqrt weighting & 69.26 (ep1) & 68.76 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All variants degraded from the initialisation: the best validation checkpoint was epoch~1 (the initialisation itself) for all three.
+With-replacement sampling (G0R, G2) slowed the degradation ($-$0.5 at epoch~50 vs.\ $-$1.3 for standard shuffling), suggesting mild regularisation, but no configuration improved over the Teacher~1 starting point.
+
+\paragraph{Summary}
+These experiments reveal two distinct failure modes.
+First, the only strategy that attempts to transfer Teacher~2's complementary knowledge (CKD) fails because pixel-level confidence does not correlate with geometric quality---routing based on max-probability selects the wrong teacher for crack pixels and exhibits a val--test ranking inversion.
+Second, all post-hoc optimisation attempts (C0, G0, G0R, G2)---none of which involve Teacher~2---fail to meaningfully improve the Teacher~1 initialisation, indicating that the checkpoint is near a local optimum that resists further refinement on the same 1{,}202-image training set.
+
+\subsection{Cross-dataset evaluation}
+\label{sec:cross_dataset}
+
+We perform zero-shot transfer evaluation on the S2DS dataset \citep{s2ds2021} (743 images, $1024{\times}1024$, eight classes; we map crack and spalling, treating all others as background).
+All images are resized to $512{\times}512$; no fine-tuning is performed.
+
+\begin{table}[t]
+\centering
+\caption{Cross-dataset evaluation: DamSegment$\to$S2DS (zero-shot). All values in \%.}
+\label{tab:cross_dataset}
+\begin{tabular}{lccccc}
+\toprule
+Model & mIoU$_{\text{fg}}$ & IoU$_{\text{cr}}$ & IoU$_{\text{sp}}$ & BF1$_{\text{fg}}$ & clDice$_{\text{fg}}$ \\
+\midrule
+SegFormer-B2 & 0.1 & 0.1 & 0.0 & 2.8 & 1.3 \\
+Mask2Former & 2.5 & 0.1 & 4.8 & 5.5 & 21.2 \\
+DSConv & 14.9 & 6.8 & 23.1 & 44.3 & 62.0 \\
+DSConv+SRL & 17.1 & 7.6 & 26.7 & \textbf{49.6} & \textbf{72.1} \\
+DTKD Student & \textbf{18.7} & \textbf{8.6} & \textbf{28.9} & 46.6 & 68.4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A large domain gap is evident. SegFormer-B2 and Mask2Former fail almost completely. All branch-equipped variants substantially outperform vanilla baselines. The DTKD student achieves the highest mIoU$_{\text{fg}}$ (18.7\%), though the branch-equipped architecture's advantage likely stems from additional capacity rather than geometric bias.
+Further details in Supplementary~S8.
+
+% ===========================================================================
+\section{Discussion}
+\label{sec:discussion}
+
+\paragraph{Why does evaluation protocol reverse the ranking?}
+On the original random split, DTKD adds +1.5~mIoU$_{\text{fg}}$ (multi-seed); on the balanced group split, the student falls 1.9 points below Teacher~1 (Section~\ref{sec:balanced_split}).
+DamSegment comprises 1{,}500 patches from a single dam site, and the original random split allows spatially adjacent patches to appear in both training and test sets.
+Feature-cluster analysis reveals that 135 visual groups exhibit high intra-group similarity (cosine distance $<$0.3); when the split ensures group-disjoint partitioning, the model must generalise across visual modes rather than interpolate within them.
+DTKD's variance reduction (5--7$\times$) on the original split likely reflects soft-label smoothing of patch-level leakage rather than genuine complementary knowledge transfer.
+This finding has practical implications: \emph{patch-level datasets for infrastructure inspection should be split by visual groups, not randomly}.
+
+\paragraph{Oracle complementarity: real but inaccessible}
+The +8.2~mIoU$_{\text{fg}}$ pixel-level oracle (Section~\ref{sec:rescue}) is not a trivial upper bound---it confirms that Teacher~2 (SAM-LoRA) genuinely complements Teacher~1 on specific pixel regions, particularly for spalling boundaries.
+However, the only strategy that actively attempts to transfer this complementarity---confidence-based selective KD (CKD)---fails because max-probability does not correlate with geometric quality (a teacher can be confident and topologically wrong).
+This gap between oracle potential and achievable gains may be a general phenomenon in heterogeneous distillation: when teachers differ qualitatively (pixel accuracy vs.\ component recall) rather than quantitatively, simple routing metrics are insufficient.
+
+\paragraph{Continued fine-tuning degradation}
+Group-aware fine-tuning experiments (G0, G0R, G2) all showed monotonic validation degradation from the Teacher~1 initialisation, with the best epoch consistently at epoch~1.
+C0 (GT-only fine-tuning) produced a negligible validation improvement (+0.04 at best epoch~15) and an exploratory test gain (+0.88) that cannot be treated as confirmatory given single-seed evaluation and test-set exposure during development.
+Overall, this pattern---a strong pretrained model that resists meaningful improvement by further training on the same data---suggests either (i)~the 1{,}202-image training set provides insufficient diversity for continued learning, or (ii)~the Teacher~1 checkpoint occupies a sharp minimum that is easily disrupted.
+This has practical implications for transfer learning in small-dataset regimes: \emph{fine-tuning from a strong task-specific checkpoint is not always beneficial}.
+
+\paragraph{DTKD: benefits and limitations}
+On the original split, DTKD's $2{\times}2$ factorial reveals that benefits require the parallel branch (architectural affinity with Teacher~1).
+DTKD's hyperparameters ($\tau$, $\alpha$) are robust: excluding $\tau{=}2$, all settings fall within 0.9\% of the default (Supplementary~S4).
+However, these properties are established only on the original split and may not transfer to stricter evaluation protocols.
 
 \paragraph{SRL: useful for teachers, harmful for students}
-SRL-trained teachers produce better students (+1.2 mIoU$_{\text{fg}}$) despite SRL degrading the teacher's own component coverage. As a student training component, SRL interferes with soft-label supervision ($-$1.1 mIoU$_{\text{fg}}$, single run). This asymmetry---that optimal teacher and student recipes differ---has broader implications for distillation pipeline design.
-
-\paragraph{Indirect use of foundation models}
-Under the evaluated LoRA configurations, directly fine-tuning SAM or DINOv2 underperforms task-specific architectures by 2--4\% mIoU$_{\text{fg}}$.
-Using them as teachers yields better results, though the comparison is limited by the absence of hyperparameter tuning for LoRA baselines.
+SRL-trained teachers produce better students (+1.2~mIoU$_{\text{fg}}$) despite SRL degrading the teacher's own component coverage. As a student training component, SRL interferes with soft-label supervision ($-$1.1~mIoU$_{\text{fg}}$, single run). This asymmetry---that optimal teacher and student recipes differ---has broader implications for distillation pipeline design.
 
 \paragraph{Branch geometry: a null result}
 Parameter-matched controls (Table~\ref{tab:branch_compare}) show that DSConv's snake-shaped sampling provides no measurable advantage over DCNv2 or standard convolution across all segmentation and topology metrics.
-The parallel branch provides useful capacity, but its geometric inductive bias does not matter.
+The parallel branch provides useful capacity, but its geometric inductive bias does not matter on this dataset.
 
-\paragraph{Failure modes and limitations}
-The model underperforms on (i)~thin hairline cracks ($<$2 pixels wide) and (ii)~co-occurring crack--spalling regions.
-DamSegment comprises images from a single dam site; the original patch-level random split allows spatially adjacent patches to appear in both training and test sets, inflating reported metrics.
-The balanced group split (Table~\ref{tab:balanced_split}) mitigates this issue but reveals that DTKD's ranking advantage is not preserved: Teacher~1 alone outperforms the DTKD student by 1.9 points.
-Test-set metrics were observed during development on the original split; the multi-seed analysis (Table~\ref{tab:multiseed}) suggests DTKD's contribution is more modest than the single-seed +1.9: the multi-seed gap is 1.0 point (70.8\% vs.\ 71.8\%).
-Cross-dataset transfer remains weak (mIoU$_{\text{fg}}$ $\leq$ 18.7\%).
+\paragraph{Limitations}
+The model underperforms on thin cracks (mean width ${\sim}$6~px at $512{\times}512$ training resolution in the Hard tier, with some regions as narrow as ${\sim}$3~px) and co-occurring crack--spalling regions.
+All experiments use a single dataset from one dam site; the balanced group split mitigates within-site leakage but does not address cross-site generalisation (cross-dataset transfer remains weak, mIoU$_{\text{fg}}$ $\leq$ 18.7\%).
+The rescue experiments (Section~\ref{sec:rescue}) use single seeds due to computational constraints; multi-seed confirmation would strengthen the negative findings.
+Under the evaluated LoRA configurations, directly fine-tuning SAM or DINOv2 underperforms task-specific architectures, but the comparison is limited by the absence of hyperparameter tuning for LoRA baselines.
 Additional analyses including loss exploration, ensemble analysis, engineering quantities, and deployment workflow are provided in the Supplementary Material.
 
 % ===========================================================================
 \section{Conclusion}
 \label{sec:conclusion}
 
-We presented HeteroDistill, a segmentation framework for concrete dam defects that combines a parallel feature-extraction branch with dual-teacher knowledge distillation (DTKD).
-On the original DamSegment split, multi-seed matched controls confirm DTKD adds +1.5 mIoU$_{\text{fg}}$ with 5--7$\times$ variance reduction.
-However, a leakage-free balanced group split shows the DTKD student (76.7\%) does not surpass its best teacher (78.6\%), indicating that the original-split advantage may partly reflect evaluation-protocol artefacts.
-A parameter-matched branch comparison shows no measurable benefit from geometric inductive bias.
-The lightweight student model (51 FPS, 28.7M parameters) remains a practical choice for automated dam inspection given its zero additional inference cost and competitive performance across both evaluation protocols.
+We investigated the protocol sensitivity and failure mechanisms of heterogeneous dual-teacher knowledge distillation for concrete dam defect segmentation.
+Our findings reveal a cautionary pattern: DTKD shows a robust +1.5~mIoU$_{\text{fg}}$ gain on the original random split, but the student no longer surpasses its best teacher on a leakage-free balanced group split, demonstrating that evaluation protocol alone can reverse method rankings on patch-level datasets.
+A pixel-level oracle analysis on the validation set confirms +8.2~mIoU$_{\text{fg}}$ complementarity between the two teachers, proving the knowledge exists---but selective distillation based on pixel-level confidence fails to transfer it, because max-probability does not correlate with geometric quality.
+Separately, two post-hoc interventions that do not involve Teacher~2---continued GT fine-tuning and group-aware resampling---also fail to meaningfully improve the strong Teacher~1 initialisation, suggesting that the checkpoint resists further refinement on the same small dataset.
+A parameter-matched branch comparison further shows no measurable benefit from geometric inductive bias.
+
+These negative results carry practical implications: (i)~patch-level infrastructure datasets require group-disjoint splits to produce reliable method comparisons; (ii)~oracle complementarity does not guarantee extractable distillation gains; and (iii)~the assumption that fine-tuning from a strong checkpoint always helps does not hold on small datasets.
+Despite the DTKD ranking reversal, the student model (51~FPS, 28.7M parameters) remains competitive on both evaluation protocols, offering a practical baseline for automated dam inspection.
 
 \section*{Data availability}
 

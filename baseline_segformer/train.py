@@ -345,6 +345,8 @@ def main() -> None:
                         help="custom val split file")
     parser.add_argument("--name", type=str, default=None,
                         help="override run directory name")
+    parser.add_argument("--seed", type=int, default=None,
+                        help="override random seed")
     args = parser.parse_args()
 
     cfg = C.PRESETS[args.preset]
@@ -354,7 +356,8 @@ def main() -> None:
         cfg.grad_accum = args.grad_accum
     total_epochs = args.epochs if args.epochs is not None else cfg.epochs
 
-    set_seed(C.SEED)
+    seed = args.seed if args.seed is not None else C.SEED
+    set_seed(seed)
     device = pick_device(C.DEVICE)
 
     # cuDNN warmup / fallback (RunPod compatibility)
