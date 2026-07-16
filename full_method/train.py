@@ -883,10 +883,12 @@ def main() -> None:
     test_files = read_split_file(C.SPLIT_FILES["test"])
     print(f"[train] sizes: train={len(all_train_files)} val={len(val_files)} test={len(test_files)}")
 
-    # ----- load group assignments (if GR preset active) -----
-    _is_gr = (cfg.group_sampler_mode != "none" or cfg.use_group_dro or cfg.use_jtt)
+    # ----- load group assignments -----
+    _use_group_training = (cfg.group_sampler_mode != "none" or cfg.use_group_dro or cfg.use_jtt)
+    _enable_group_eval = getattr(cfg, 'enable_group_eval', False)
+    _need_group_map = _use_group_training or _enable_group_eval
     group_map = None
-    if _is_gr:
+    if _need_group_map:
         ga_path = Path("baseline_unet/splits/balanced_group_split/group_assignments.json")
         if not ga_path.is_absolute():
             ga_path = (C.PKG_DIR.parent / ga_path).resolve()

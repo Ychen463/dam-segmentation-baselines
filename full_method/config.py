@@ -315,6 +315,7 @@ class RunCfg:
     jtt_upweight: float = 3.0
     jtt_error_quantile: float = 0.2           # bottom 20% by present-class mIoU
     skip_test_eval: bool = False              # skip final test evaluation
+    enable_group_eval: bool = False           # compute per-group metrics (independent of group training)
 
 
 # ---------------------------------------------------------------------------
@@ -3230,7 +3231,7 @@ ABLATION_PRESETS = {
                "kd_init_from_teacher": "runs/dscformer_srl_G1_bgsplit/best.pt",
                "no_curriculum": True,
                "group_sampler_mode": "none",
-               "skip_test_eval": True,
+               "skip_test_eval": True, "enable_group_eval": True,
                "use_soft_curriculum": False, "use_softmax_sampling": False,
                "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
                "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
@@ -3244,7 +3245,7 @@ ABLATION_PRESETS = {
                 "kd_init_from_teacher": "runs/dscformer_srl_G1_bgsplit/best.pt",
                 "no_curriculum": True,
                 "group_sampler_mode": "random_replace",
-                "skip_test_eval": True,
+                "skip_test_eval": True, "enable_group_eval": True,
                 "use_soft_curriculum": False, "use_softmax_sampling": False,
                 "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
                 "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
@@ -3259,7 +3260,7 @@ ABLATION_PRESETS = {
                "no_curriculum": True,
                "group_sampler_mode": "inverse_sqrt",
                "group_sampler_smooth_k": 3,
-               "skip_test_eval": True,
+               "skip_test_eval": True, "enable_group_eval": True,
                "use_soft_curriculum": False, "use_softmax_sampling": False,
                "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
                "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
@@ -3274,7 +3275,7 @@ ABLATION_PRESETS = {
                 "no_curriculum": True,
                 "group_sampler_mode": "group_uniform_capped",
                 "group_sampler_cap": 5,
-                "skip_test_eval": True,
+                "skip_test_eval": True, "enable_group_eval": True,
                 "use_soft_curriculum": False, "use_softmax_sampling": False,
                 "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
                 "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
@@ -3292,7 +3293,7 @@ ABLATION_PRESETS = {
                "jtt_upweight": 3.0,
                "jtt_error_quantile": 0.2,
                "group_sampler_mode": "random_replace",
-               "skip_test_eval": True,
+               "skip_test_eval": True, "enable_group_eval": True,
                "use_soft_curriculum": False, "use_softmax_sampling": False,
                "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
                "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
@@ -3309,7 +3310,7 @@ ABLATION_PRESETS = {
                "group_dro_eta": 0.1,
                "group_dro_max_weight": 10.0,
                "group_sampler_mode": "none",
-               "skip_test_eval": True,
+               "skip_test_eval": True, "enable_group_eval": True,
                "use_soft_curriculum": False, "use_softmax_sampling": False,
                "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
                "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
