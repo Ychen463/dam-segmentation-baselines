@@ -120,6 +120,55 @@
     "oracle_mIoU_fg": 77.45,
     "oracle_gain_mIoU_fg": 8.2
   },
+  "image_oracle": {
+    "macro_iou": 79.92,
+    "micro_iou": 95.46,
+    "mIoU_fg": 71.09,
+    "tier_selection": {
+      "Easy": {
+        "t1_wins": 23,
+        "t2_wins": 22,
+        "total": 45
+      },
+      "Medium": {
+        "t1_wins": 30,
+        "t2_wins": 23,
+        "total": 53
+      },
+      "Hard": {
+        "t1_wins": 34,
+        "t2_wins": 17,
+        "total": 51
+      }
+    }
+  },
+  "component_oracle": {
+    "crack": {
+      "total_components": 1917,
+      "oracle_recall_pct": 83.46,
+      "both_detected": 1387,
+      "t1_only": 87,
+      "t2_rescued": 126,
+      "neither_detected": 317
+    },
+    "spalling": {
+      "total_components": 59,
+      "oracle_recall_pct": 84.75,
+      "both_detected": 40,
+      "t1_only": 3,
+      "t2_rescued": 7,
+      "neither_detected": 9
+    },
+    "thin_crack": {
+      "total": 331,
+      "t1_recall_pct": 71.0,
+      "t2_recall_pct": 68.58,
+      "t2_rescue_rate_pct": 6.95,
+      "t2_rescued": 23,
+      "both_detected": 204,
+      "neither_detected": 73
+    }
+  },
   "verdict": "substantial_complementarity",
   "oracle_gain_mIoU_fg": 8.2
 }
