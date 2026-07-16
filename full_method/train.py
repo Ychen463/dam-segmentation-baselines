@@ -65,6 +65,8 @@ from full_method.adaptive_weights import (
 from full_method.difficulty import DifficultyEstimator, SampleState
 from full_method.sampler import TierAwareDynamicSampler
 from full_method.scheduler import CurriculumScheduler, AdaptivePacer, ClassLossScheduler
+from full_method.group_sampler import load_group_assignments, GroupAwareSampler, GroupDROTracker, JTTManager
+from full_method.group_eval import PerGroupEvaluator
 
 
 # ---------------------------------------------------------------------------
@@ -91,7 +93,7 @@ def pick_device(pref: str) -> str:
 # Data loaders
 # ---------------------------------------------------------------------------
 
-def build_train_loader(records: List[Dict], sampler: TierAwareDynamicSampler,
+def build_train_loader(records: List[Dict], sampler,
                        cfg: C.RunCfg, device: str) -> DataLoader:
     # TCA: tier-specific augmentation
     tier_tfms = None
@@ -315,7 +317,8 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                     mac_topo_multiplier: float = 1.0,
                     teacher_model: nn.Module = None,
                     teacher2_model: nn.Module = None,
-                    accw: AdaptiveTeacherWeights = None) -> Dict[str, float]:
+                    accw: AdaptiveTeacherWeights = None,
+                    group_dro: GroupDROTracker = None) -> Dict[str, float]:
     model.train()
     metrics.reset()
     loss_sum = 0.0
@@ -507,6 +510,18 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
                 total_loss = total_loss + cfg.calora_router_aux_weight * loss_router
                 info["loss_router"] = float(loss_router.detach().cpu())
 
+            # GroupDRO: apply per-sample weights based on group distribution
+            if group_dro is not None and "group_id" in batch:
+                gids = batch["group_id"]
+                dro_weights = group_dro.get_sample_weights_batch(gids).to(device)
+                # Re-weight per-sample losses (CE component) by DRO weights
+                # Use per_sample_ce as proxy for per-sample loss
+                ps_loss = info["per_sample_ce"].to(device)  # (B,)
+                group_dro.accumulate(gids, ps_loss)
+                # Apply DRO weights: scale total_loss by mean DRO weight
+                dro_scale = dro_weights.mean()
+                total_loss = total_loss * dro_scale
+
             total_loss = total_loss / grad_accum
 
         if use_amp:
@@ -611,9 +626,12 @@ def train_one_epoch(model, loader, optimizer, criterion: CompositeLoss, device,
 def evaluate(model, loader, criterion: CompositeLoss, device,
              metrics: SegMetricsBF1,
              curriculum_scheduler: CurriculumScheduler,
-             epoch: int, use_amp: bool = False) -> Dict[str, float]:
+             epoch: int, use_amp: bool = False,
+             group_eval: PerGroupEvaluator = None) -> Dict[str, float]:
     model.eval()
     metrics.reset()
+    if group_eval is not None:
+        group_eval.reset()
     loss_sum = 0.0
     n_batches = 0
     for batch in loader:
@@ -629,6 +647,9 @@ def evaluate(model, loader, criterion: CompositeLoss, device,
         seg_logits = F.interpolate(outputs["seg_logits"].float(), masks.shape[-2:],
                                    mode="bilinear", align_corners=False)
         metrics.update(seg_logits, masks)
+
+        if group_eval is not None and "group_id" in batch:
+            group_eval.update(seg_logits, masks, batch["group_id"])
 
     m = metrics.compute()
     m["loss"] = loss_sum / max(n_batches, 1)
@@ -862,9 +883,20 @@ def main() -> None:
     test_files = read_split_file(C.SPLIT_FILES["test"])
     print(f"[train] sizes: train={len(all_train_files)} val={len(val_files)} test={len(test_files)}")
 
+    # ----- load group assignments (if GR preset active) -----
+    _is_gr = (cfg.group_sampler_mode != "none" or cfg.use_group_dro or cfg.use_jtt)
+    group_map = None
+    if _is_gr:
+        ga_path = Path("baseline_unet/splits/balanced_group_split/group_assignments.json")
+        if not ga_path.is_absolute():
+            ga_path = (C.PKG_DIR.parent / ga_path).resolve()
+        print(f"[GR] loading group assignments from {ga_path}")
+        group_map = load_group_assignments(ga_path)
+        print(f"[GR] {len(group_map)} images mapped to {len(set(group_map.values()))} groups")
+
     # ----- build records -----
     print("[train] building records (scanning masks for has_spalling) ...")
-    records = build_records(all_train_files, C.DATA_ROOT)
+    records = build_records(all_train_files, C.DATA_ROOT, group_map=group_map)
     tier_counts = {0: 0, 1: 0, 2: 0}
     sp_count = 0
     for r in records:
@@ -891,6 +923,13 @@ def main() -> None:
     )
 
     curriculum_scheduler = CurriculumScheduler(total_epochs, cfg=cfg)
+
+    group_sampler = None
+    if cfg.group_sampler_mode != "none" and group_map is not None:
+        group_sampler = GroupAwareSampler(
+            records, group_map, mode=cfg.group_sampler_mode,
+            cap=cfg.group_sampler_cap, smooth_k=cfg.group_sampler_smooth_k)
+        print(f"[GR] using GroupAwareSampler mode={cfg.group_sampler_mode}")
 
     sampler = TierAwareDynamicSampler(
         records, sample_bank,
@@ -949,9 +988,23 @@ def main() -> None:
             print("[MAC] class loss scheduler enabled")
 
     # ----- build loaders -----
-    train_loader = build_train_loader(records, sampler, cfg, device)
-    val_loader = build_val_loader(val_files, cfg, device)
-    test_loader = build_val_loader(test_files, cfg, device)
+    _active_sampler = group_sampler if group_sampler is not None else sampler
+    train_loader = build_train_loader(records, _active_sampler, cfg, device)
+    # Val loader: inject group_id into val records if group_map available
+    if group_map is not None:
+        val_records = [{"id": f, "rel": f, "tier": 0, "has_spalling": False,
+                        "group_id": group_map.get(f, -1)} for f in val_files]
+        val_ds = FullMethodDataset(C.DATA_ROOT, val_records,
+                                   build_transforms(cfg.img_size, train=False))
+        val_loader = DataLoader(val_ds, batch_size=cfg.batch_size, shuffle=False,
+                                num_workers=4, pin_memory=(device == "cuda"),
+                                drop_last=False, collate_fn=dict_collate)
+    else:
+        val_loader = build_val_loader(val_files, cfg, device)
+    if not getattr(cfg, 'skip_test_eval', False):
+        test_loader = build_val_loader(test_files, cfg, device)
+    else:
+        test_loader = None
 
     # ----- model -----
     if cfg.model_type == "dinov2_lora":
@@ -1056,9 +1109,10 @@ def main() -> None:
             print(f"[train] {accum_notice}")
             cfg.batch_size = new_bs
             cfg.grad_accum = new_ga
-            train_loader = build_train_loader(records, sampler, cfg, device)
+            train_loader = build_train_loader(records, _active_sampler, cfg, device)
             val_loader = build_val_loader(val_files, cfg, device)
-            test_loader = build_val_loader(test_files, cfg, device)
+            if test_loader is not None:
+                test_loader = build_val_loader(test_files, cfg, device)
             del model, optimizer, lr_scheduler, preview_model
             if device == "mps" and hasattr(torch.mps, "empty_cache"):
                 torch.mps.empty_cache()
@@ -1087,6 +1141,33 @@ def main() -> None:
 
     train_metrics = SegMetricsBF1(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
     eval_metrics = SegMetricsBF1(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
+
+    # ----- group evaluator -----
+    group_eval = None
+    if group_map is not None:
+        group_eval = PerGroupEvaluator(C.NUM_CLASSES)
+        print("[GR] PerGroupEvaluator initialized")
+
+    # ----- GroupDRO tracker -----
+    group_dro = None
+    if cfg.use_group_dro and group_map is not None:
+        from collections import Counter as _Counter
+        _gs = _Counter(r.get("group_id", -1) for r in records)
+        group_dro = GroupDROTracker(_gs, eta=cfg.group_dro_eta,
+                                   max_weight=cfg.group_dro_max_weight)
+        print(f"[GR] GroupDRO enabled: {group_dro.n_groups} groups, "
+              f"eta={cfg.group_dro_eta}, max_weight={cfg.group_dro_max_weight}")
+
+    # ----- JTT manager -----
+    jtt_mgr = None
+    if cfg.use_jtt and group_map is not None:
+        jtt_mgr = JTTManager(records, group_map,
+                              stage1_epochs=cfg.jtt_stage1_epochs,
+                              upweight=cfg.jtt_upweight,
+                              error_quantile=cfg.jtt_error_quantile,
+                              num_classes=C.NUM_CLASSES)
+        print(f"[GR] JTT enabled: stage1={cfg.jtt_stage1_epochs} epochs, "
+              f"upweight={cfg.jtt_upweight}, error_q={cfg.jtt_error_quantile}")
 
     # ----- dry run -----
     if args.dry_run:
@@ -1362,7 +1443,8 @@ def main() -> None:
                              mac_topo_multiplier=_mac_topo_mult,
                              teacher_model=teacher_model,
                              teacher2_model=teacher2_model,
-                             accw=accw)
+                             accw=accw,
+                             group_dro=group_dro)
 
         # 2b. Update EMA model
         if ema_model is not None and epoch >= cfg.ema_start_epoch:
@@ -1373,8 +1455,65 @@ def main() -> None:
                 for eb, mb in zip(ema_model.buffers(), model.buffers()):
                     eb.copy_(mb)
 
+        # 2c. GroupDRO epoch-end step
+        if group_dro is not None:
+            group_dro.step()
+            top3 = np.argsort(group_dro.q)[-3:][::-1]
+            print(f"[{cfg.name}] [DRO] top-3 q: " +
+                  " ".join(f"g{group_dro.group_ids[i]}={group_dro.q[i]:.4f}" for i in top3))
+
+        # 2d. JTT stage transition
+        if jtt_mgr is not None and not jtt_mgr.stage1_done and epoch >= cfg.jtt_stage1_epochs:
+            print(f"[{cfg.name}] [JTT] Stage 1 complete at epoch {epoch}. Identifying errors...")
+            # Build a no-augmentation loader for error identification
+            _jtt_ds = FullMethodDataset(C.DATA_ROOT, records,
+                                         build_transforms(cfg.img_size, train=False))
+            _jtt_loader = DataLoader(_jtt_ds, batch_size=cfg.batch_size, shuffle=False,
+                                      num_workers=4, pin_memory=(device == "cuda"),
+                                      drop_last=False, collate_fn=dict_collate)
+            jtt_mgr.identify_errors(model, _jtt_loader, device)
+
+            # Re-initialize from T1 checkpoint
+            print(f"[{cfg.name}] [JTT] Re-initializing from T1 checkpoint...")
+            init_path = Path(cfg.kd_init_from_teacher)
+            if not init_path.is_absolute():
+                init_path = (C.PKG_DIR / init_path).resolve()
+            init_state = torch.load(init_path, map_location=device, weights_only=False)
+            init_weights = init_state.get("ema_model", init_state["model"])
+            model.load_state_dict(init_weights, strict=True)
+
+            # Rebuild optimizer and scheduler
+            optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr,
+                                          weight_decay=cfg.weight_decay)
+            warmup_sched = LinearLR(optimizer, start_factor=1e-2,
+                                    total_iters=cfg.warmup_epochs)
+            cosine_sched = CosineAnnealingLR(optimizer,
+                                             T_max=total_epochs - epoch - cfg.warmup_epochs)
+            lr_scheduler = SequentialLR(optimizer, [warmup_sched, cosine_sched],
+                                        milestones=[cfg.warmup_epochs])
+
+            # Create weighted sampler with JTT upweights
+            jtt_weights = jtt_mgr.get_sampler_weights(records)
+            from torch.utils.data import WeightedRandomSampler
+            _jtt_sampler = WeightedRandomSampler(jtt_weights, num_samples=len(records),
+                                                  replacement=True)
+            train_loader = build_train_loader(records, _jtt_sampler, cfg, device)
+            print(f"[{cfg.name}] [JTT] Stage 2 starting with {len(jtt_mgr.error_set)} "
+                  f"error samples (upweight={cfg.jtt_upweight}x)")
+
         # 3. Print sampler stats
-        ss = sampler.get_sampling_stats()
+        if group_sampler is not None:
+            gss = group_sampler.get_sampling_stats()
+            if gss:
+                print(f"[{cfg.name}] [group_sampler] mode={gss['mode']} "
+                      f"unique={gss['unique_images']}/{gss['total_samples']} "
+                      f"coverage={gss['coverage_ratio']:.2%} "
+                      f"max_repeat={gss['max_image_repeat']} "
+                      f"ESS={gss['effective_sample_size']:.0f} "
+                      f"group_samples=[{gss['group_sample_min']},{gss['group_sample_mean']:.1f},{gss['group_sample_max']}]")
+            ss = None  # tier stats not meaningful for group sampler
+        else:
+            ss = sampler.get_sampling_stats()
         if ss:
             print(f"[{cfg.name}] [sampler] sampled: {ss['tier_hist']} total={ss['total']}"
                   f" spalling_ratio={ss['has_spalling_ratio']:.2%}")
@@ -1410,7 +1549,30 @@ def main() -> None:
         va_ema = None
         if do_val:
             va = evaluate(model, val_loader, criterion, device, eval_metrics,
-                          curriculum_scheduler, epoch, use_amp=use_amp)
+                          curriculum_scheduler, epoch, use_amp=use_amp,
+                          group_eval=group_eval)
+            # Log group metrics
+            if group_eval is not None:
+                gm = group_eval.compute_group_metrics()
+                gs = gm['summary']
+                print(f"  [GR] groups={gs['n_groups_evaluated']} "
+                      f"mean_mIoU_fg={gs['mean_mIoU_fg']:.4f} "
+                      f"worst={gs['worst_group_mIoU_fg']:.4f} "
+                      f"elig_worst={gs['eligible_worst_group_mIoU_fg']:.4f} "
+                      f"p10={gs['p10_mIoU_fg']:.4f} "
+                      f"cvar20={gs['cvar20_mIoU_fg']:.4f} "
+                      f"std={gs['std_mIoU_fg']:.4f} "
+                      f"gap={gs['avg_worst_gap']:.4f}")
+                # Write group metrics CSV
+                _gm_csv = rdir / "group_metrics.csv"
+                _gm_new = not _gm_csv.exists()
+                _gm_keys = ["epoch"] + list(gs.keys())
+                with open(_gm_csv, "a", newline="") as _gf:
+                    _gw = csv.DictWriter(_gf, fieldnames=_gm_keys)
+                    if _gm_new:
+                        _gw.writeheader()
+                    _gw.writerow({"epoch": epoch, **gs})
+
             # EMA validation
             if ema_model is not None and epoch >= cfg.ema_start_epoch:
                 va_ema = evaluate(ema_model, val_loader, criterion, device,
@@ -1549,79 +1711,113 @@ def main() -> None:
                          samples_dir / f"epoch_{epoch:03d}.png", device, cfg.img_size)
 
     # ----- final test eval using best -----
-    print("\n[train] final test eval using best checkpoint")
-    if not best_pt.exists():
-        print("[train] WARNING: best.pt missing; using current model")
-    else:
-        state = torch.load(best_pt, map_location=device, weights_only=False)
-        model.load_state_dict(state["model"], strict=False)
-
-    # Use SegMetricsFull for final test (adds clDice + connectivity)
-    try:
-        from shared_eval.metrics_full import SegMetricsFull
-        test_eval_metrics = SegMetricsFull(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
-    except ImportError:
-        print("[train] WARNING: shared_eval not available; using SegMetricsBF1 for test")
-        test_eval_metrics = eval_metrics
-
-    test_m = evaluate(model, test_loader, criterion, device, test_eval_metrics,
-                      curriculum_scheduler, total_epochs, use_amp=use_amp)
-    print(format_metrics(test_m))
-
-    # EMA test eval (if EMA was used and checkpoint has separate EMA weights)
-    if ema_model is not None and best_pt.exists() and "ema_model" in state:
-        ema_model.load_state_dict(state["ema_model"], strict=False)
-        test_m_ema = evaluate(ema_model, test_loader, criterion, device,
-                              test_eval_metrics, curriculum_scheduler,
-                              total_epochs, use_amp=use_amp)
-        print("[EMA test]")
-        print(format_metrics(test_m_ema))
-
-    report = rdir / "test_report.txt"
-    with open(report, "w") as f:
-        f.write(f"run: {cfg.name}\n")
-        f.write(f"pretrained: {cfg.pretrained}  img_size: {cfg.img_size}  "
-                f"batch: {cfg.batch_size}  grad_accum: {cfg.grad_accum}  "
-                f"epochs: {total_epochs}  lr: {cfg.lr}  "
-                f"warmup: {cfg.warmup_epochs}\n")
-        f.write(f"difficulty: alpha={cfg.diff_alpha} beta={cfg.diff_beta}"
-                f" gamma={cfg.diff_gamma} delta={cfg.diff_delta}"
-                f" ema={cfg.diff_ema} tau={cfg.diff_tau}\n")
-        f.write(f"bonuses: spalling={cfg.spalling_bonus}"
-                f" late_hard_crack={cfg.late_hard_crack_bonus}\n")
-        f.write(f"ablation: dynamic_difficulty={cfg.use_dynamic_difficulty}"
-                f" class_sampling_bonus={cfg.use_class_sampling_bonus}"
-                f" class_loss_schedule={cfg.use_class_loss_schedule}"
-                f" boundary_loss={cfg.use_boundary_loss}"
-                f" tversky_loss={cfg.use_tversky_loss}\n")
-        f.write(f"new switches: soft_curriculum={cfg.use_soft_curriculum}"
-                f" softmax_sampling={cfg.use_softmax_sampling}"
-                f" dynamic_loss_reweight={cfg.use_dynamic_loss_reweight}"
-                f" (lambda={cfg.loss_reweight_lambda})"
-                f" soft_boundary={cfg.use_soft_boundary_schedule}\n")
-        f.write(f"cldice: use={cfg.use_cldice_loss}"
-                f" weight={cfg.cldice_weight} start_epoch={cfg.cldice_start_epoch}"
-                f" iters={cfg.cldice_iters}\n")
-        f.write(f"srl: use={cfg.use_srl_loss}\n")
-        f.write(f"loss: ce_w={cfg.loss_ce_w} dice_w={cfg.loss_dice_w}"
-                f" tversky_alpha={cfg.loss_tversky_alpha}"
-                f" tversky_beta={cfg.loss_tversky_beta}\n")
-        if accum_notice:
-            f.write(f"note: {accum_notice}\n")
+    if getattr(cfg, 'skip_test_eval', False):
+        print("\n[train] skipping test eval (skip_test_eval=True)")
+        # Write val report instead
+        report = rdir / "val_report.txt"
         if best_pt.exists():
-            f.write(f"best epoch: {state.get('epoch')}\n")
-            f.write(f"best val mIoU_fg: {state.get('mIoU_fg')}\n")
-        f.write("test set metrics:\n")
-        for k in ("IoU_background", "IoU_crack", "IoU_spalling",
-                  "Dice_background", "Dice_crack", "Dice_spalling",
-                  "mIoU_fg", "mIoU_all", "pixel_acc",
-                  "BF1_crack", "BF1_spalling", "BF1_fg_mean",
-                  "clDice_crack", "clDice_spalling", "clDice_fg_mean",
-                  "ConnR_crack", "ConnR_spalling", "ConnR_fg_mean"):
-            f.write(f"  {k}: {test_m.get(k)}\n")
-        f.write("confusion matrix (rows=gt, cols=pred):\n")
-        f.write(str(test_eval_metrics.cm) + "\n")
-    print(f"[train] wrote {report}")
+            state = torch.load(best_pt, map_location=device, weights_only=False)
+            model.load_state_dict(state["model"], strict=False)
+            # Final val eval with group metrics
+            final_va = evaluate(model, val_loader, criterion, device, eval_metrics,
+                                curriculum_scheduler, total_epochs, use_amp=use_amp,
+                                group_eval=group_eval)
+            with open(report, "w") as f:
+                f.write(f"run: {cfg.name}\n")
+                f.write(f"best epoch: {state.get('epoch')}\n")
+                f.write(f"best val mIoU_fg: {state.get('mIoU_fg')}\n")
+                f.write("val set metrics (best checkpoint):\n")
+                for k, v in sorted(final_va.items()):
+                    f.write(f"  {k}: {v}\n")
+                if group_eval is not None:
+                    gm = group_eval.compute_group_metrics()
+                    f.write("\ngroup robustness metrics:\n")
+                    for k, v in sorted(gm['summary'].items()):
+                        f.write(f"  {k}: {v}\n")
+            print(f"[train] wrote {report}")
+            print(format_metrics(final_va))
+            if group_eval is not None:
+                gs = gm['summary']
+                print(f"[GR] FINAL: mean_mIoU_fg={gs['mean_mIoU_fg']:.4f} "
+                      f"worst={gs['worst_group_mIoU_fg']:.4f} "
+                      f"p10={gs['p10_mIoU_fg']:.4f} cvar20={gs['cvar20_mIoU_fg']:.4f} "
+                      f"gap={gs['avg_worst_gap']:.4f}")
+        else:
+            print("[train] WARNING: best.pt missing")
+    else:
+        print("\n[train] final test eval using best checkpoint")
+        if not best_pt.exists():
+            print("[train] WARNING: best.pt missing; using current model")
+        else:
+            state = torch.load(best_pt, map_location=device, weights_only=False)
+            model.load_state_dict(state["model"], strict=False)
+
+        # Use SegMetricsFull for final test (adds clDice + connectivity)
+        try:
+            from shared_eval.metrics_full import SegMetricsFull
+            test_eval_metrics = SegMetricsFull(C.NUM_CLASSES, tol_px=C.BF1_TOLERANCE_PX)
+        except ImportError:
+            print("[train] WARNING: shared_eval not available; using SegMetricsBF1 for test")
+            test_eval_metrics = eval_metrics
+
+        test_m = evaluate(model, test_loader, criterion, device, test_eval_metrics,
+                          curriculum_scheduler, total_epochs, use_amp=use_amp)
+        print(format_metrics(test_m))
+
+        # EMA test eval (if EMA was used and checkpoint has separate EMA weights)
+        if ema_model is not None and best_pt.exists() and "ema_model" in state:
+            ema_model.load_state_dict(state["ema_model"], strict=False)
+            test_m_ema = evaluate(ema_model, test_loader, criterion, device,
+                                  test_eval_metrics, curriculum_scheduler,
+                                  total_epochs, use_amp=use_amp)
+            print("[EMA test]")
+            print(format_metrics(test_m_ema))
+
+        report = rdir / "test_report.txt"
+        with open(report, "w") as f:
+            f.write(f"run: {cfg.name}\n")
+            f.write(f"pretrained: {cfg.pretrained}  img_size: {cfg.img_size}  "
+                    f"batch: {cfg.batch_size}  grad_accum: {cfg.grad_accum}  "
+                    f"epochs: {total_epochs}  lr: {cfg.lr}  "
+                    f"warmup: {cfg.warmup_epochs}\n")
+            f.write(f"difficulty: alpha={cfg.diff_alpha} beta={cfg.diff_beta}"
+                    f" gamma={cfg.diff_gamma} delta={cfg.diff_delta}"
+                    f" ema={cfg.diff_ema} tau={cfg.diff_tau}\n")
+            f.write(f"bonuses: spalling={cfg.spalling_bonus}"
+                    f" late_hard_crack={cfg.late_hard_crack_bonus}\n")
+            f.write(f"ablation: dynamic_difficulty={cfg.use_dynamic_difficulty}"
+                    f" class_sampling_bonus={cfg.use_class_sampling_bonus}"
+                    f" class_loss_schedule={cfg.use_class_loss_schedule}"
+                    f" boundary_loss={cfg.use_boundary_loss}"
+                    f" tversky_loss={cfg.use_tversky_loss}\n")
+            f.write(f"new switches: soft_curriculum={cfg.use_soft_curriculum}"
+                    f" softmax_sampling={cfg.use_softmax_sampling}"
+                    f" dynamic_loss_reweight={cfg.use_dynamic_loss_reweight}"
+                    f" (lambda={cfg.loss_reweight_lambda})"
+                    f" soft_boundary={cfg.use_soft_boundary_schedule}\n")
+            f.write(f"cldice: use={cfg.use_cldice_loss}"
+                    f" weight={cfg.cldice_weight} start_epoch={cfg.cldice_start_epoch}"
+                    f" iters={cfg.cldice_iters}\n")
+            f.write(f"srl: use={cfg.use_srl_loss}\n")
+            f.write(f"loss: ce_w={cfg.loss_ce_w} dice_w={cfg.loss_dice_w}"
+                    f" tversky_alpha={cfg.loss_tversky_alpha}"
+                    f" tversky_beta={cfg.loss_tversky_beta}\n")
+            if accum_notice:
+                f.write(f"note: {accum_notice}\n")
+            if best_pt.exists():
+                f.write(f"best epoch: {state.get('epoch')}\n")
+                f.write(f"best val mIoU_fg: {state.get('mIoU_fg')}\n")
+            f.write("test set metrics:\n")
+            for k in ("IoU_background", "IoU_crack", "IoU_spalling",
+                      "Dice_background", "Dice_crack", "Dice_spalling",
+                      "mIoU_fg", "mIoU_all", "pixel_acc",
+                      "BF1_crack", "BF1_spalling", "BF1_fg_mean",
+                      "clDice_crack", "clDice_spalling", "clDice_fg_mean",
+                      "ConnR_crack", "ConnR_spalling", "ConnR_fg_mean"):
+                f.write(f"  {k}: {test_m.get(k)}\n")
+            f.write("confusion matrix (rows=gt, cols=pred):\n")
+            f.write(str(test_eval_metrics.cm) + "\n")
+        print(f"[train] wrote {report}")
 
     try:
         render_curves(csv_path, rdir / "curves.png")

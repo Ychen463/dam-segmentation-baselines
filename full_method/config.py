@@ -303,6 +303,19 @@ class RunCfg:
     mac_class_loss_max_boost: float = 2.0         # maximum CE weight multiplier
     mac_class_loss_ema: float = 0.8               # EMA smoothing for class loss scheduler
 
+    # Group-Robust Training
+    group_sampler_mode: str = "none"          # "none"|"random_replace"|"group_uniform_capped"|"inverse_sqrt"
+    group_sampler_cap: int = 5                # min group size for capped uniform
+    group_sampler_smooth_k: int = 3           # smoothing constant for inverse_sqrt
+    use_group_dro: bool = False
+    group_dro_eta: float = 0.1
+    group_dro_max_weight: float = 10.0
+    use_jtt: bool = False
+    jtt_stage1_epochs: int = 10
+    jtt_upweight: float = 3.0
+    jtt_error_quantile: float = 0.2           # bottom 20% by present-class mIoU
+    skip_test_eval: bool = False              # skip final test evaluation
+
 
 # ---------------------------------------------------------------------------
 # Ablation presets
@@ -3204,6 +3217,106 @@ ABLATION_PRESETS = {
                "use_boundary_loss": False, "use_tversky_loss": False,
                "use_cldice_loss": False, "use_srl_loss": False,
                "use_soft_boundary_schedule": False},
+
+    # ===================================================================
+    # Group-Robust Training (GR) presets
+    # ===================================================================
+    # Shared base: same as CKD_C0 (T1-init, lr=1e-5, warmup=2, 50 epochs, no curriculum)
+    **{f"GR_{k}": v for k, v in {
+        "G0": {"name": "gr_g0_baseline",
+               "model_type": "dscformer",
+               "lr": 1e-5, "warmup_epochs": 2, "epochs": 50,
+               "kd_mode": "none",
+               "kd_init_from_teacher": "runs/dscformer_srl_G1_bgsplit/best.pt",
+               "no_curriculum": True,
+               "group_sampler_mode": "none",
+               "skip_test_eval": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+        "G0R": {"name": "gr_g0r_replace",
+                "model_type": "dscformer",
+                "lr": 1e-5, "warmup_epochs": 2, "epochs": 50,
+                "kd_mode": "none",
+                "kd_init_from_teacher": "runs/dscformer_srl_G1_bgsplit/best.pt",
+                "no_curriculum": True,
+                "group_sampler_mode": "random_replace",
+                "skip_test_eval": True,
+                "use_soft_curriculum": False, "use_softmax_sampling": False,
+                "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                "use_boundary_loss": False, "use_tversky_loss": False,
+                "use_cldice_loss": False, "use_srl_loss": False,
+                "use_soft_boundary_schedule": False},
+        "G2": {"name": "gr_g2_inverse_sqrt",
+               "model_type": "dscformer",
+               "lr": 1e-5, "warmup_epochs": 2, "epochs": 50,
+               "kd_mode": "none",
+               "kd_init_from_teacher": "runs/dscformer_srl_G1_bgsplit/best.pt",
+               "no_curriculum": True,
+               "group_sampler_mode": "inverse_sqrt",
+               "group_sampler_smooth_k": 3,
+               "skip_test_eval": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+        "G1C": {"name": "gr_g1c_capped_uniform",
+                "model_type": "dscformer",
+                "lr": 1e-5, "warmup_epochs": 2, "epochs": 50,
+                "kd_mode": "none",
+                "kd_init_from_teacher": "runs/dscformer_srl_G1_bgsplit/best.pt",
+                "no_curriculum": True,
+                "group_sampler_mode": "group_uniform_capped",
+                "group_sampler_cap": 5,
+                "skip_test_eval": True,
+                "use_soft_curriculum": False, "use_softmax_sampling": False,
+                "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+                "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+                "use_boundary_loss": False, "use_tversky_loss": False,
+                "use_cldice_loss": False, "use_srl_loss": False,
+                "use_soft_boundary_schedule": False},
+        "G4": {"name": "gr_g4_jtt",
+               "model_type": "dscformer",
+               "lr": 1e-5, "warmup_epochs": 2, "epochs": 50,
+               "kd_mode": "none",
+               "kd_init_from_teacher": "runs/dscformer_srl_G1_bgsplit/best.pt",
+               "no_curriculum": True,
+               "use_jtt": True,
+               "jtt_stage1_epochs": 10,
+               "jtt_upweight": 3.0,
+               "jtt_error_quantile": 0.2,
+               "group_sampler_mode": "random_replace",
+               "skip_test_eval": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+        "G3": {"name": "gr_g3_group_dro",
+               "model_type": "dscformer",
+               "lr": 1e-5, "warmup_epochs": 2, "epochs": 50,
+               "kd_mode": "none",
+               "kd_init_from_teacher": "runs/dscformer_srl_G1_bgsplit/best.pt",
+               "no_curriculum": True,
+               "use_group_dro": True,
+               "group_dro_eta": 0.1,
+               "group_dro_max_weight": 10.0,
+               "group_sampler_mode": "none",
+               "skip_test_eval": True,
+               "use_soft_curriculum": False, "use_softmax_sampling": False,
+               "use_dynamic_difficulty": False, "use_dynamic_loss_reweight": False,
+               "use_class_sampling_bonus": False, "use_class_loss_schedule": False,
+               "use_boundary_loss": False, "use_tversky_loss": False,
+               "use_cldice_loss": False, "use_srl_loss": False,
+               "use_soft_boundary_schedule": False},
+    }.items()},
 }
 
 

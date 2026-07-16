@@ -83,10 +83,12 @@ def load_bbox_mask(rel: str, target_h: int, target_w: int) -> np.ndarray:
 _TIER_MAP = {"Easy": 0, "Medium": 1, "Hard": 2}
 
 
-def build_records(train_files: List[str], root: Path) -> List[Dict]:
+def build_records(train_files: List[str], root: Path,
+                   group_map: Optional[Dict[str, int]] = None) -> List[Dict]:
     """Build per-sample metadata records from file list.
 
     Returns list of {"id": str, "rel": str, "tier": int, "has_spalling": bool}.
+    If group_map provided, also includes "group_id": int.
     """
     records = []
     for rel in train_files:
@@ -94,12 +96,15 @@ def build_records(train_files: List[str], root: Path) -> List[Dict]:
         tier = _TIER_MAP.get(prefix, 2)
         m = read_mask_rgb(mask_path(root, rel))
         has_spalling = bool((m[..., 2] > 127).any())
-        records.append({
+        rec = {
             "id": rel,
             "rel": rel,
             "tier": tier,
             "has_spalling": has_spalling,
-        })
+        }
+        if group_map is not None:
+            rec["group_id"] = group_map.get(rel, -1)
+        records.append(rec)
     return records
 
 
@@ -174,6 +179,8 @@ class FullMethodDataset(Dataset):
             "has_spalling": rec["has_spalling"],
             "rel": rec["rel"],
         }
+        if "group_id" in rec:
+            result["group_id"] = rec["group_id"]
 
         # Compute crack skeleton from the augmented mask for SRL.
         # Done post-augmentation so it matches the actual training mask.
@@ -216,4 +223,6 @@ def dict_collate(batch: List[Dict]) -> Dict:
         result["crack_skel"] = torch.stack([b["crack_skel"] for b in batch])
     if "bbox_mask" in batch[0]:
         result["bbox_mask"] = torch.stack([b["bbox_mask"] for b in batch])
+    if "group_id" in batch[0]:
+        result["group_id"] = [b["group_id"] for b in batch]
     return result
