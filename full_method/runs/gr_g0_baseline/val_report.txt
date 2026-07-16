@@ -1,0 +1,17 @@
+run: gr_g0_baseline
+best epoch: 1
+best val mIoU_fg: 0.6925804061317985
+val set metrics (best checkpoint):
+  BF1_crack: 0.7426284850637525
+  BF1_fg_mean: 0.6947798814459947
+  BF1_spalling: 0.6469312778282368
+  Dice_background: 0.9876555127911323
+  Dice_crack: 0.7243897632988976
+  Dice_spalling: 0.8994564147314601
+  IoU_background: 0.9756120819249924
+  IoU_crack: 0.5678770383438329
+  IoU_spalling: 0.8172837739197641
+  loss: 0.2532576318634184
+  mIoU_all: 0.7869242980628631
+  mIoU_fg: 0.6925804061317985
+  pixel_acc: 0.9764220474550388

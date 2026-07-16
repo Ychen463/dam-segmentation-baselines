@@ -1,0 +1,29 @@
+run: gr_g2_inverse_sqrt
+best epoch: 1
+best val mIoU_fg: 0.6923796137490675
+val set metrics (best checkpoint):
+  BF1_crack: 0.7430463937550522
+  BF1_fg_mean: 0.6960677801846393
+  BF1_spalling: 0.6490891666142266
+  Dice_background: 0.9877029538328264
+  Dice_crack: 0.7240931626386014
+  Dice_spalling: 0.8994339393499687
+  IoU_background: 0.975704668479013
+  IoU_crack: 0.5675125655224489
+  IoU_spalling: 0.8172466619756862
+  loss: 0.25356509163975716
+  mIoU_all: 0.7868212986590494
+  mIoU_fg: 0.6923796137490675
+  pixel_acc: 0.9765050235210649
+
+group robustness metrics:
+  avg_worst_gap: 0.3761154016430321
+  cvar20_mIoU_fg: 0.36824350567977815
+  eligible_worst_group_mIoU_fg: 0.3170180722891235
+  mean_mIoU_fg: 0.6183212978471568
+  n_groups_evaluated: 38
+  p10_mIoU_fg: 0.369902565471074
+  std_mIoU_fg: 0.16540355833307438
+  worst_crack_recall: 0.0
+  worst_group_mIoU_fg: 0.24220589620412475
+  worst_spalling_recall: 0.0
